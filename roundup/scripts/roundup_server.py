@@ -18,7 +18,7 @@
 # 
 """ HTTP Server that serves roundup.
 
-$Id: roundup_server.py,v 1.3 2002/02/21 06:57:39 richard Exp $
+$Id: roundup_server.py,v 1.4 2002/02/21 07:02:54 richard Exp $
 """
 
 # python version check
@@ -158,7 +158,7 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         env['SCRIPT_NAME'] = ''
         env['SERVER_NAME'] = self.server.server_name
         env['SERVER_PORT'] = str(self.server.server_port)
-        env['HOST'] = self.headers['host']
+        env['HTTP_HOST'] = self.headers['host']
 
         decoded_query = query.replace('+', ' ')
 
@@ -249,6 +249,9 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup_server.py,v $
+# Revision 1.4  2002/02/21 07:02:54  richard
+# The correct var is "HTTP_HOST"
+#
 # Revision 1.3  2002/02/21 06:57:39  richard
 #  . Added popup help for classes using the classhelp html template function.
 #    - add <display call="classhelp('priority', 'id,name,description')">

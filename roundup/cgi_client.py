@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.107 2002/02/21 06:57:38 richard Exp $
+# $Id: cgi_client.py,v 1.108 2002/02/21 07:02:54 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -57,7 +57,8 @@ class Client:
         machine = self.env['SERVER_NAME']
         port = self.env['SERVER_PORT']
         if port != '80': machine = machine + ':' + port
-        self.base = urlparse.urlunparse(('http', env['HOST'], url, None,None,None))
+        self.base = urlparse.urlunparse(('http', env['HTTP_HOST'], url,
+	    None, None, None))
 
         if form is None:
             self.form = cgi.FieldStorage(environ=env)
@@ -1324,6 +1325,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.108  2002/02/21 07:02:54  richard
+# The correct var is "HTTP_HOST"
+#
 # Revision 1.107  2002/02/21 06:57:38  richard
 #  . Added popup help for classes using the classhelp html template function.
 #    - add <display call="classhelp('priority', 'id,name,description')">
