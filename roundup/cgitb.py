@@ -1,7 +1,7 @@
 #
 # This module was written by Ka-Ping Yee, <ping@lfw.org>.
 # 
-# $Id: cgitb.py,v 1.9 2002/01/08 11:56:24 richard Exp $
+# $Id: cgitb.py,v 1.10 2002/01/16 04:49:45 richard Exp $
 
 __doc__ = """
 Extended CGI traceback handler by Ka-Ping Yee, <ping@lfw.org>.
@@ -50,7 +50,7 @@ def html(context=5):
 <table width="100%%" bgcolor="#d8bbff" cellspacing=0 cellpadding=2 border=0>
 <tr><td>%s %s</td></tr></table>''' % (link, call)
 
-        if file is None:
+        if index is None or file is None:
             traceback.append('<p>' + level)
             continue
 
@@ -124,6 +124,10 @@ def handler():
 
 #
 # $Log: cgitb.py,v $
+# Revision 1.10  2002/01/16 04:49:45  richard
+# Handle a special case that the CGI interface tickles. I need to check if
+# this needs fixing in python's core.
+#
 # Revision 1.9  2002/01/08 11:56:24  richard
 # missed an import _
 #
