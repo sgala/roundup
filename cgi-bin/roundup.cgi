@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.16 2001/11/01 22:04:37 richard Exp $
+# $Id: roundup.cgi,v 1.17 2001/11/06 21:51:19 richard Exp $
 
 # python version check
 import sys
@@ -68,7 +68,7 @@ class RequestWrapper:
         self.wfile.write('Status: %s\r\n'%code)
     def send_header(self, keyword, value):
         self.wfile.write("%s: %s\r\n" % (keyword, value))
-    def end_headers(self, keyword, value):
+    def end_headers(self):
         self.wfile.write("\r\n")
 
 def main(out, err):
@@ -100,6 +100,7 @@ def main(out, err):
         import urllib
         request.send_response(200)
         request.send_header('Content-Type', 'text/html')
+        request.end_headers()
         w = request.wfile.write
         w('<html><head><title>Roundup instances index</title></head>\n')
         w('<body><h1>Roundup instances index</h1><ol>\n')
@@ -127,6 +128,9 @@ sys.stdout, sys.stderr = out, err
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.17  2001/11/06 21:51:19  richard
+# Fixed HTTP headers for top-level index in CGI script
+#
 # Revision 1.16  2001/11/01 22:04:37  richard
 # Started work on supporting a pop3-fetching server
 # Fixed bugs:
