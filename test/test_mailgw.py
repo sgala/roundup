@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_mailgw.py,v 1.3 2002/01/14 02:20:15 richard Exp $
+# $Id: test_mailgw.py,v 1.4 2002/01/14 07:12:15 richard Exp $
 
 import unittest, cStringIO, tempfile, os, shutil, errno, imp, sys
 
@@ -152,8 +152,6 @@ This is a second followup
         handler = self.instance.MailGW(self.instance, self.db)
         # TODO: fix the damn config - this is apalling
         handler.main(message)
-        fname = 'fw2_%s.output'%self.count
-        open(fname,"w").write(open(os.environ['SENDMAILDEBUG']).read())
         self.assertEqual(open(os.environ['SENDMAILDEBUG']).read(),
 '''FROM: roundup-admin@fill.me.in.
 TO: chef@bork.bork.bork, richard@test
@@ -188,6 +186,9 @@ def suite():
 
 #
 # $Log: test_mailgw.py,v $
+# Revision 1.4  2002/01/14 07:12:15  richard
+# removed file writing from tests...
+#
 # Revision 1.3  2002/01/14 02:20:15  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
