@@ -1,7 +1,7 @@
-#$Id: bsddb.py,v 1.1 2001/07/23 06:23:41 richard Exp $
+#$Id: _anydbm.py,v 1.1 2001/07/23 07:15:57 richard Exp $
 
-import bsddb, os, cPickle
-import hyperdb, date
+import anydbm, os, cPickle
+from roundup import hyperdb, date
 
 #
 # Now the database
@@ -57,16 +57,16 @@ class Database(hyperdb.Database):
     def clear(self):
         for cn in self.classes.keys():
             db = os.path.join(self.dir, 'nodes.%s'%cn)
-            bsddb.btopen(db, 'n')
+            anydbm.open(db, 'n')
             db = os.path.join(self.dir, 'journals.%s'%cn)
-            bsddb.btopen(db, 'n')
+            anydbm.open(db, 'n')
 
     def getclassdb(self, classname, mode='r'):
         ''' grab a connection to the class db that will be used for
             multiple actions
         '''
         path = os.path.join(os.getcwd(), self.dir, 'nodes.%s'%classname)
-        return bsddb.btopen(path, mode)
+        return anydbm.open(path, mode)
 
     def addnode(self, classname, nodeid, node):
         ''' add the specified node to its class's db
@@ -118,7 +118,7 @@ class Database(hyperdb.Database):
             'retire' -- 'params' is None
         '''
         entry = (nodeid, date.Date(), self.journaltag, action, params)
-        db = bsddb.btopen(os.path.join(self.dir, 'journals.%s'%classname), 'c')
+        db = anydbm.open(os.path.join(self.dir, 'journals.%s'%classname), 'c')
         if db.has_key(nodeid):
             s = db[nodeid]
             l = cPickle.loads(db[nodeid])
@@ -131,14 +131,14 @@ class Database(hyperdb.Database):
     def getjournal(self, classname, nodeid):
         ''' get the journal for id
         '''
-        db = bsddb.btopen(os.path.join(self.dir, 'journals.%s'%classname), 'r')
+        db = anydbm.open(os.path.join(self.dir, 'journals.%s'%classname), 'r')
         res = cPickle.loads(db[nodeid])
         db.close()
         return res
 
     def close(self):
         ''' Close the Database - we must release the circular refs so that
-            we can be del'ed and the underlying bsddb connections closed
+            we can be del'ed and the underlying anydbm connections closed
             cleanly.
         '''
         self.classes = None
@@ -161,13 +161,8 @@ class Database(hyperdb.Database):
         '''
 
 #
-#$Log: bsddb.py,v $
-#Revision 1.1  2001/07/23 06:23:41  richard
-#moved hyper_bsddb.py to the new backends package as bsddb.py
+#$Log: _anydbm.py,v $
+#Revision 1.1  2001/07/23 07:15:57  richard
+#Moved the backends into the backends package. Anydbm hasn't been tested at all.
 #
-#Revision 1.2  2001/07/22 12:09:32  richard
-#Final commit of Grande Splite
-#
-#Revision 1.1  2001/07/22 11:58:35  richard
-#More Grande Splite
 #
