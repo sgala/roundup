@@ -1,4 +1,4 @@
-# $Id: date.py,v 1.7 2001/08/02 00:27:04 richard Exp $
+# $Id: date.py,v 1.8 2001/08/05 07:46:12 richard Exp $
 
 import time, re, calendar
 
@@ -140,8 +140,8 @@ class Date:
 
     def __str__(self):
         """Return this date as a string in the yyyy-mm-dd.hh:mm:ss format."""
-        return time.strftime('%Y-%m-%d.%T', (self.year, self.month, self.day,
-            self.hour, self.minute, self.second, 0, 0, 0))
+        return '%4d-%02d-%02d.%02d:%02d:%02d'%(self.year, self.month, self.day,
+            self.hour, self.minute, self.second)
 
     def pretty(self):
         ''' print up the date date using a pretty format...
@@ -363,6 +363,10 @@ if __name__ == '__main__':
 
 #
 # $Log: date.py,v $
+# Revision 1.8  2001/08/05 07:46:12  richard
+# Changed date.Date to use regular string formatting instead of strftime -
+# win32 seems to have problems with %T and no hour... or something...
+#
 # Revision 1.7  2001/08/02 00:27:04  richard
 # Extended the range of intervals that are pretty-printed before actual dates
 # are displayed.
