@@ -1,4 +1,4 @@
-# $Id: hyperdb.py,v 1.10 2001/07/30 02:38:31 richard Exp $
+# $iD: HYperdb.py,v 1.10 2001/07/30 02:38:31 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -119,7 +119,12 @@ class Class:
                 else:
                     raise ValueError, 'node with key "%s" exists'%value
 
-            prop = self.properties[key]
+            # try to handle this property
+            try:
+                prop = self.properties[key]
+            except KeyError:
+                raise KeyError, '"%s" has no property "%s"'%(self.classname,
+                    key)
 
             if prop.isLinkType:
                 if type(value) != type(''):
@@ -793,6 +798,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.11  2001/08/01 04:24:21  richard
+# mailgw was assuming certain properties existed on the issues being created.
+#
 # Revision 1.10  2001/07/30 02:38:31  richard
 # get() now has a default arg - for migration only.
 #
