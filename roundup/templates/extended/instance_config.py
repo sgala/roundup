@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.15 2002/05/02 07:56:34 richard Exp $
+# $Id: instance_config.py,v 1.16 2002/05/21 06:05:54 richard Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -169,8 +169,8 @@ UNASSIGNED_SUPPORT_INDEX = {
   },
 }
 
-# The "my issues" indexes -- note that the user's id will replace the None
-# valud of the "assignedto" filterspec
+# The "my issues" index -- note that the user's id will replace the
+# 'CURRENT USER' value of the "assignedto" filterspec
 MY_ISSUE_INDEX = {
   'LABEL': 'My Issues',
   'CLASS': 'issue',
@@ -180,7 +180,7 @@ MY_ISSUE_INDEX = {
   'COLUMNS': ['id','activity','title','creator','status'],
   'FILTERSPEC': {
     'status': ['-1', '1', '2', '3', '4', '5', '6', '7'],
-    'assignedto': None,
+    'assignedto': 'CURRENT USER',
   },
 }
 
@@ -193,12 +193,15 @@ MY_SUPPORT_INDEX = {
   'COLUMNS': ['id','activity','title','creator','status'],
   'FILTERSPEC': {
     'status': ['-1', '1', '2', '3', '4', '5', '6', '7'],
-    'assignedto': None,
+    'assignedto': 'CURRENT USER',
   },
 }
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.16  2002/05/21 06:05:54  richard
+#  . #551483 ] assignedto in Client.make_index_link
+#
 # Revision 1.15  2002/05/02 07:56:34  richard
 # . added option to automatically add the authors and recipients of messages
 #   to the nosy lists with the options ADD_AUTHOR_TO_NOSY (default 'new') and
