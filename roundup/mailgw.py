@@ -72,7 +72,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.28 2001/11/01 22:04:37 richard Exp $
+$Id: mailgw.py,v 1.29 2001/11/07 05:29:26 richard Exp $
 '''
 
 
@@ -152,10 +152,10 @@ class MailGW:
             m.append(s.getvalue())
             m.append('---- failed message follows ----')
             try:
-                fp.seek(0)
+                message.fp.seek(0)
             except:
                 pass
-            m.append(fp.read())
+            m.append(message.fp.read())
         if m:
             try:
                 smtp = smtplib.SMTP(self.MAILHOST)
@@ -449,6 +449,12 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.29  2001/11/07 05:29:26  richard
+# Modified roundup-mailgw so it can read e-mails from a local mail spool
+# file. Truncates the spool file after parsing.
+# Fixed a couple of small bugs introduced in roundup.mailgw when I started
+# the popgw.
+#
 # Revision 1.28  2001/11/01 22:04:37  richard
 # Started work on supporting a pop3-fetching server
 # Fixed bugs:
