@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: init.py,v 1.21 2002/08/16 04:25:03 richard Exp $
+# $Id: init.py,v 1.22 2002/09/05 23:39:12 richard Exp $
 
 __doc__ = """
 Init (create) a roundup instance.
@@ -89,6 +89,7 @@ def install(instance_home, template, backend):
     # first, copy the template dir over
     from roundup.templates import builder
 
+    # copy the roundup.templates.<template> package contents to the instance dir
     template_dir = os.path.split(__file__)[0]
     template_name = template
     template = os.path.join(template_dir, 'templates', template)
@@ -114,6 +115,12 @@ def initialise(instance_home, adminpw):
 
 #
 # $Log: init.py,v $
+# Revision 1.22  2002/09/05 23:39:12  richard
+# Fixed instance installation ... moved the htmlbase module into templates
+# and call it <template>_htmlbase.py ... no more try/except in instance __init__!
+# Added :required to form handling.
+# Handle multiple values for single form items with decent error report.
+#
 # Revision 1.21  2002/08/16 04:25:03  richard
 # cleanup: moved templatebuilder into templates.builder
 #

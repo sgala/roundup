@@ -15,18 +15,21 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.5 2001/08/07 00:24:43 richard Exp $
+# $Id: __init__.py,v 1.6 2002/09/05 23:39:14 richard Exp $
 
 import sys
 from instance_config import *
-try:
-    from dbinit import *
-except:
-    pass # in install dir (probably :)
+from dbinit import *
 from interfaces import *
 
 # 
 # $Log: __init__.py,v $
+# Revision 1.6  2002/09/05 23:39:14  richard
+# Fixed instance installation ... moved the htmlbase module into templates
+# and call it <template>_htmlbase.py ... no more try/except in instance __init__!
+# Added :required to form handling.
+# Handle multiple values for single form items with decent error report.
+#
 # Revision 1.5  2001/08/07 00:24:43  richard
 # stupid typo
 #
