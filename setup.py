@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# $Id: setup.py,v 1.11 2001/08/03 01:54:58 richard Exp $
+# $Id: setup.py,v 1.12 2001/08/03 02:51:06 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -8,9 +8,14 @@ from glob import glob
 import os
 from roundup.templatebuilder import makeHtmlBase
 
-print 'Running unit tests...'
-import test
-test.go()
+try:
+    import unittest
+except:
+    print 'Skipping unit tests (no unittest module found)'
+else:
+    print 'Running unit tests...'
+    import test
+    test.go()
 
 templates = 'classic', 'extended'
 packagelist = [ 'roundup', 'roundup.backends', 'roundup.templates' ]
@@ -36,6 +41,9 @@ setup ( name = "roundup",
 
 #
 # $Log: setup.py,v $
+# Revision 1.12  2001/08/03 02:51:06  richard
+# detect unit tests
+#
 # Revision 1.11  2001/08/03 01:54:58  richard
 # Started stuff off for the 0.2.5 release
 #
