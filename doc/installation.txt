@@ -2,7 +2,7 @@
 Installing Roundup
 ==================
 
-:Version: $Revision: 1.57 $
+:Version: $Revision: 1.55.2.1 $
 
 .. contents::
 
