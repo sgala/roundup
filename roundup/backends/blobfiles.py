@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: blobfiles.py,v 1.6 2002/07/09 03:02:52 richard Exp $
+#$Id: blobfiles.py,v 1.7 2002/07/14 06:14:40 richard Exp $
 '''
 This module exports file storage for roundup backends.
 Files are stored into a directory hierarchy.
@@ -37,10 +37,6 @@ def files_in_dir(dir):
 
 class FileStorage:
     """Store files in some directory structure"""
-# TODO: maybe set "files"
-#    def __init__(self):
-#        pass
-
     def filename(self, classname, nodeid, property=None):
         '''Determine what the filename for the given node and optionally 
            property is.
@@ -130,6 +126,9 @@ class FileStorage:
             os.remove(name+".tmp")
 
 # $Log: blobfiles.py,v $
+# Revision 1.7  2002/07/14 06:14:40  richard
+# Some more TODOs
+#
 # Revision 1.6  2002/07/09 03:02:52  richard
 # More indexer work:
 # - all String properties may now be indexed too. Currently there's a bit of
