@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.19 2002/01/14 02:20:15 richard Exp $
+# $Id: dbinit.py,v 1.20 2002/02/15 07:08:44 richard Exp $
 
 import os
 
@@ -63,7 +63,8 @@ def open(name=None):
     user = Class(db, "user", 
                     username=String(),   password=Password(),
                     address=String(),    realname=String(), 
-                    phone=String(),      organisation=String())
+                    phone=String(),      organisation=String(),
+                    alternate_addresses=String())
     user.setkey("username")
 
     msg = FileClass(db, "msg", 
@@ -173,6 +174,10 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.20  2002/02/15 07:08:44  richard
+#  . Alternate email addresses are now available for users. See the MIGRATION
+#    file for info on how to activate the feature.
+#
 # Revision 1.19  2002/01/14 02:20:15  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
