@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.74 2002/05/29 01:16:17 richard Exp $
+$Id: mailgw.py,v 1.75 2002/07/09 01:21:24 richard Exp $
 '''
 
 
@@ -128,6 +128,10 @@ class MailGW:
         self.instance = instance
         self.db = db
 
+        # should we trap exceptions (normal usage) or pass them through
+        # (for testing)
+        self.trapExceptions = 1
+
     def main(self, fp):
         ''' fp - the file from which to read the Message.
         '''
@@ -146,6 +150,8 @@ class MailGW:
         # its way into here... try to handle it gracefully
         sendto = message.getaddrlist('from')
         if sendto:
+            if not self.trapExceptions:
+                return self.handle_message(message)
             try:
                 return self.handle_message(message)
             except MailUsageHelp:
@@ -765,6 +771,10 @@ def parseContent(content, keep_citations, keep_body,
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.75  2002/07/09 01:21:24  richard
+# Added ability for unit tests to turn off exception handling in mailgw so
+# that exceptions are reported earlier (and hence make sense).
+#
 # Revision 1.74  2002/05/29 01:16:17  richard
 # Sorry about this huge checkin! It's fixing a lot of related stuff in one go
 # though.
