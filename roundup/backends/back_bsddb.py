@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.21 2002/09/03 07:33:01 richard Exp $
+#$Id: back_bsddb.py,v 1.22 2002/09/09 02:58:34 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in BSDDB.
 '''
@@ -49,7 +49,7 @@ class Database(Database):
         if os.path.exists(path):
             return bsddb.btopen(path, mode)
         else:
-            return bsddb.btopen(path, 'n')
+            return bsddb.btopen(path, 'c')
 
     def opendb(self, name, mode):
         '''Low-level database opener that gets around anydbm/dbm
@@ -131,6 +131,9 @@ class Database(Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.22  2002/09/09 02:58:34  richard
+#more 'n' -> 'c' :(
+#
 #Revision 1.21  2002/09/03 07:33:01  richard
 #allow overiding of the index args roundup/cgi/templating.py
 #

@@ -1,4 +1,4 @@
-#$Id: sessions.py,v 1.1 2002/07/30 08:22:38 richard Exp $
+#$Id: sessions.py,v 1.2 2002/09/09 02:58:35 richard Exp $
 '''
 This module defines a very basic store that's used by the CGI interface
 to store session information.
@@ -86,7 +86,7 @@ class Sessions:
 
         # new database? let anydbm pick the best dbm
         if not db_type:
-            return anydbm.open(path, 'n')
+            return anydbm.open(path, 'c')
 
         # open the database with the correct module
         dbm = __import__(db_type)
@@ -97,6 +97,9 @@ class Sessions:
 
 #
 #$Log: sessions.py,v $
+#Revision 1.2  2002/09/09 02:58:35  richard
+#more 'n' -> 'c' :(
+#
 #Revision 1.1  2002/07/30 08:22:38  richard
 #Session storage in the hyperdb was horribly, horribly inefficient. We use
 #a simple anydbm wrapper now - which could be overridden by the metakit
