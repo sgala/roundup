@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.56 2002/01/14 07:04:36 richard Exp $
+# $Id: htmltemplate.py,v 1.57 2002/01/14 23:31:21 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -86,15 +86,13 @@ class TemplateFunctions:
             linkcl = self.db.classes[propclass.classname]
             k = linkcl.labelprop()
             if value:
-                value = '<a href="%s%s">%s</a>'%(propclass.classname, value,
-                    linkcl.get(value, k))
+                value = linkcl.get(value, k)
             else:
                 value = _('[unselected]')
         elif isinstance(propclass, hyperdb.Multilink):
             linkcl = self.db.classes[propclass.classname]
             k = linkcl.labelprop()
-            value = ', '.join(['<a href="%s%s">%s</a>'%(propclass.classname,
-                i, linkcl.get(i, k)) for i in value])
+            value = ', '.join(value)
         else:
             s = _('Plain: bad propclass "%(propclass)s"')%locals()
         if escape:
@@ -886,6 +884,10 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.57  2002/01/14 23:31:21  richard
+# reverted the change that had plain() hyperlinking the link displays -
+# that's what link() is for!
+#
 # Revision 1.56  2002/01/14 07:04:36  richard
 #  . plain rendering of links in the htmltemplate now generate a hyperlink to
 #    the linked node's page.
