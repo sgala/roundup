@@ -16,14 +16,10 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.21 2001/12/02 05:06:16 richard Exp $
+# $Id: roundup.cgi,v 1.22 2001/12/13 00:20:01 richard Exp $
 
 # python version check
-import sys
-if not hasattr(sys, 'version_info') or sys.version_info[:2] < (2,1):
-    print "Content-Type: text/plain\n"
-    print "Roundup requires Python 2.1 or newer."
-    sys.exit(0)
+from roundup import version_check
 
 #
 ##  Configuration
@@ -200,6 +196,10 @@ LOG.close()
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.22  2001/12/13 00:20:01  richard
+#  . Centralised the python version check code, bumped version to 2.1.1 (really
+#    needs to be 2.1.2, but that isn't released yet :)
+#
 # Revision 1.21  2001/12/02 05:06:16  richard
 # . We now use weakrefs in the Classes to keep the database reference, so
 #   the close() method on the database is no longer needed.
