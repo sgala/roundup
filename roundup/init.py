@@ -4,7 +4,7 @@
 # under the same terms as Python, so long as this copyright message and
 # disclaimer are retained in their original form.
 #
-# IN NO EVENT SHALL THE BIZAR SOFTWARE PTY LTD BE LIABLE TO ANY PARTY FOR
+# IN NO EVENT SHALL BIZAR SOFTWARE PTY LTD BE LIABLE TO ANY PARTY FOR
 # DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
 # OUT OF THE USE OF THIS CODE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: init.py,v 1.14 2001/08/07 00:15:51 richard Exp $
+# $Id: init.py,v 1.15 2001/08/07 00:24:42 richard Exp $
 
 import os, shutil, sys, errno
 
@@ -103,6 +103,9 @@ from roundup.backends.back_%s import Database'''%backend
 
 #
 # $Log: init.py,v $
+# Revision 1.15  2001/08/07 00:24:42  richard
+# stupid typo
+#
 # Revision 1.14  2001/08/07 00:15:51  richard
 # Added the copyright/license notice to (nearly) all files at request of
 # Bizar Software.
