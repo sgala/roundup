@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# $Id: test_locking.py,v 1.1 2002/04/15 23:25:15 richard Exp $
+# $Id: test_locking.py,v 1.2 2002/09/10 00:19:54 richard Exp $
 
 import os, unittest, tempfile
 
@@ -48,14 +48,4 @@ def suite():
     return unittest.makeSuite(LockingTest)
 
 
-#
-# $Log: test_locking.py,v $
-# Revision 1.1  2002/04/15 23:25:15  richard
-# . node ids are now generated from a lockable store - no more race conditions
-#
-# We're using the portalocker code by Jonathan Feinberg that was contributed
-# to the ASPN Python cookbook. This gives us locking across Unix and Windows.
-#
-#
-#
 # vim: set filetype=python ts=4 sw=4 et si

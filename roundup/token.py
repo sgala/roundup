@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Id: token.py,v 1.2 2002/01/02 02:31:38 richard Exp $
+# $Id: token.py,v 1.3 2002/09/10 00:18:20 richard Exp $
 #
 
 __doc__ = """
@@ -111,27 +111,4 @@ def token_split(s, whitespace=' \r\n\t', quotes='\'"',
         pos = pos + 1
     return l
 
-#
-# $Log: token.py,v $
-# Revision 1.2  2002/01/02 02:31:38  richard
-# Sorry for the huge checkin message - I was only intending to implement #496356
-# but I found a number of places where things had been broken by transactions:
-#  . modified ROUNDUPDBSENDMAILDEBUG to be SENDMAILDEBUG and hold a filename
-#    for _all_ roundup-generated smtp messages to be sent to.
-#  . the transaction cache had broken the roundupdb.Class set() reactors
-#  . newly-created author users in the mailgw weren't being committed to the db
-#
-# Stuff that made it into CHANGES.txt (ie. the stuff I was actually working
-# on when I found that stuff :):
-#  . #496356 ] Use threading in messages
-#  . detectors were being registered multiple times
-#  . added tests for mailgw
-#  . much better attaching of erroneous messages in the mail gateway
-#
-# Revision 1.1  2001/12/31 05:09:20  richard
-# Added better tokenising to roundup-admin - handles spaces and stuff. Can
-# use quoting or backslashes. See the roundup.token pydoc.
-#
-#
-#
 # vim: set filetype=python ts=4 sw=4 et si

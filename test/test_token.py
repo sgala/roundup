@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_token.py,v 1.1 2001/12/31 05:09:20 richard Exp $
+# $Id: test_token.py,v 1.2 2002/09/10 00:19:55 richard Exp $
 
 import unittest, time
 
@@ -53,12 +53,4 @@ def suite():
    return unittest.makeSuite(TokenTestCase, 'test')
 
 
-#
-# $Log: test_token.py,v $
-# Revision 1.1  2001/12/31 05:09:20  richard
-# Added better tokenising to roundup-admin - handles spaces and stuff. Can
-# use quoting or backslashes. See the roundup.token pydoc.
-#
-#
-#
 # vim: set filetype=python ts=4 sw=4 et si
