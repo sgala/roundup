@@ -1,4 +1,4 @@
-# $Id: client.py,v 1.48 2002/09/27 01:04:38 richard Exp $
+# $Id: client.py,v 1.65.2.1 2003/01/15 22:38:14 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -48,23 +48,36 @@ def initialiseSecurity(security):
     security.addPermissionToRole('Admin', p)
 
 class Client:
-    '''
-    A note about login
-    ------------------
+    ''' Instantiate to handle one CGI request.
 
-    If the user has no login cookie, then they are anonymous. There
-    are two levels of anonymous use. If there is no 'anonymous' user, there
-    is no login at all and the database is opened in read-only mode. If the
-    'anonymous' user exists, the user is logged in using that user (though
-    there is no cookie). This allows them to modify the database, and all
-    modifications are attributed to the 'anonymous' user.
+    See inner_main for request processing.
 
-    Once a user logs in, they are assigned a session. The Client instance
-    keeps the nodeid of the session as the "session" attribute.
-
-    Client attributes:
+    Client attributes at instantiation:
         "path" is the PATH_INFO inside the instance (with no leading '/')
         "base" is the base URL for the instance
+        "form" is the cgi form, an instance of FieldStorage from the standard
+               cgi module
+        "additional_headers" is a dictionary of additional HTTP headers that
+               should be sent to the client
+        "response_code" is the HTTP response code to send to the client
+
+    During the processing of a request, the following attributes are used:
+        "error_message" holds a list of error messages
+        "ok_message" holds a list of OK messages
+        "session" is the current user session id
+        "user" is the current user's name
+        "userid" is the current user's id
+        "template" is the current :template context
+        "classname" is the current class context name
+        "nodeid" is the current context item id
+
+    User Identification:
+     If the user has no login cookie, then they are anonymous and are logged
+     in as that user. This typically gives them all Permissions assigned to the
+     Anonymous Role.
+
+     Once a user logs in, they are assigned a session. The Client instance
+     keeps the nodeid of the session as the "session" attribute.
     '''
 
     def __init__(self, instance, request, env, form=None):
@@ -134,7 +147,6 @@ class Client:
             - NotFound       (raised wherever it needs to be)
               percolates up to the CGI interface that called the client
         '''
-        self.content_action = None
         self.ok_message = []
         self.error_message = []
         try:
@@ -167,7 +179,10 @@ class Client:
         except SendStaticFile, file:
             self.serve_static_file(str(file))
         except Unauthorised, message:
-            self.write(self.renderTemplate('page', '', error_message=message))
+            self.classname=None
+            self.template=''
+            self.error_message.append(message)
+            self.write(self.renderContext())
         except NotFound:
             # pass through
             raise
@@ -298,6 +313,12 @@ class Client:
             # with only a class, we default to index view
             self.template = 'index'
 
+        # make sure the classname is valid
+        try:
+            self.db.getclass(self.classname)
+        except KeyError:
+            raise NotFound, self.classname
+
         # see if we have a template override
         if self.form.has_key(':template'):
             self.template = self.form[':template'].value
@@ -360,6 +381,7 @@ class Client:
         ('login',    'loginAction'),
         ('logout',   'logout_action'),
         ('search',   'searchAction'),
+        ('retire',   'retireAction'),
     )
     def handle_action(self):
         ''' Determine whether there should be an _action called.
@@ -373,7 +395,7 @@ class Client:
              "login"     -> self.loginAction
              "logout"    -> self.logout_action
              "search"    -> self.searchAction
-
+             "retire"    -> self.retireAction
         '''
         if not self.form.has_key(':action'):
             return None
@@ -510,7 +532,8 @@ class Client:
         # make sure we're allowed to be here
         if not self.loginPermission():
             self.make_user_anonymous()
-            raise Unauthorised, _("You do not have permission to login")
+            self.error_message.append(_("You do not have permission to login"))
+            return
 
         # now we're OK, re-open the database for real, using the user
         self.opendb(self.user)
@@ -521,7 +544,12 @@ class Client:
     def verifyPassword(self, userid, password):
         ''' Verify the password that the user has supplied
         '''
-        return password == self.db.user.get(self.userid, 'password')
+        stored = self.db.user.get(self.userid, 'password')
+        if password == stored:
+            return 1
+        if not password and not stored:
+            return 1
+        return 0
 
     def loginPermission(self):
         ''' Determine whether the user has permission to log in.
@@ -588,8 +616,8 @@ class Client:
         # re-open the database for real, using the user
         self.opendb(self.user)
 
-        # update the user's session
-        if self.session:
+        # if we have a session, update it
+        if hasattr(self, 'session'):
             self.db.sessions.set(self.session, user=self.user,
                 last_use=time.time())
         else:
@@ -635,6 +663,11 @@ class Client:
             :required=property,property,...
              The named properties are required to be filled in the form.
 
+            :remove:<propname>=id(s)
+             The ids will be removed from the multilink property.
+            :add:<propname>=id(s)
+             The ids will be added to the multilink property.
+
         '''
         cl = self.db.classes[self.classname]
 
@@ -658,7 +691,7 @@ class Client:
             props = self._changenode(props)
             # handle linked nodes 
             self._post_editnode(self.nodeid)
-        except (ValueError, KeyError), message:
+        except (ValueError, KeyError, IndexError), message:
             self.error_message.append(_('Error: ') + str(message))
             return
 
@@ -738,7 +771,19 @@ class Client:
         try:
             # do the create
             nid = self._createnode(props)
+        except (ValueError, KeyError, IndexError), message:
+            # these errors might just be indicative of user dumbness
+            self.error_message.append(_('Error: ') + str(message))
+            return
+        except:
+            # oops
+            self.db.rollback()
+            s = StringIO.StringIO()
+            traceback.print_exc(None, s)
+            self.error_message.append('<pre>%s</pre>'%cgi.escape(s.getvalue()))
+            return
 
+        try:
             # handle linked nodes 
             self._post_editnode(nid)
 
@@ -750,9 +795,6 @@ class Client:
 
             # and some nice feedback for the user
             message = _('%(classname)s created ok')%self.__dict__ + xtra
-        except (ValueError, KeyError), message:
-            self.error_message.append(_('Error: ') + str(message))
-            return
         except:
             # oops
             self.db.rollback()
@@ -928,33 +970,46 @@ class Client:
             return 0
         return 1
 
-    def remove_action(self,  dre=re.compile(r'([^\d]+)(\d+)')):
-        # XXX I believe this could be handled by a regular edit action that
-        # just sets the multilink...
-        target = self.index_arg(':target')[0]
-        m = dre.match(target)
-        if m:
-            classname = m.group(1)
-            nodeid = m.group(2)
-            cl = self.db.getclass(classname)
-            cl.retire(nodeid)
-            # now take care of the reference
-            parentref =  self.index_arg(':multilink')[0]
-            parent, prop = parentref.split(':')
-            m = dre.match(parent)
-            if m:
-                self.classname = m.group(1)
-                self.nodeid = m.group(2)
-                cl = self.db.getclass(self.classname)
-                value = cl.get(self.nodeid, prop)
-                value.remove(nodeid)
-                cl.set(self.nodeid, **{prop:value})
-                func = getattr(self, 'show%s'%self.classname)
-                return func()
-            else:
-                raise NotFound, parent
-        else:
-            raise NotFound, target
+    def retireAction(self):
+        ''' Retire the context item.
+        '''
+        # if we want to view the index template now, then unset the nodeid
+        # context info (a special-case for retire actions on the index page)
+        nodeid = self.nodeid
+        if self.template == 'index':
+            self.nodeid = None
+
+        # generic edit is per-class only
+        if not self.retirePermission():
+            self.error_message.append(
+                _('You do not have permission to retire %s' %self.classname))
+            return
+
+        # make sure we don't try to retire admin or anonymous
+        if self.classname == 'user' and \
+                self.db.user.get(nodeid, 'username') in ('admin', 'anonymous'):
+            self.error_message.append(
+                _('You may not retire the admin or anonymous user'))
+            return
+
+        # do the retire
+        self.db.getclass(self.classname).retire(nodeid)
+        self.db.commit()
+
+        self.ok_message.append(
+            _('%(classname)s %(itemid)s has been retired')%{
+                'classname': self.classname.capitalize(), 'itemid': nodeid})
+
+    def retirePermission(self):
+        ''' Determine whether the user has permission to retire this class.
+
+            Base behaviour is to check the user can edit this class.
+        ''' 
+        if not self.db.security.hasPermission('Edit', self.userid,
+                self.classname):
+            return 0
+        return 1
+
 
     #
     #  Utility methods for editing
@@ -1012,7 +1067,8 @@ class Client:
         # in a nutshell, don't do anything if there's no note or there's no
         # NOSY
         if self.form.has_key(':note'):
-            note = self.form[':note'].value.strip()
+            # fix the CRLF/CR -> LF stuff
+            note = fixNewlines(self.form[':note'].value.strip())
         if not note:
             return None, files
         if not props.has_key('messages'):
@@ -1084,12 +1140,28 @@ class Client:
                     link = self.db.classes[link]
                     link.set(nodeid, **{property: nid})
 
+def fixNewlines(text):
+    ''' Homogenise line endings.
+
+        Different web clients send different line ending values, but
+        other systems (eg. email) don't necessarily handle those line
+        endings. Our solution is to convert all line endings to LF.
+    '''
+    text = text.replace('\r\n', '\n')
+    return text.replace('\r', '\n')
+
 
 def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
     ''' Pull properties for the given class out of the form.
 
         If a ":required" parameter is supplied, then the names property values
         must be supplied or a ValueError will be raised.
+
+        Other special form values:
+         :remove:<propname>=id(s)
+          The ids will be removed from the multilink property.
+         :add:<propname>=id(s)
+          The ids will be added to the multilink property.
     '''
     required = []
     if form.has_key(':required'):
@@ -1103,52 +1175,84 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
     keys = form.keys()
     properties = cl.getprops()
     for key in keys:
-        if not properties.has_key(key):
+        # see if we're performing a special multilink action
+        mlaction = 'set'
+        if key.startswith(':remove:'):
+            propname = key[8:]
+            mlaction = 'remove'
+        elif key.startswith(':add:'):
+            propname = key[5:]
+            mlaction = 'add'
+        else:
+            propname = key
+
+        # does the property exist?
+        if not properties.has_key(propname):
+            if mlaction != 'set':
+                raise ValueError, 'You have submitted a %s action for'\
+                    ' the property "%s" which doesn\'t exist'%(mlaction,
+                    propname)
             continue
-        proptype = properties[key]
+        proptype = properties[propname]
 
         # Get the form value. This value may be a MiniFieldStorage or a list
         # of MiniFieldStorages.
         value = form[key]
 
-        # make sure non-multilinks only get one value
-        if not isinstance(proptype, hyperdb.Multilink):
+        # handle unpacking of the MiniFieldStorage / list form value
+        if isinstance(proptype, hyperdb.Multilink):
+            # multiple values are OK
+            if isinstance(value, type([])):
+                # it's a list of MiniFieldStorages
+                value = [i.value.strip() for i in value]
+            else:
+                # it's a MiniFieldStorage, but may be a comma-separated list
+                # of values
+                value = [i.strip() for i in value.value.split(',')]
+
+            # filter out the empty bits
+            value = filter(None, value)
+        else:
+            # multiple values are not OK
             if isinstance(value, type([])):
                 raise ValueError, 'You have submitted more than one value'\
-                    ' for the %s property'%key
+                    ' for the %s property'%propname
             # we've got a MiniFieldStorage, so pull out the value and strip
             # surrounding whitespace
             value = value.value.strip()
 
         if isinstance(proptype, hyperdb.String):
-            if not value:
-                continue
+            # fix the CRLF/CR -> LF stuff
+            value = fixNewlines(value)
         elif isinstance(proptype, hyperdb.Password):
             if not value:
                 # ignore empty password values
                 continue
-            if not form.has_key('%s:confirm'%key):
+            if not form.has_key('%s:confirm'%propname):
                 raise ValueError, 'Password and confirmation text do not match'
-            confirm = form['%s:confirm'%key]
+            confirm = form['%s:confirm'%propname]
             if isinstance(confirm, type([])):
                 raise ValueError, 'You have submitted more than one value'\
-                    ' for the %s property'%key
+                    ' for the %s property'%propname
             if value != confirm.value:
                 raise ValueError, 'Password and confirmation text do not match'
             value = password.Password(value)
         elif isinstance(proptype, hyperdb.Date):
             if value:
-                value = date.Date(form[key].value.strip())
+                value = date.Date(value)
             else:
-                continue
+                value = None
         elif isinstance(proptype, hyperdb.Interval):
             if value:
-                value = date.Interval(form[key].value.strip())
+                value = date.Interval(value)
             else:
-                continue
+                value = None
         elif isinstance(proptype, hyperdb.Link):
             # see if it's the "no selection" choice
-            if value == '-1':
+            if value == '-1' or not value:
+                # if we're creating, just don't include this property
+                if not nodeid:
+                    continue
                 value = None
             else:
                 # handle key values
@@ -1158,61 +1262,100 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
                         value = db.classes[link].lookup(value)
                     except KeyError:
                         raise ValueError, _('property "%(propname)s": '
-                            '%(value)s not a %(classname)s')%{'propname':key, 
-                            'value': value, 'classname': link}
+                            '%(value)s not a %(classname)s')%{
+                            'propname': propname, 'value': value,
+                            'classname': link}
                     except TypeError, message:
                         raise ValueError, _('you may only enter ID values '
                             'for property "%(propname)s": %(message)s')%{
-                            'propname':key, 'message': message}
+                            'propname': propname, 'message': message}
         elif isinstance(proptype, hyperdb.Multilink):
-            if isinstance(value, type([])):
-                # it's a list of MiniFieldStorages
-                value = [i.value.strip() for i in value]
-            else:
-                # it's a MiniFieldStorage, but may be a comma-separated list
-                # of values
-                value = [i.strip() for i in value.value.split(',')]
+            # perform link class key value lookup if necessary
             link = proptype.classname
+            link_cl = db.classes[link]
             l = []
-            for entry in map(str, value):
-                if entry == '': continue
+            for entry in value:
+                if not entry: continue
                 if not num_re.match(entry):
                     try:
-                        entry = db.classes[link].lookup(entry)
+                        entry = link_cl.lookup(entry)
                     except KeyError:
                         raise ValueError, _('property "%(propname)s": '
                             '"%(value)s" not an entry of %(classname)s')%{
-                            'propname':key, 'value': entry, 'classname': link}
+                            'propname': propname, 'value': entry,
+                            'classname': link}
                     except TypeError, message:
                         raise ValueError, _('you may only enter ID values '
                             'for property "%(propname)s": %(message)s')%{
-                            'propname':key, 'message': message}
+                            'propname': propname, 'message': message}
                 l.append(entry)
             l.sort()
-            value = l
+
+            # now use that list of ids to modify the multilink
+            if mlaction == 'set':
+                value = l
+            else:
+                # we're modifying the list - get the current list of ids
+                if props.has_key(propname):
+                    existing = props[propname]
+                elif nodeid:
+                    existing = cl.get(nodeid, propname, [])
+                else:
+                    existing = []
+
+                # now either remove or add
+                if mlaction == 'remove':
+                    # remove - handle situation where the id isn't in the list
+                    for entry in l:
+                        try:
+                            existing.remove(entry)
+                        except ValueError:
+                            raise ValueError, _('property "%(propname)s": '
+                                '"%(value)s" not currently in list')%{
+                                'propname': propname, 'value': entry}
+                else:
+                    # add - easy, just don't dupe
+                    for entry in l:
+                        if entry not in existing:
+                            existing.append(entry)
+                value = existing
+                value.sort()
+
         elif isinstance(proptype, hyperdb.Boolean):
-            props[key] = value = value.lower() in ('yes', 'true', 'on', '1')
+            value = value.lower() in ('yes', 'true', 'on', '1')
         elif isinstance(proptype, hyperdb.Number):
-            props[key] = value = int(value)
+            value = int(value)
 
         # register this as received if required?
-        if key in required and value is not None:
-            required.remove(key)
+        if propname in required and value is not None:
+            required.remove(propname)
 
         # get the old value
         if nodeid:
             try:
-                existing = cl.get(nodeid, key)
+                existing = cl.get(nodeid, propname)
             except KeyError:
                 # this might be a new property for which there is no existing
                 # value
-                if not properties.has_key(key): raise
+                if not properties.has_key(propname):
+                    raise
+
+            # existing may be None, which won't equate to empty strings
+            if not existing and not value:
+                continue
+
+            # existing will come out unsorted in some cases
+            if isinstance(proptype, hyperdb.Multilink):
+                existing.sort()
 
             # if changed, set it
             if value != existing:
-                props[key] = value
+                props[propname] = value
         else:
-            props[key] = value
+            # don't bother setting empty/unset values
+            if not value:
+                continue
+            props[propname] = value
 
     # see if all the required properties have been supplied
     if required:
@@ -1223,5 +1366,3 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
         raise ValueError, 'Required %s %s not supplied'%(p, ', '.join(required))
 
     return props
-
-
