@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.27 2002/07/14 02:05:54 richard Exp $ 
+# $Id: test_db.py,v 1.28 2002/07/14 02:16:29 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -457,19 +457,6 @@ class metakitDBTestCase(anydbmDBTestCase):
         self.db.file.create(name="test", type="text/plain", content="hi")
         self.db.rollback()
 
-    def testNewProperty(self):
-        ' make sure a new property is added ok '
-        self.db.issue.create(title="spam", status='1')
-        self.db.issue.addprop(fixer=Link("user"))
-        props = self.db.issue.getprops()
-        keys = props.keys()
-        keys.sort()
-        # metakit _base_ Class has the activity, creation and creator too
-        self.assertEqual(keys, ['activity', 'creation', 'creator',
-            'deadline', 'files', 'fixer', 'foo', 'id', 'nosy', 'status',
-            'title'])
-        self.assertEqual(self.db.issue.get('1', "fixer"), None)
-
 class metakitReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
     def setUp(self):
         from roundup.backends import metakit
@@ -517,6 +504,10 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.28  2002/07/14 02:16:29  richard
+# Fixes for the metakit backend (removed the cut-n-paste IssueClass, removed
+# a special case for it in testing)
+#
 # Revision 1.27  2002/07/14 02:05:54  richard
 # . all storage-specific code (ie. backend) is now implemented by the backends
 #
