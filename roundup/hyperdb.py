@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.17 2001/08/16 06:59:58 richard Exp $
+# $Id: hyperdb.py,v 1.18 2001/08/16 07:34:59 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -567,11 +567,11 @@ class Class:
                     u.append(entry)
                 l.append((1, k, u))
             elif isinstance(propclass, String):
-                if '*' in v or '?' in v:
-                    # simple glob searching
-                    v = v.replace('?', '.')
-                    v = v.replace('*', '.*?')
-                    l.append((2, k, re.compile(v, re.I)))
+                # simple glob searching
+                v = re.sub(r'([\|\{\}\\\.\+\[\]\(\)])', r'\\\1', v)
+                v = v.replace('?', '.')
+                v = v.replace('*', '.*?')
+                l.append((2, k, re.compile(v, re.I)))
             else:
                 l.append((6, k, v))
         filterspec = l
@@ -794,6 +794,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.18  2001/08/16 07:34:59  richard
+# better CGI text searching - but hidden filter fields are disappearing...
+#
 # Revision 1.17  2001/08/16 06:59:58  richard
 # all searches use re now - and they're all case insensitive
 #
