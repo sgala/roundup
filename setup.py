@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# $Id: setup.py,v 1.3 2001/07/27 06:56:25 richard Exp $
+# $Id: setup.py,v 1.4 2001/07/27 07:20:17 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -23,6 +23,7 @@ setup ( name = "roundup",
 	version = "0.2.0",
 	description = "roundup tracking system",
 	author = "Richard Jones",
+	author_email = "richard@sourceforge.net",
 	url = 'http://sourceforge.net/projects/roundup/',
 	packages = packagelist,
     scripts = ['roundup-admin', 'roundup-mailgw', 'roundup-server']
@@ -33,6 +34,9 @@ setup ( name = "roundup",
 
 #
 # $Log: setup.py,v $
+# Revision 1.4  2001/07/27 07:20:17  richard
+# Makefile is now obsolete - setup does what it used to do.
+#
 # Revision 1.3  2001/07/27 06:56:25  richard
 # Added scripts to the setup and added the config so the default script
 # install dir is /usr/local/bin.
