@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.36 2001/11/27 03:16:09 richard Exp $
+# $Id: hyperdb.py,v 1.37 2001/11/28 21:55:35 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -158,10 +158,12 @@ class Class:
                         value = self.db.classes[link_class].lookup(value)
                     except:
                         raise IndexError, 'new property "%s": %s not a %s'%(
-                            key, value, self.properties[key].classname)
-                propvalues[key] = value
-                if not self.db.hasnode(link_class, value):
+                            key, value, link_class)
+                elif not self.db.hasnode(link_class, value):
                     raise IndexError, '%s has no node %s'%(link_class, value)
+
+                # save off the value
+                propvalues[key] = value
 
                 # register the link with the newly linked node
                 self.db.addjournal(link_class, value, 'link',
@@ -867,6 +869,12 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.37  2001/11/28 21:55:35  richard
+#  . login_action and newuser_action return values were being ignored
+#  . Woohoo! Found that bloody re-login bug that was killing the mail
+#    gateway.
+#  (also a minor cleanup in hyperdb)
+#
 # Revision 1.36  2001/11/27 03:16:09  richard
 # Another place that wasn't handling missing properties.
 #

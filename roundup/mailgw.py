@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.36 2001/11/26 22:55:56 richard Exp $
+$Id: mailgw.py,v 1.37 2001/11/28 21:55:35 richard Exp $
 '''
 
 
@@ -354,6 +354,10 @@ Subject was: "%s"
         username = self.db.user.get(author, 'username')
         self.db.close()
         self.db = self.instance.open(username)
+
+        # re-get the class with the new database connection
+        cl = self.db.getclass(classname)
+
         # now update the recipients list
         recipients = []
         tracker_email = self.ISSUE_TRACKER_EMAIL.lower()
@@ -590,6 +594,12 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.37  2001/11/28 21:55:35  richard
+#  . login_action and newuser_action return values were being ignored
+#  . Woohoo! Found that bloody re-login bug that was killing the mail
+#    gateway.
+#  (also a minor cleanup in hyperdb)
+#
 # Revision 1.36  2001/11/26 22:55:56  richard
 # Feature:
 #  . Added INSTANCE_NAME to configuration - used in web and email to identify
