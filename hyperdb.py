@@ -1,4 +1,4 @@
-# $Id: hyperdb.py,v 1.5 2001/07/20 07:35:55 richard Exp $
+# $Id: hyperdb.py,v 1.6 2001/07/20 08:20:24 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -486,7 +486,7 @@ class Class:
                             entry = link_class.lookup(entry)
                         except:
                             raise ValueError, 'new property "%s": %s not a %s'%(
-                                key, entry, self.properties[key].classname)
+                                k, entry, self.properties[k].classname)
                     u.append(entry)
 
                 l.append((0, k, u))
@@ -502,7 +502,7 @@ class Class:
                             entry = link_class.lookup(entry)
                         except:
                             raise ValueError, 'new property "%s": %s not a %s'%(
-                                key, entry, self.properties[key].classname)
+                                k, entry, self.properties[k].classname)
                     u.append(entry)
                 l.append((1, k, u))
             elif propclass.isStringType:
@@ -737,6 +737,11 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.6  2001/07/20 08:20:24  richard
+# Fixed a bug in the filter - wrong variable names in the error message.
+# Recognised that the filter has an outstanding bug. Hrm. we need a bug tracker
+# for this project :)
+#
 # Revision 1.5  2001/07/20 07:35:55  richard
 # largish changes as a start of splitting off bits and pieces to allow more
 # flexible installation / database back-ends
