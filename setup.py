@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: setup.py,v 1.39 2002/09/23 08:17:50 richard Exp $
+# $Id: setup.py,v 1.41.2.1 2003/02/20 22:59:01 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -24,6 +24,12 @@ from distutils.command.build_scripts import build_scripts
 
 import sys, os, string
 from glob import glob
+
+# patch distutils if it can't cope with the "classifiers" keyword
+if sys.version < '2.2.3':
+    from distutils.dist import DistributionMetadata
+    DistributionMetadata.classifiers = None
+    DistributionMetadata.download_url = None
 
 from roundup.templates.builder import makeHtmlBase
 
@@ -85,8 +91,8 @@ class build_scripts_create(build_scripts):
             try:
                 if sys.platform == "win32":
                     file.write('@echo off\n'
-                        'if NOT "%%_4ver%%" == "" %(python)s -O -c "from %(package)s.scripts.%(module)s import run; run()" %%$\n'
-                        'if     "%%_4ver%%" == "" %(python)s -O -c "from %(package)s.scripts.%(module)s import run; run()" %%*\n'
+                        'if NOT "%%_4ver%%" == "" "%(python)s" -O -c "from %(package)s.scripts.%(module)s import run; run()" %%$\n'
+                        'if     "%%_4ver%%" == "" "%(python)s" -O -c "from %(package)s.scripts.%(module)s import run; run()" %%*\n'
                         % script_vars)
                 else:
                     file.write('#! %(python)s -O\n'
@@ -179,7 +185,24 @@ if __name__ == '__main__':
         author = "Richard Jones",
         author_email = "richard@users.sourceforge.net",
         url = 'http://sourceforge.net/projects/roundup/',
+        download_url = 'http://sourceforge.net/project/showfiles.php?group_id=31577',
         packages = packagelist,
+        classifiers = [
+            'Development Status :: 4 - Beta',
+            'Environment :: Console',
+            'Environment :: Web Environment',
+            'Intended Audience :: End Users/Desktop',
+            'Intended Audience :: Developers',
+            'Intended Audience :: System Administrators',
+            'License :: OSI Approved :: Python Software Foundation License',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX',
+            'Programming Language :: Python',
+            'Topic :: Communications :: Email',
+            'Topic :: Office/Business',
+            'Topic :: Software Development :: Bug Tracking',
+        ],
 
         # Override certain command classes with our own ones
         cmdclass = {
