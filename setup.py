@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# $Id: setup.py,v 1.6 2001/07/29 07:01:39 richard Exp $
+# $Id: setup.py,v 1.7 2001/07/29 08:37:58 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -19,17 +19,20 @@ for t in templates:
 
 
 setup ( name = "roundup", 
-	version = "0.2.1",
-	description = "Roundup issue tracking system.",
-	author = "Richard Jones",
-	author_email = "richard@sourceforge.net",
-	url = 'http://sourceforge.net/projects/roundup/',
-	packages = packagelist,
-    scripts = ['roundup-admin', 'roundup-mailgw', 'roundup-server']
+        version = "0.2.2",
+        description = "Roundup issue tracking system.",
+        author = "Richard Jones",
+        author_email = "richard@sourceforge.net",
+        url = 'http://sourceforge.net/projects/roundup/',
+        packages = packagelist,
+        scripts = ['roundup-admin', 'roundup-mailgw', 'roundup-server']
 )
 
 #
 # $Log: setup.py,v $
+# Revision 1.7  2001/07/29 08:37:58  richard
+# changes
+#
 # Revision 1.6  2001/07/29 07:01:39  richard
 # Added vim command to all source so that we don't get no steenkin' tabs :)
 #
