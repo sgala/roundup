@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.23 2002/08/30 08:30:45 richard Exp $
+# $Id: dbinit.py,v 1.24 2002/09/01 04:32:30 richard Exp $
 
 import os
 
@@ -111,6 +111,11 @@ def open(name=None):
     p = db.security.getPermission('Email Access')
     db.security.addPermissionToRole('User', p)
 
+    # May users view other user information? Comment these lines out
+    # if you don't want them to
+    p = db.security.getPermission('View', 'user')
+    db.security.addPermissionToRole('User', p)
+
     # Assign the appropriate permissions to the anonymous user's Anonymous
     # Role. Choices here are:
     # - Allow anonymous users to register through the web
@@ -185,6 +190,15 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.24  2002/09/01 04:32:30  richard
+# . Lots of cleanup in the classic html (stylesheet, search page, index page, ...)
+# . Reinstated searching, but not query saving yet
+# . Filtering only allows sorting and grouping by one property - all backends
+#   now implement this behaviour.
+# . Nosy list journalling turned off by default, everything else is on.
+# . Added some convenience methods (reverse, propchanged, [item] accesses, ...)
+# . Did I mention the stylesheet is much cleaner now? :)
+#
 # Revision 1.23  2002/08/30 08:30:45  richard
 # allow perms on user class
 #
