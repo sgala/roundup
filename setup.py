@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: setup.py,v 1.36 2002/08/16 04:25:01 richard Exp $
+# $Id: setup.py,v 1.37 2002/09/06 04:25:31 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -140,6 +140,10 @@ if __name__ == '__main__':
         glob(os.path.join('roundup', 'templates', '*'))))
     packagelist = [
         'roundup',
+        'roundup.cgi',
+        'roundup.cgi.PageTemplates',
+        'roundup.cgi.TAL',
+        'roundup.cgi.ZTUtils',
         'roundup.backends',
         'roundup.scripts',
         'roundup.templates'
@@ -189,6 +193,9 @@ if __name__ == '__main__':
 
 #
 # $Log: setup.py,v $
+# Revision 1.37  2002/09/06 04:25:31  richard
+# additional packages
+#
 # Revision 1.36  2002/08/16 04:25:01  richard
 # cleanup: moved templatebuilder into templates.builder
 #
