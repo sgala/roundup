@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_mailgw.py,v 1.1 2002/01/02 02:31:38 richard Exp $
+# $Id: test_mailgw.py,v 1.2 2002/01/11 23:22:29 richard Exp $
 
 import unittest, cStringIO, tempfile, os, shutil, errno, imp, sys
 
@@ -33,6 +33,8 @@ class MailgwTestCase(unittest.TestCase):
         self.db = self.instance.open('sekrit')
         self.db.user.create(username='Chef', address='chef@bork.bork.bork')
         self.db.user.create(username='richard', address='richard@test')
+        self.db.user.create(username='mary', address='mary@test')
+        self.db.user.create(username='john', address='john@test')
 
     def tearDown(self):
         if os.path.exists(os.environ['SENDMAILDEBUG']):
@@ -135,6 +137,46 @@ http://some.useful.url/issue1
 ___________________________________________________
 ''', 'Generated message not correct')
 
+    def testFollowup2(self):
+        self.testNewIssue()
+        message = cStringIO.StringIO('''Content-Type: text/plain;
+  charset="iso-8859-1"
+From: mary <mary@test>
+To: issue_tracker@fill.me.in.
+Message-Id: <followup_dummy_id>
+In-Reply-To: <dummy_test_message_id>
+Subject: [issue1] Testing...
+
+This is a second followup
+''')
+        handler = self.instance.MailGW(self.instance, self.db)
+        # TODO: fix the damn config - this is apalling
+        handler.main(message)
+        fname = 'fw2_%s.output'%self.count
+        open(fname,"w").write(open(os.environ['SENDMAILDEBUG']).read())
+        self.assertEqual(open(os.environ['SENDMAILDEBUG']).read(),
+'''FROM: roundup-admin@fill.me.in.
+TO: chef@bork.bork.bork, richard@test
+Content-Type: text/plain
+Subject: [issue1] Testing...
+To: chef@bork.bork.bork, richard@test
+From: mary <issue_tracker@fill.me.in.>
+Reply-To: Roundup issue tracker <issue_tracker@fill.me.in.>
+MIME-Version: 1.0
+Message-Id: <followup_dummy_id>
+In-Reply-To: <dummy_test_message_id>
+
+
+mary <mary@test> added the comment:
+
+This is a second followup
+
+___________________________________________________
+"Roundup issue tracker" <issue_tracker@fill.me.in.>
+http://some.useful.url/issue1
+___________________________________________________
+''', 'Generated message not correct')
+
 class ExtMailgwTestCase(MailgwTestCase):
     schema = 'extended'
 
@@ -146,6 +188,14 @@ def suite():
 
 #
 # $Log: test_mailgw.py,v $
+# Revision 1.2  2002/01/11 23:22:29  richard
+#  . #502437 ] rogue reactor and unittest
+#    in short, the nosy reactor was modifying the nosy list. That code had
+#    been there for a long time, and I suspsect it was there because we
+#    weren't generating the nosy list correctly in other places of the code.
+#    We're now doing that, so the nosy-modifying code can go away from the
+#    nosy reactor.
+#
 # Revision 1.1  2002/01/02 02:31:38  richard
 # Sorry for the huge checkin message - I was only intending to implement #496356
 # but I found a number of places where things had been broken by transactions:

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.96 2002/01/10 05:26:10 richard Exp $
+# $Id: cgi_client.py,v 1.97 2002/01/11 23:22:29 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -424,7 +424,7 @@ class Client:
         return cl.create(**props)
 
     def _handle_message(self):
-        ''' generate and edit message
+        ''' generate an edit message
         '''
         # handle file attachments 
         files = []
@@ -1178,6 +1178,14 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.97  2002/01/11 23:22:29  richard
+#  . #502437 ] rogue reactor and unittest
+#    in short, the nosy reactor was modifying the nosy list. That code had
+#    been there for a long time, and I suspsect it was there because we
+#    weren't generating the nosy list correctly in other places of the code.
+#    We're now doing that, so the nosy-modifying code can go away from the
+#    nosy reactor.
+#
 # Revision 1.96  2002/01/10 05:26:10  richard
 # missed a parsePropsFromForm in last update
 #
