@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.19 2001/08/29 04:47:18 richard Exp $
+# $Id: hyperdb.py,v 1.20 2001/10/04 02:12:42 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -200,6 +200,8 @@ class Class:
         for key, prop in self.properties.items():
             if propvalues.has_key(key):
                 continue
+            if key == self.key:
+                raise ValueError, 'key property "%s" is required'%key
             if isinstance(prop, Multilink):
                 propvalues[key] = []
             else:
@@ -734,10 +736,13 @@ class Class:
 
     # Manipulating properties:
 
-    def getprops(self):
-        """Return a dictionary mapping property names to property objects."""
+    def getprops(self, protected=1):
+        """Return a dictionary mapping property names to property objects.
+           If the "protected" flag is true, we include protected properties -
+           those which may not be modified."""
         d = self.properties.copy()
-        d['id'] = String()
+        if protected:
+            d['id'] = String()
         return d
 
     def addprop(self, **properties):
@@ -795,6 +800,14 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.20  2001/10/04 02:12:42  richard
+# Added nicer command-line item adding: passing no arguments will enter an
+# interactive more which asks for each property in turn. While I was at it, I
+# fixed an implementation problem WRT the spec - I wasn't raising a
+# ValueError if the key property was missing from a create(). Also added a
+# protected=boolean argument to getprops() so we can list only the mutable
+# properties (defaults to yes, which lists the immutables).
+#
 # Revision 1.19  2001/08/29 04:47:18  richard
 # Fixed CGI client change messages so they actually include the properties
 # changed (again).
