@@ -15,12 +15,12 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.7 2001/08/07 00:24:43 richard Exp $
+# $Id: __init__.py,v 1.8 2001/12/31 05:09:20 richard Exp $
 
 import unittest
 
 import test_dates, test_schema, test_db, test_multipart, test_mailsplit
-import test_init
+import test_init, test_token
 
 def go():
     suite = unittest.TestSuite((
@@ -30,12 +30,17 @@ def go():
         test_init.suite(),
         test_multipart.suite(),
         test_mailsplit.suite(),
+        test_token.suite(),
     ))
     runner = unittest.TextTestRunner()
     runner.run(suite)
 
 #
 # $Log: __init__.py,v $
+# Revision 1.8  2001/12/31 05:09:20  richard
+# Added better tokenising to roundup-admin - handles spaces and stuff. Can
+# use quoting or backslashes. See the roundup.token pydoc.
+#
 # Revision 1.7  2001/08/07 00:24:43  richard
 # stupid typo
 #
