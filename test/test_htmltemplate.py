@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_htmltemplate.py,v 1.13 2002/04/03 05:54:31 richard Exp $ 
+# $Id: test_htmltemplate.py,v 1.14 2002/05/15 06:37:31 richard Exp $ 
 
 import unittest, cgi, time
 
@@ -269,8 +269,9 @@ class NodeCase(unittest.TestCase):
 
     def testReldate_date(self):
         self.assertEqual(self.tf.do_reldate('reldate'), '- 2y 1m')
-        date = self.tf.cl.get('1', 'reldate')
-        self.assertEqual(self.tf.do_reldate('reldate', pretty=1), date.pretty())
+        interval = date.Interval('- 2y 1m')
+        self.assertEqual(self.tf.do_reldate('reldate', pretty=1),
+            interval.pretty())
 
 #    def do_download(self, property):
     def testDownload_novalue(self):
@@ -352,6 +353,9 @@ def suite():
 
 #
 # $Log: test_htmltemplate.py,v $
+# Revision 1.14  2002/05/15 06:37:31  richard
+# ehem and the unit test
+#
 # Revision 1.13  2002/04/03 05:54:31  richard
 # Fixed serialisation problem by moving the serialisation step out of the
 # hyperdb.Class (get, set) into the hyperdb.Database.
