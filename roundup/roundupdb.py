@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.36 2002/01/02 02:31:38 richard Exp $
+# $Id: roundupdb.py,v 1.37 2002/01/08 04:12:05 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -331,7 +331,7 @@ class IssueClass(Class):
         if not messageid:
             # this is an old message that didn't get a messageid, so
             # create one
-            messageid = "%s.%s.%s%s-%s"%(time.time(), random.random(),
+            messageid = "<%s.%s.%s%s@%s>"%(time.time(), random.random(),
                 self.classname, nodeid, self.MAIL_DOMAIN)
             messages.set(msgid, messageid=messageid)
 
@@ -530,6 +530,9 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.37  2002/01/08 04:12:05  richard
+# Changed message-id format to "<%s.%s.%s%s@%s>" so it complies with RFC822
+#
 # Revision 1.36  2002/01/02 02:31:38  richard
 # Sorry for the huge checkin message - I was only intending to implement #496356
 # but I found a number of places where things had been broken by transactions:

@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.47 2002/01/02 02:32:38 richard Exp $
+$Id: mailgw.py,v 1.48 2002/01/08 04:12:05 richard Exp $
 '''
 
 
@@ -427,7 +427,7 @@ Unknown address: %s
         inreplyto = message.getheader('in-reply-to') or ''
         # generate a messageid if there isn't one
         if not messageid:
-            messageid = "%s.%s.%s%s-%s"%(time.time(), random.random(),
+            messageid = "<%s.%s.%s%s@%s>"%(time.time(), random.random(),
                 classname, nodeid, self.MAIL_DOMAIN)
 
         #
@@ -708,6 +708,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.48  2002/01/08 04:12:05  richard
+# Changed message-id format to "<%s.%s.%s%s@%s>" so it complies with RFC822
+#
 # Revision 1.47  2002/01/02 02:32:38  richard
 # ANONYMOUS_ACCESS -> ANONYMOUS_REGISTER
 #
