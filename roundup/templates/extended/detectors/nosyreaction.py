@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: nosyreaction.py,v 1.3 2001/08/07 00:24:43 richard Exp $
+#$Id: nosyreaction.py,v 1.4 2001/10/30 00:54:45 richard Exp $
 
 def nosyreaction(db, cl, nodeid, oldvalues):
     ''' A standard detector is provided that watches for additions to the
@@ -58,16 +58,20 @@ def nosyreaction(db, cl, nodeid, oldvalues):
     n = {}
     for nosyid in nosy: n[nosyid] = 1
     change = 0
-    # but don't add admin to the nosy list
+    # but don't add admin or the anonymous user to the nosy list
     for msgid in messages:
         for recipid in db.msg.get(msgid, 'recipients'):
-            if recipid != '1' and not n.has_key(recipid):
-                change = 1
-                nosy.append(recipid)
-        authid = db.msg.get(msgid, 'author')
-        if authid != '1' and not n.has_key(authid):
+            if recipid == '1': continue
+            if n.has_key(recipid): continue
+            if db.user.get(recipid, 'username') == 'anonymous': continue
             change = 1
-            nosy.append(authid)
+            nosy.append(recipid)
+        authid = db.msg.get(msgid, 'author')
+        if authid == '1': continue
+        if n.has_key(authid): continue
+        if db.user.get(authid, 'username') == 'anonymous': continue
+        change = 1
+        nosy.append(authid)
     if change:
         cl.set(nodeid, nosy=nosy)
 
@@ -78,6 +82,12 @@ def init(db):
 
 #
 #$Log: nosyreaction.py,v $
+#Revision 1.4  2001/10/30 00:54:45  richard
+#Features:
+# . #467129 ] Lossage when username=e-mail-address
+# . #473123 ] Change message generation for author
+# . MailGW now moves 'resolved' to 'chatting' on receiving e-mail for an issue.
+#
 #Revision 1.3  2001/08/07 00:24:43  richard
 #stupid typo
 #
