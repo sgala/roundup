@@ -1,4 +1,4 @@
-#$Id: hyper_bsddb.py,v 1.1 2001/07/22 11:58:35 richard Exp $
+#$Id: hyper_bsddb.py,v 1.2 2001/07/22 12:09:32 richard Exp $
 
 import bsddb, os, cPickle
 import hyperdb, date
@@ -162,11 +162,9 @@ class Database(hyperdb.Database):
 
 #
 #$Log: hyper_bsddb.py,v $
+#Revision 1.2  2001/07/22 12:09:32  richard
+#Final commit of Grande Splite
+#
 #Revision 1.1  2001/07/22 11:58:35  richard
 #More Grande Splite
 #
-#Revision 1.1  2001/07/20 07:35:55  richard
-#largish changes as a start of splitting off bits and pieces to allow more
-#flexible installation / database back-ends
-#
-
