@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.12 2002/05/22 00:32:33 richard Exp $
+# $Id: __init__.py,v 1.13 2002/07/11 01:11:03 richard Exp $
 
 __all__ = []
 
@@ -54,8 +54,21 @@ else:
     bsddb3 = back_bsddb3
     __all__.append('bsddb3')
 
+try:
+    import metakit
+except ImportError, message:
+    if str(message) != 'No module named metakit': raise
+else:
+    import back_metakit
+    metakit = back_metakit
+    __all__.append('metakit')
+
 #
 # $Log: __init__.py,v $
+# Revision 1.13  2002/07/11 01:11:03  richard
+# Added metakit backend to the db tests and fixed the more easily fixable test
+# failures.
+#
 # Revision 1.12  2002/05/22 00:32:33  richard
 #  . changed the default message list in issues to display the message body
 #  . made backends.__init__ be more specific about which ImportErrors it really
