@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.16 2002/05/21 06:05:54 richard Exp $
+# $Id: instance_config.py,v 1.17 2002/05/22 00:32:34 richard Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -36,7 +36,7 @@ if not MAILHOST:
 
 # The domain name used for email addresses.
 if not MAIL_DOMAIN:
-    MAIL_DOMAIN = 'fill.me.in.'
+    MAIL_DOMAIN = 'your.tracker.email.domain.example'
 
 # the next two are only used for the standalone HTTP server.
 if not HTTP_HOST:
@@ -57,7 +57,7 @@ INSTANCE_NAME = 'Roundup issue tracker'
 ISSUE_TRACKER_EMAIL = 'issue_tracker@%s'%MAIL_DOMAIN
 
 # The web address that the instance is viewable at
-ISSUE_TRACKER_WEB = 'http://some.useful.url/'
+ISSUE_TRACKER_WEB = 'http://your.tracker.url.example/'
 
 # The email address that roundup will complain to if it runs into trouble
 ADMIN_EMAIL = 'roundup-admin@%s'%MAIL_DOMAIN
@@ -199,6 +199,15 @@ MY_SUPPORT_INDEX = {
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.17  2002/05/22 00:32:34  richard
+#  . changed the default message list in issues to display the message body
+#  . made backends.__init__ be more specific about which ImportErrors it really
+#    wants to ignore
+#  . fixed the example addresses in the templates to use correct example domains
+#  . cleaned out the template stylesheets, removing a bunch of junk that really
+#    wasn't necessary (font specs, styles never used) and added a style for
+#    message content
+#
 # Revision 1.16  2002/05/21 06:05:54  richard
 #  . #551483 ] assignedto in Client.make_index_link
 #
