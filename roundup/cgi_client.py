@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.39 2001/10/23 01:00:18 richard Exp $
+# $Id: cgi_client.py,v 1.40 2001/10/23 23:06:39 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback, mimetypes
 import base64, Cookie, time
@@ -644,7 +644,7 @@ class Client:
         # now figure which function to call
         path = self.split_path
         if not path or path[0] in ('', 'index'):
-            self.index()
+            return self.index()
         elif not path:
             raise 'ValueError', 'Path not understood'
 
@@ -656,30 +656,25 @@ class Client:
         # is correct, but doesn't actually use it.
         action = path[0]
         if action == 'login_action':
-            self.login_action()
-            return
+            return self.login_action()
 
         # make sure anonymous are allowed to register
         if self.ANONYMOUS_REGISTER == 'deny' and self.user is None:
             return self.login()
 
         if action == 'newuser_action':
-            self.newuser_action()
-            return
+            return self.newuser_action()
 
         # make sure totally anonymous access is OK
         if self.ANONYMOUS_ACCESS == 'deny' and self.user is None:
             return self.login()
 
         if action == 'list_classes':
-            self.classes()
-            return
+            return self.classes()
         if action == 'login':
-            self.login()
-            return
+            return self.login()
         if action == 'logout':
-            self.logout()
-            return
+            return self.logout()
         m = dre.match(action)
         if m:
             self.classname = m.group(1)
@@ -696,8 +691,7 @@ class Client:
                 func = getattr(self, 'show%s'%self.classname)
             except AttributeError:
                 raise NotFound
-            func()
-            return
+            return func()
         m = nre.match(action)
         if m:
             self.classname = m.group(1)
@@ -705,8 +699,7 @@ class Client:
                 func = getattr(self, 'new%s'%self.classname)
             except AttributeError:
                 raise NotFound
-            func()
-            return
+            return func()
         self.classname = action
         try:
             self.db.getclass(self.classname)
@@ -852,6 +845,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.40  2001/10/23 23:06:39  richard
+# Some cleanup.
+#
 # Revision 1.39  2001/10/23 01:00:18  richard
 # Re-enabled login and registration access after lopping them off via
 # disabling access for anonymous users.
