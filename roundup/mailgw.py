@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.80 2002/08/01 00:56:22 richard Exp $
+$Id: mailgw.py,v 1.81 2002/08/19 00:21:56 richard Exp $
 '''
 
 
@@ -102,10 +102,11 @@ def initialiseSecurity(security):
         This function is directly invoked by security.Security.__init__()
         as a part of the Security object instantiation.
     '''
-    newid = security.addPermission(name="Email Registration",
+    security.addPermission(name="Email Registration",
         description="Anonymous may register through e-mail")
-    security.addPermission(name="Email Access",
+    p = security.addPermission(name="Email Access",
         description="User may use the email interface")
+    security.addPermissionToRole('Admin', p)
 
 class Message(mimetools.Message):
     ''' subclass mimetools.Message so we can retrieve the parts of the
@@ -853,6 +854,9 @@ def parseContent(content, keep_citations, keep_body,
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.81  2002/08/19 00:21:56  richard
+# grant email access to admin too ;)
+#
 # Revision 1.80  2002/08/01 00:56:22  richard
 # Added the web access and email access permissions, so people can restrict
 # access to users who register through the email interface (for example).
