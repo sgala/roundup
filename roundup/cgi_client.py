@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.88 2002/01/02 02:31:38 richard Exp $
+# $Id: cgi_client.py,v 1.89 2002/01/07 20:24:45 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -433,7 +433,7 @@ class Client:
         props = cl.getprops()
         note = None
         # in a nutshell, don't do anything if there's no note or there's no
-        # nosy
+        # NOSY
         if self.form.has_key('__note'):
             note = self.form['__note'].value
         if not props.has_key('messages'):
@@ -458,8 +458,8 @@ class Client:
 
         # handle the messageid
         # TODO: handle inreplyto
-        messageid = "%s.%s.%s%s-%s"%(time.time(), random.random(),
-            classname, nodeid, self.MAIL_DOMAIN)
+        messageid = "%s.%s.%s-%s"%(time.time(), random.random(),
+            self.classname, self.MAIL_DOMAIN)
 
         # now create the message, attaching the files
         content = '\n'.join(m)
@@ -1168,6 +1168,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.89  2002/01/07 20:24:45  richard
+# *mutter* stupid cutnpaste
+#
 # Revision 1.88  2002/01/02 02:31:38  richard
 # Sorry for the huge checkin message - I was only intending to implement #496356
 # but I found a number of places where things had been broken by transactions:
