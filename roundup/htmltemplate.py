@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.99 2002/07/17 12:39:10 gmcm Exp $
+# $Id: htmltemplate.py,v 1.100 2002/07/18 07:01:54 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -354,7 +354,7 @@ class TemplateFunctions:
                     m = []
                     for propname in additional:
                         m.append(linkcl.get(optionid, propname))
-                    lab = lab + ' (%s)'%', '.join(m)
+                    lab = lab + ' (%s)'%', '.join(map(str, m))
                 lab = cgi.escape(lab)
                 l.append('<option %svalue="%s">%s</option>'%(s, optionid, lab))
             l.append('</select>')
@@ -1341,6 +1341,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.100  2002/07/18 07:01:54  richard
+# minor bugfix
+#
 # Revision 1.99  2002/07/17 12:39:10  gmcm
 # Saving, running & editing queries.
 #
