@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.28 2001/12/10 22:20:01 richard Exp $
+# $Id: roundupdb.py,v 1.29 2001/12/11 04:50:49 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -485,12 +485,15 @@ class IssueClass(Class):
                     change += ' -%s'%(', '.join(l))
             m.append('%s: %s'%(propname, change))
         if m:
-            m.insert(0, '')
             m.insert(0, '----------')
+            m.insert(0, '')
         return '\n'.join(m)
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.29  2001/12/11 04:50:49  richard
+# fixed the order of the blank line and '-------' line
+#
 # Revision 1.28  2001/12/10 22:20:01  richard
 # Enabled transaction support in the bsddb backend. It uses the anydbm code
 # where possible, only replacing methods where the db is opened (it uses the
