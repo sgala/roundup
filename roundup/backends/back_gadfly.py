@@ -1,4 +1,4 @@
-# $Id: back_gadfly.py,v 1.7 2002/09/01 04:32:30 richard Exp $
+# $Id: back_gadfly.py,v 1.8 2002/09/03 02:53:53 richard Exp $
 __doc__ = '''
 About Gadfly
 ============
@@ -1053,6 +1053,10 @@ class Class(hyperdb.Class):
             else:
                 return default
 
+        # don't pass our list to other code
+        if isinstance(prop, Multilink):
+            return d[propname][:]
+
         return d[propname]
 
     def getnode(self, nodeid, cache=1):
@@ -1750,6 +1754,9 @@ class IssueClass(Class, roundupdb.IssueClass):
 
 #
 # $Log: back_gadfly.py,v $
+# Revision 1.8  2002/09/03 02:53:53  richard
+# Fixed nasty bug that was preventing changes to multilinks going through.
+#
 # Revision 1.7  2002/09/01 04:32:30  richard
 # . Lots of cleanup in the classic html (stylesheet, search page, index page, ...)
 # . Reinstated searching, but not query saving yet

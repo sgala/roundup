@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.66 2002/09/01 04:32:30 richard Exp $
+#$Id: back_anydbm.py,v 1.67 2002/09/03 02:53:53 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -996,6 +996,10 @@ class Class(hyperdb.Class):
             else:
                 return default
 
+        # return a dupe of the list so code doesn't get confused
+        if isinstance(prop, Multilink):
+            return d[propname][:]
+
         return d[propname]
 
     # XXX not in spec
@@ -1901,6 +1905,9 @@ class IssueClass(Class, roundupdb.IssueClass):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.67  2002/09/03 02:53:53  richard
+#Fixed nasty bug that was preventing changes to multilinks going through.
+#
 #Revision 1.66  2002/09/01 04:32:30  richard
 #. Lots of cleanup in the classic html (stylesheet, search page, index page, ...)
 #. Reinstated searching, but not query saving yet
