@@ -1,3 +1,20 @@
+#
+# Copyright (c) 2001 Bizar Software Pty Ltd (http://www.bizarsoftware.com.au/)
+# This module is free software, and you may redistribute it and/or modify
+# under the same terms as Python, so long as this copyright message and
+# disclaimer are retained in their original form.
+#
+# IN NO EVENT SHALL THE BIZAR SOFTWARE PTY LTD BE LIABLE TO ANY PARTY FOR
+# DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
+# OUT OF THE USE OF THIS CODE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# BIZAR SOFTWARE PTY LTD SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE.  THE CODE PROVIDED HEREUNDER IS ON AN "AS IS"
+# BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
+# SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+# 
 '''
 An e-mail gateway for Roundup.
 
@@ -55,7 +72,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.8 2001/08/05 07:06:07 richard Exp $
+$Id: mailgw.py,v 1.9 2001/08/07 00:15:51 richard Exp $
 '''
 
 
@@ -317,6 +334,10 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.9  2001/08/07 00:15:51  richard
+# Added the copyright/license notice to (nearly) all files at request of
+# Bizar Software.
+#
 # Revision 1.8  2001/08/05 07:06:07  richard
 # removed some print statements
 #
