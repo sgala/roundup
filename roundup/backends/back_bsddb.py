@@ -1,4 +1,4 @@
-#$Id: _bsddb.py,v 1.1 2001/07/23 07:15:57 richard Exp $
+#$Id: back_bsddb.py,v 1.1 2001/07/23 07:22:13 richard Exp $
 
 import bsddb, os, cPickle
 from roundup import hyperdb, date
@@ -168,7 +168,11 @@ class Database(hyperdb.Database):
         '''
 
 #
-#$Log: _bsddb.py,v $
+#$Log: back_bsddb.py,v $
+#Revision 1.1  2001/07/23 07:22:13  richard
+#*sigh* some databases have _foo.so as their underlying implementation.
+#This time for sure, Rocky.
+#
 #Revision 1.1  2001/07/23 07:15:57  richard
 #Moved the backends into the backends package. Anydbm hasn't been tested at all.
 #
