@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_htmltemplate.py,v 1.18 2002/07/25 07:14:06 richard Exp $ 
+# $Id: test_htmltemplate.py,v 1.19 2002/07/26 08:27:00 richard Exp $ 
 
 import unittest, cgi, time, os, shutil
 
@@ -434,10 +434,8 @@ class IndexTemplateCase(unittest.TestCase):
         tf.props = ['title']
 
         # admin user
-        r = str(self.db.role.lookup('Admin'))
-        self.db.user.create(username="admin", roles=[r])
-        r = str(self.db.role.lookup('User'))
-        self.db.user.create(username="anonymous", roles=[r])
+        self.db.user.create(username="admin", roles='Admin')
+        self.db.user.create(username="anonymous", roles='User')
 
     def testBasic(self):
         self.assertEqual(self.tf.execute_template('hello'), 'hello')
@@ -503,10 +501,8 @@ class ItemTemplateCase(unittest.TestCase):
         tf.nodeid = self.db.issue.create(title="spam", status='1')
 
         # admin user
-        r = str(self.db.role.lookup('Admin'))
-        self.db.user.create(username="admin", roles=[r])
-        r = str(self.db.role.lookup('User'))
-        self.db.user.create(username="anonymous", roles=[r])
+        self.db.user.create(username="admin", roles='Admin')
+        self.db.user.create(username="anonymous", roles='User')
 
     def testBasic(self):
         self.assertEqual(self.tf.execute_template('hello'), 'hello')
@@ -549,6 +545,11 @@ def suite():
 
 #
 # $Log: test_htmltemplate.py,v $
+# Revision 1.19  2002/07/26 08:27:00  richard
+# Very close now. The cgi and mailgw now use the new security API. The two
+# templates have been migrated to that setup. Lots of unit tests. Still some
+# issue in the web form for editing Roles assigned to users.
+#
 # Revision 1.18  2002/07/25 07:14:06  richard
 # Bugger it. Here's the current shape of the new security implementation.
 # Still to do:

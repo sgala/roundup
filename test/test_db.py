@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.37 2002/07/25 07:14:06 richard Exp $ 
+# $Id: test_db.py,v 1.38 2002/07/26 08:27:00 richard Exp $ 
 
 import unittest, os, shutil, time
 
@@ -28,7 +28,7 @@ def setupSchema(db, create, module):
     status = module.Class(db, "status", name=String())
     status.setkey("name")
     user = module.Class(db, "user", username=String(), password=Password(),
-        assignable=Boolean(), age=Number(), roles=Multilink('role'))
+        assignable=Boolean(), age=Number(), roles=String())
     user.setkey("username")
     file = module.FileClass(db, "file", name=String(), type=String(),
         comment=String(indexme="yes"))
@@ -603,6 +603,11 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.38  2002/07/26 08:27:00  richard
+# Very close now. The cgi and mailgw now use the new security API. The two
+# templates have been migrated to that setup. Lots of unit tests. Still some
+# issue in the web form for editing Roles assigned to users.
+#
 # Revision 1.37  2002/07/25 07:14:06  richard
 # Bugger it. Here's the current shape of the new security implementation.
 # Still to do:

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.104 2002/07/25 07:14:05 richard Exp $
+# $Id: htmltemplate.py,v 1.105 2002/07/26 08:26:59 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -881,7 +881,7 @@ class TemplateFunctions:
         if d.has_key('permission'):
             l.remove(('permission', d['permission']))
             for value in d['permission'].split(','):
-                if security.hasClassPermission(self.classname, value, userid):
+                if security.hasPermission(value, userid, self.classname):
                     # just passing the permission is OK
                     return self.execute_template(ok)
 
@@ -1049,7 +1049,8 @@ class IndexTemplate(TemplateFunctions):
                         old_group = this_group
 
                 # display this node's row
-                w(replace.execute_template(template))
+                self.nodeid = nodeid
+                w(self.execute_template(template))
                 if matches:
                     self.node_matches(matches[nodeid], len(columns))
                 self.nodeid = None
@@ -1417,6 +1418,11 @@ class NewItemTemplate(ItemTemplate):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.105  2002/07/26 08:26:59  richard
+# Very close now. The cgi and mailgw now use the new security API. The two
+# templates have been migrated to that setup. Lots of unit tests. Still some
+# issue in the web form for editing Roles assigned to users.
+#
 # Revision 1.104  2002/07/25 07:14:05  richard
 # Bugger it. Here's the current shape of the new security implementation.
 # Still to do:
