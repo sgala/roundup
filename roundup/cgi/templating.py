@@ -84,13 +84,13 @@ class Templates:
                     extension, filename, generic)
             filename = generic
 
-        if self.templates.has_key(filename) and \
-                stime < self.templates[filename].mtime:
+        if self.templates.has_key(src) and \
+                stime < self.templates[src].mtime:
             # compiled template is up to date
-            return self.templates[filename]
+            return self.templates[src]
 
         # compile the template
-        self.templates[filename] = pt = RoundupPageTemplate()
+        self.templates[src] = pt = RoundupPageTemplate()
         pt.write(open(src).read())
         pt.id = filename
         pt.mtime = time.time()
@@ -126,19 +126,31 @@ class RoundupPageTemplate(PageTemplate.PageTemplate):
            - methods for easy filterspec link generation
            - *user*, the current user node as an HTMLItem instance
            - *form*, the current CGI form information as a FieldStorage
-        *tracker*
-          The current tracker
+        *config*
+          The current tracker config.
         *db*
-          The current database, through which db.config may be reached.
+          The current database, used to access arbitrary database items.
+        *utils*
+          This is a special class that has its base in the TemplatingUtils
+          class in this file. If the tracker interfaces module defines a
+          TemplatingUtils class then it is mixed in, overriding the methods
+          in the base class.
     '''
     def getContext(self, client, classname, request):
+        # construct the TemplatingUtils class
+        utils = TemplatingUtils
+        if hasattr(client.instance.interfaces, 'TemplatingUtils'):
+            class utils(client.instance.interfaces.TemplatingUtils, utils):
+                pass
+
         c = {
              'options': {},
              'nothing': None,
              'request': request,
              'db': HTMLDatabase(client),
+             'config': client.instance.config,
              'tracker': client.instance,
-             'utils': TemplatingUtils(client),
+             'utils': utils(client),
              'templates': Templates(client.instance.config.TEMPLATES),
         }
         # add in the item if there is one
@@ -489,7 +501,7 @@ class HTMLItem(HTMLPermissions):
         # XXX do this
         return []
 
-    def history(self, direction='descending'):
+    def history(self, direction='descending', dre=re.compile('\d+')):
         l = ['<table class="history">'
              '<tr><th colspan="4" class="header">',
              _('History'),
@@ -565,7 +577,8 @@ class HTMLItem(HTMLPermissions):
                                     # TODO: test for node existence even when
                                     # there's no labelprop!
                                     try:
-                                        if labelprop is not None:
+                                        if labelprop is not None and \
+                                                labelprop != 'id':
                                             label = linkcl.get(linkid, labelprop)
                                     except IndexError:
                                         comments['no_link'] = _('''<strike>The
@@ -576,6 +589,8 @@ class HTMLItem(HTMLPermissions):
                                         if hrefable:
                                             subml.append('<a href="%s%s">%s</a>'%(
                                                 classname, linkid, label))
+                                        else:
+                                            subml.append(label)
                                 ml.append(sublabel + ', '.join(subml))
                             cell.append('%s:\n  %s'%(k, ', '.join(ml)))
                         elif isinstance(prop, hyperdb.Link) and args[k]:
@@ -583,7 +598,7 @@ class HTMLItem(HTMLPermissions):
                             # if we have a label property, try to use it
                             # TODO: test for node existence even when
                             # there's no labelprop!
-                            if labelprop is not None:
+                            if labelprop is not None and labelprop != 'id':
                                 try:
                                     label = linkcl.get(args[k], labelprop)
                                 except IndexError:
@@ -628,6 +643,10 @@ class HTMLItem(HTMLPermissions):
                     handled by the history display!</em></strong>''')
                 arg_s = '<strong><em>' + str(args) + '</em></strong>'
             date_s = date_s.replace(' ', '&nbsp;')
+            # if the user's an itemid, figure the username (older journals
+            # have the username)
+            if dre.match(user):
+                user = self._db.user.get(user, 'username')
             l.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(
                 date_s, user, action, arg_s))
         if comments:
@@ -643,10 +662,12 @@ class HTMLItem(HTMLPermissions):
         # create a new request and override the specified args
         req = HTMLRequest(self._client)
         req.classname = self._klass.get(self._nodeid, 'klass')
-        req.updateFromURL(self._klass.get(self._nodeid, 'url'))
+        name = self._klass.get(self._nodeid, 'name')
+        req.updateFromURL(self._klass.get(self._nodeid, 'url') +
+            '&:queryname=%s'%urllib.quote(name))
 
         # new template, using the specified classname and request
-        pt = getTemplate(self._db.config.TEMPLATES, req.classname, 'search')
+        pt = Templates(self._db.config.TEMPLATES).get(req.classname, 'search')
 
         # use our fabricated request
         return pt.render(self._client, req.classname, req)
@@ -713,14 +734,46 @@ class HTMLProperty:
         return cmp(self._value, other)
 
 class StringHTMLProperty(HTMLProperty):
-    def plain(self, escape=0):
+    url_re = re.compile(r'\w{3,6}://\S+')
+    email_re = re.compile(r'\w+@[\w\.\-]+')
+    designator_re = re.compile(r'([a-z_]+)(\d+)')
+    def _url_repl(self, match):
+        s = match.group(0)
+        return '<a href="%s">%s</a>'%(s, s)
+    def _email_repl(self, match):
+        s = match.group(0)
+        return '<a href="mailto:%s">%s</a>'%(s, s)
+    def _designator_repl(self, match):
+        s = match.group(0)
+        s1 = match.group(1)
+        s2 = match.group(2)
+        try:
+            # make sure s1 is a valid tracker classname
+            self._db.getclass(s1)
+            return '<a href="%s">%s %s</a>'%(s, s1, s2)
+        except KeyError:
+            return '%s%s'%(s1, s2)
+
+    def plain(self, escape=0, hyperlink=0):
         ''' Render a "plain" representation of the property
+            
+            "escape" turns on/off HTML quoting
+            "hyperlink" turns on/off in-text hyperlinking of URLs, email
+                addresses and designators
         '''
         if self._value is None:
             return ''
         if escape:
-            return cgi.escape(str(self._value))
-        return str(self._value)
+            s = cgi.escape(str(self._value))
+        else:
+            s = str(self._value)
+        if hyperlink:
+            if not escape:
+                s = cgi.escape(s)
+            s = self.url_re.sub(self._url_repl, s)
+            s = self.email_re.sub(self._email_repl, s)
+            s = self.designator_re.sub(self._designator_repl, s)
+        return s
 
     def stext(self, escape=0):
         ''' Render the value of the property as StructuredText.
@@ -810,7 +863,7 @@ class BooleanHTMLProperty(HTMLProperty):
     def plain(self):
         ''' Render a "plain" representation of the property
         '''
-        if self.value is None:
+        if self._value is None:
             return ''
         return self._value and "Yes" or "No"
 
@@ -860,6 +913,22 @@ class DateHTMLProperty(HTMLProperty):
             return interval.pretty()
         return str(interval)
 
+    def pretty(self, format='%d %B %Y'):
+        ''' Render the date in a pretty format (eg. month names, spaces).
+
+            The format string is a standard python strftime format string.
+            Note that if the day is zero, and appears at the start of the
+            string, then it'll be stripped from the output. This is handy
+            for the situatin when a date only specifies a month and a year.
+        '''
+        return self._value.pretty()
+
+    def local(self, offset):
+        ''' Return the date/time as a local (timezone offset) date/time.
+        '''
+        return DateHTMLProperty(self._client, self._nodeid, self._prop,
+            self._name, self._value.local())
+
 class IntervalHTMLProperty(HTMLProperty):
     def plain(self):
         ''' Render a "plain" representation of the property
@@ -893,6 +962,13 @@ class LinkHTMLProperty(HTMLProperty):
         entry identified by the assignedto property on item, and then the
         name property of that user)
     '''
+    def __init__(self, *args):
+        HTMLProperty.__init__(self, *args)
+        # if we're representing a form value, then the -1 from the form really
+        # should be a None
+        if str(self._value) == '-1':
+            self._value = None
+
     def __getattr__(self, attr):
         ''' return a new HTMLItem '''
        #print 'Link.getattr', (self, attr, self._value)
@@ -934,6 +1010,11 @@ class LinkHTMLProperty(HTMLProperty):
         else:
             s = ''
         l.append(_('<option %svalue="-1">- no selection -</option>')%s)
+
+        # make sure we list the current value if it's retired
+        if self._value and self._value not in options:
+            options.insert(0, self._value)
+
         for optionid in options:
             # get the option value, and if it's None use an empty string
             option = linkcl.get(optionid, k) or ''
@@ -980,6 +1061,11 @@ class LinkHTMLProperty(HTMLProperty):
         else:  
             sort_on = ('+', linkcl.labelprop())
         options = linkcl.filter(None, conditions, sort_on, (None, None))
+
+        # make sure we list the current value if it's retired
+        if self._value and self._value not in options:
+            options.insert(0, self._value)
+
         for optionid in options:
             # get the option value, and if it's None use an empty string
             option = linkcl.get(optionid, k) or ''
@@ -1037,9 +1123,10 @@ class MultilinkHTMLProperty(HTMLProperty):
         return klass(self._client, self._prop.classname, value)
 
     def __contains__(self, value):
-        ''' Support the "in" operator
+        ''' Support the "in" operator. We have to make sure the passed-in
+            value is a string first, not a *HTMLProperty.
         '''
-        return value in self._value
+        return str(value) in self._value
 
     def reverse(self):
         ''' return the list in reverse order
@@ -1100,6 +1187,12 @@ class MultilinkHTMLProperty(HTMLProperty):
         height = height or min(len(options), 7)
         l = ['<select multiple name="%s" size="%s">'%(self._name, height)]
         k = linkcl.labelprop(1)
+
+        # make sure we list the current values if they're retired
+        for val in value:
+            if val not in options:
+                options.insert(0, val)
+
         for optionid in options:
             # get the option value, and if it's None use an empty string
             option = linkcl.get(optionid, k) or ''
@@ -1368,7 +1461,10 @@ env: %(env)s
             l.append(s%(':filter', ','.join(self.filter)))
         if filterspec:
             for k,v in self.filterspec.items():
-                l.append(s%(k, ','.join(v)))
+                if type(v) == type([]):
+                    l.append(s%(k, ','.join(v)))
+                else:
+                    l.append(s%(k, v))
         if self.search_text:
             l.append(s%(':search_text', self.search_text))
         l.append(s%(':pagesize', self.pagesize))
@@ -1396,7 +1492,10 @@ env: %(env)s
             l.append(':filter=%s'%(','.join(self.filter)))
         for k,v in self.filterspec.items():
             if not args.has_key(k):
-                l.append('%s=%s'%(k, ','.join(v)))
+                if type(v) == type([]):
+                    l.append('%s=%s'%(k, ','.join(v)))
+                else:
+                    l.append('%s=%s'%(k, v))
         if self.search_text and not args.has_key(':search_text'):
             l.append(':search_text=%s'%self.search_text)
         if not args.has_key(':pagesize'):

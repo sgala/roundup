@@ -2,7 +2,7 @@
 Customising Roundup
 ===================
 
-:Version: $Revision: 1.50 $
+:Version: $Revision: 1.68.2.1 $
 
 .. This document borrows from the ZopeBook section on ZPT. The original is at:
    http://www.zope.org/Documentation/Books/ZopeBook/current/ZPT.stx
@@ -13,6 +13,9 @@ Customising Roundup
 What You Can Do
 ===============
 
+Before you get too far, it's probably worth having a quick read of the Roundup
+`design documentation`_.
+
 Customisation of Roundup can take one of five forms:
 
 1. `tracker configuration`_ file changes
@@ -20,6 +23,7 @@ Customisation of Roundup can take one of five forms:
 3. "definition" class `database content`_ changes
 4. behavioural changes, through detectors_
 5. `access controls`_
+6. change the `web interface`_
 
 The third case is special because it takes two distinctly different forms
 depending upon whether the tracker has been initialised or not. The other two
@@ -48,18 +52,43 @@ html/               Web interface templates, images and style sheets
 Tracker Configuration
 =====================
 
-The config.py located in your tracker home contains the basic
-configuration for the web and e-mail components of roundup's interfaces. This
-file is a Python module. The configuration variables available are:
+The config.py located in your tracker home contains the basic configuration
+for the web and e-mail components of roundup's interfaces. As the name
+suggests, this file is a Python module. This means that any valid python
+expression may be used in the file. Mostly though, you'll be setting the
+configuration variables to string values. Python string values must be quoted
+with either single or double quotes::
+
+   'this is a string'
+   "this is also a string - use it when you have a 'single quote' in the value"
+   this is not a string - it's not quoted
+
+Python strings may use formatting that's almost identical to C string
+formatting. The ``%`` operator is used to perform the formatting, like so::
+
+    'roundup-admin@%s'%MAIL_DOMAIN
+
+this will create a string ``'roundup-admin@tracker.domain.example'`` if
+MAIL_DOMAIN is set to ``'tracker.domain.example'``.
+
+You'll also note some values are set to::
+
+   os.path.join(TRACKER_HOME, 'db')
+
+or similar. This creates a new string which holds the path to the "db"
+directory in the TRACKER_HOME directory. This is just a convenience so if the
+TRACKER_HOME changes you don't have to edit multiple valoues.
+
+The configuration variables available are:
 
 **TRACKER_HOME** - ``os.path.split(__file__)[0]``
  The tracker home directory. The above default code will automatically
- determine the tracker home for you.
+ determine the tracker home for you, so you can just leave it alone.
 
 **MAILHOST** - ``'localhost'``
  The SMTP mail host that roundup will use to send e-mail.
 
-**MAIL_DOMAIN** - ``'your.tracker.email.domain.example'``
+**MAIL_DOMAIN** - ``'tracker.domain.example'``
  The domain name used for email addresses.
 
 **DATABASE** - ``os.path.join(TRACKER_HOME, 'db')``
@@ -80,7 +109,9 @@ file is a Python module. The configuration variables available are:
 
 **TRACKER_WEB** - ``'http://your.tracker.url.example/'``
  The web address that the tracker is viewable at. This will be included in
- information sent to users of the tracker.
+ information sent to users of the tracker. The URL must include the cgi-bin
+ part or anything else that is required to get to the home page of the
+ tracker. You must include a trailing '/' in the URL.
 
 **ADMIN_EMAIL** - ``'roundup-admin@%s'%MAIL_DOMAIN``
  The email address that roundup will complain to if it runs into trouble.
@@ -190,44 +221,26 @@ tracker. The "classic" schema looks like this::
 
     pri = Class(db, "priority", name=String(), order=String())
     pri.setkey("name")
-    pri.create(name="critical", order="1")
-    pri.create(name="urgent", order="2")
-    pri.create(name="bug", order="3")
-    pri.create(name="feature", order="4")
-    pri.create(name="wish", order="5")
 
     stat = Class(db, "status", name=String(), order=String())
     stat.setkey("name")
-    stat.create(name="unread", order="1")
-    stat.create(name="deferred", order="2")
-    stat.create(name="chatting", order="3")
-    stat.create(name="need-eg", order="4")
-    stat.create(name="in-progress", order="5")
-    stat.create(name="testing", order="6")
-    stat.create(name="done-cbb", order="7")
-    stat.create(name="resolved", order="8")
 
     keyword = Class(db, "keyword", name=String())
     keyword.setkey("name")
 
-    user = Class(db, "user", username=String(), password=String(),
-        address=String(), realname=String(), phone=String(),
-        organisation=String())
+    user = Class(db, "user", username=String(), organisation=String(),
+        password=String(), address=String(), realname=String(), phone=String())
     user.setkey("username")
-    user.create(username="admin", password=adminpw,
-        address=config.ADMIN_EMAIL)
 
-    msg = FileClass(db, "msg", author=Link("user"), recipients=Multilink
-        ("user"), date=Date(), summary=String(), files=Multilink("file"))
+    msg = FileClass(db, "msg", author=Link("user"), summary=String(),
+        date=Date(), recipients=Multilink("user"), files=Multilink("file"))
 
     file = FileClass(db, "file", name=String(), type=String())
 
-    issue = IssueClass(db, "issue", assignedto=Link("user"),
-        topic=Multilink("keyword"), priority=Link("priority"), status=Link
-        ("status"))
+    issue = IssueClass(db, "issue", topic=Multilink("keyword"),
+        status=Link("status"), assignedto=Link("user"),
+        priority=Link("priority"))
     issue.setkey('title')
-
-XXX security definitions
 
 Classes and Properties - creating a new information store
 ---------------------------------------------------------
@@ -426,12 +439,166 @@ case though, so be careful to use the right one.
     the create() methods.
 
 **Changing content after tracker initialisation**
-    Use the roundup-admin interface's create, set and retire methods to add,
-    alter or remove items from the classes in question.
+    As the "admin" user, click on the "class list" link in the web interface
+    to bring up a list of all database classes. Click on the name of the class
+    you wish to change the content of.
 
+    You may also use the roundup-admin interface's create, set and retire
+    methods to add, alter or remove items from the classes in question.
 
 See "`adding a new field to the classic schema`_" for an example that requires
 database content changes.
+
+
+Access Controls
+===============
+
+A set of Permissions are built in to the security module by default:
+
+- Edit (everything)
+- View (everything)
+
+The default interfaces define:
+
+- Web Registration
+- Web Access
+- Web Roles
+- Email Registration
+- Email Access
+
+These are hooked into the default Roles:
+
+- Admin (Edit everything, View everything, Web Roles)
+- User (Web Access, Email Access)
+- Anonymous (Web Registration, Email Registration)
+
+And finally, the "admin" user gets the "Admin" Role, and the "anonymous" user
+gets the "Anonymous" assigned when the database is initialised on installation.
+The two default schemas then define:
+
+- Edit issue, View issue (both)
+- Edit file, View file (both)
+- Edit msg, View msg (both)
+- Edit support, View support (extended only)
+
+and assign those Permissions to the "User" Role. Put together, these settings
+appear in the ``open()`` function of the tracker ``dbinit.py`` (the following
+is taken from the "minimal" template ``dbinit.py``)::
+
+    #
+    # SECURITY SETTINGS
+    #
+    # new permissions for this schema
+    for cl in ('user', ):
+        db.security.addPermission(name="Edit", klass=cl,
+            description="User is allowed to edit "+cl)
+        db.security.addPermission(name="View", klass=cl,
+            description="User is allowed to access "+cl)
+
+    # and give the regular users access to the web and email interface
+    p = db.security.getPermission('Web Access')
+    db.security.addPermissionToRole('User', p)
+    p = db.security.getPermission('Email Access')
+    db.security.addPermissionToRole('User', p)
+
+    # May users view other user information? Comment these lines out
+    # if you don't want them to
+    p = db.security.getPermission('View', 'user')
+    db.security.addPermissionToRole('User', p)
+
+    # Assign the appropriate permissions to the anonymous user's Anonymous
+    # Role. Choices here are:
+    # - Allow anonymous users to register through the web
+    p = db.security.getPermission('Web Registration')
+    db.security.addPermissionToRole('Anonymous', p)
+    # - Allow anonymous (new) users to register through the email gateway
+    p = db.security.getPermission('Email Registration')
+    db.security.addPermissionToRole('Anonymous', p)
+
+
+New User Roles
+--------------
+
+New users are assigned the Roles defined in the config file as:
+
+- NEW_WEB_USER_ROLES
+- NEW_EMAIL_USER_ROLES
+
+
+Changing Access Controls
+------------------------
+
+You may alter the configuration variables to change the Role that new web or
+email users get, for example to not give them access to the web interface if
+they register through email. 
+
+You may use the ``roundup-admin`` "``security``" command to display the
+current Role and Permission configuration in your tracker.
+
+Adding a new Permission
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When adding a new Permission, you will need to:
+
+1. add it to your tracker's dbinit so it is created
+2. enable it for the Roles that should have it (verify with
+   "``roundup-admin security``")
+3. add it to the relevant HTML interface templates
+4. add it to the appropriate xxxPermission methods on in your tracker
+   interfaces module
+
+Example Scenarios
+~~~~~~~~~~~~~~~~~
+
+**automatic registration of users in the e-mail gateway**
+ By giving the "anonymous" user the "Email Registration" Role, any
+ unidentified user will automatically be registered with the tracker (with
+ no password, so they won't be able to log in through the web until an admin
+ sets them a password). Note: this is the default behaviour in the tracker
+ templates that ship with Roundup.
+
+**anonymous access through the e-mail gateway**
+ Give the "anonymous" user the "Email Access" and ("Edit", "issue") Roles
+ but not giving them the "Email Registration" Role. This means that when an
+ unknown user sends email into the tracker, they're automatically logged in
+ as "anonymous". Since they don't have the "Email Registration" Role, they
+ won't be automatically registered, but since "anonymous" has permission
+ to use the gateway, they'll still be able to submit issues. Note that the
+ Sender information - their email address - will not be available - they're
+ *anonymous*.
+
+**only developers may be assigned issues**
+ Create a new Permission called "Fixer" for the "issue" class. Create a new
+ Role "Developer" which has that Permission, and assign that to the
+ appropriate users. Filter the list of users available in the assignedto
+ list to include only those users. Enforce the Permission with an auditor. See
+ the example `restricting the list of users that are assignable to a task`_.
+
+**only managers may sign off issues as complete**
+ Create a new Permission called "Closer" for the "issue" class. Create a new
+ Role "Manager" which has that Permission, and assign that to the appropriate
+ users. In your web interface, only display the "resolved" issue state option
+ when the user has the "Closer" Permissions. Enforce the Permission with
+ an auditor. This is very similar to the previous example, except that the
+ web interface check would look like::
+
+   <option tal:condition="python:request.user.hasPermission('Closer')"
+           value="resolved">Resolved</option>
+ 
+**don't give users who register through email web access**
+ Create a new Role called "Email User" which has all the Permissions of the
+ normal "User" Role minus the "Web Access" Permission. This will allow users
+ to send in emails to the tracker, but not access the web interface.
+
+**let some users edit the details of all users**
+ Create a new Role called "User Admin" which has the Permission for editing
+ users::
+
+    db.security.addRole(name='User Admin', description='Managing users')
+    p = db.security.getPermission('Edit', 'user')
+    db.security.addPermissionToRole('User Admin', p)
+
+ and assign the Role to the users who need the permission.
 
 
 Web Interface
@@ -542,18 +709,21 @@ triggered by using a ``:action`` CGI variable, where the value is one of:
 
 **login**
  Attempt to log a user in.
+
 **logout**
  Log the user out - make them "anonymous".
+
 **register**
  Attempt to create a new user based on the contents of the form and then log
  them in.
+
 **edit**
  Perform an edit of an item in the database. There are some special form
  elements you may use:
 
  :link=designator:property and :multilink=designator:property
   The value specifies an item designator and the property on that
-  item to add _this_ item to as a link or multilink.
+  item to add *this* item to as a link or multilink.
  :note
   Create a message and attach it to the current item's
   "messages" property.
@@ -563,10 +733,19 @@ triggered by using a ``:action`` CGI variable, where the value is one of:
   the :note if it's supplied.
  :required=property,property,...
   The named properties are required to be filled in the form.
+ :remove:<propname>=id(s)
+  The ids will be removed from the multilink property. You may have multiple
+  :remove:<propname> form elements for a single <propname>.
+ :add:<propname>=id(s)
+  The ids will be added to the multilink property. You may have multiple
+  :add:<propname> form elements for a single <propname>.
 
 **new**
  Add a new item to the database. You may use the same special form elements
  as in the "edit" action.
+
+**retire**
+ Retire the item in the database.
 
 **editCSV**
  Performs an edit of all of a class' items in one go. See also the
@@ -777,9 +956,19 @@ forms:
    stringified. Path expressions may have an optional ``path:`` prefix, though
    they are the default expression type, so it's not necessary.
 
-   XXX | components of expressions
+   If an expression evaluates to ``default`` then the expression is
+   "cancelled" - whatever HTML already exists in the template will remain
+   (tag content in the case of tal:content, attributes in the case of
+   tal:attributes).
 
-   XXX "nothing" and "default"
+   If an expression evaluates to ``nothing`` then the target of the expression
+   is removed (tag content in the case of tal:content, attributes in the case
+   of tal:attributes and the tag itself in the case of tal:replace).
+
+   If an element in the path may not exist, then you can use the ``|``
+   operator in the expression to provide an alternative. So, the expression
+   ``request/form/foo/value | default`` would simply leave the current HTML
+   in place if the "foo" form variable doesn't exist.
 
 **String Expressions** - eg. ``string:hello ${user/name}``
    These expressions are simple string interpolations (though they can be just
@@ -862,7 +1051,6 @@ The following variables are available to templates.
   `hyperdb class wrapper`_ or a `hyperdb item wrapper`_
 **request**
   Includes information about the current request, including:
-   - the url
    - the current index information (``filterspec``, ``filter`` args,
      ``properties``, etc) parsed out of the form. 
    - methods for easy filterspec link generation
@@ -870,10 +1058,11 @@ The following variables are available to templates.
    - *form*
      The current CGI form information as a mapping of form argument
      name to value
-**tracker**
-  The current tracker
+**config**
+  This variable holds all the values defined in the tracker config.py file 
+  (eg. TRACKER_NAME, etc.)
 **db**
-  The current database, through which db.config may be reached.
+  The current database, used to access arbitrary database items.
 **templates**
   Access to all the tracker templates by name. Used mainly in *use-macro*
   commands.
@@ -1024,35 +1213,61 @@ The property wrapper has some useful attributes:
 Attribute       Description
 =============== =============================================================
 _name           the name of the property
-_value          the value of the property if any
+_value          the value of the property if any - this is the actual value
+                retrieved from the hyperdb for this property
 =============== =============================================================
 
 There are several methods available on these wrapper objects:
 
-=========== =================================================================
-Method      Description
-=========== =================================================================
-plain       render a "plain" representation of the property
-field       render a form edit field for the property
-stext       only on String properties - render the value of the
-            property as StructuredText (requires the StructureText module
-            to be installed separately)
-multiline   only on String properties - render a multiline form edit
-            field for the property
-email       only on String properties - render the value of the 
-            property as an obscured email address
-confirm     only on Password properties - render a second form edit field for
-            the property, used for confirmation that the user typed the
-            password correctly. Generates a field with name "name:confirm".
-reldate     only on Date properties - render the interval between the
-            date and now
-pretty      only on Interval properties - render the interval in a
-            pretty format (eg. "yesterday")
-menu        only on Link and Multilink properties - render a form select
-            list for this property
-reverse     only on Multilink properties - produce a list of the linked
-            items in reverse order
-=========== =================================================================
+========= =====================================================================
+Method    Description
+========= =====================================================================
+plain     render a "plain" representation of the property. This method may
+          take two arguments:
+
+          escape
+           If true, escape the text so it is HTML safe (default: no). The
+           reason this defaults to off is that text is usually escaped
+           at a later stage by the TAL commands, unless the "structure"
+           option is used in the template. The following are equivalent::
+
+            <p tal:content="structure python:msg.content.plain(escape=1)" />
+            <p tal:content="python:msg.content.plain()" />
+            <p tal:content="msg/content/plain" />
+            <p tal:content="msg/content" />
+
+          hyperlink
+           If true, turn URLs, email addresses and hyperdb item designators
+           in the text into hyperlinks (default: no). Note that you'll need
+           to use the "structure" TAL option if you want to use this::
+
+            <p tal:content="structure python:msg.content.plain(hyperlink=1)" />
+
+           Note also that the text is automatically HTML-escape before the
+           hyperlinking transformation.
+
+field     render an appropriate form edit field for the property - for most
+          types this is a text entry box, but for Booleans it's a tri-state
+          yes/no/neither selection.
+stext     only on String properties - render the value of the
+          property as StructuredText (requires the StructureText module
+          to be installed separately)
+multiline only on String properties - render a multiline form edit
+          field for the property
+email     only on String properties - render the value of the 
+          property as an obscured email address
+confirm   only on Password properties - render a second form edit field for
+          the property, used for confirmation that the user typed the
+          password correctly. Generates a field with name "name:confirm".
+reldate   only on Date properties - render the interval between the
+          date and now
+pretty    only on Interval properties - render the interval in a
+          pretty format (eg. "yesterday")
+menu      only on Link and Multilink properties - render a form select
+          list for this property
+reverse   only on Multilink properties - produce a list of the linked
+          items in reverse order
+========= =====================================================================
 
 The request variable
 ~~~~~~~~~~~~~~~~~~~~
@@ -1068,7 +1283,6 @@ Variable    Holds
 =========== =================================================================
 form        the CGI form as a cgi.FieldStorage
 env         the CGI environment variables
-url         the current URL path for this request
 base        the base URL for this tracker
 user        a HTMLUser instance for this user
 classname   the current classname (possibly None)
@@ -1171,13 +1385,20 @@ or the python expression::
 The utils variable
 ~~~~~~~~~~~~~~~~~~
 
-Note: this is implemented by the roundup.cgi.templating.TemplatingUtils class.
+Note: this is implemented by the roundup.cgi.templating.TemplatingUtils class,
+but it may be extended as described below.
 
 =============== =============================================================
 Method          Description
 =============== =============================================================
 Batch           return a batch object using the supplied list
 =============== =============================================================
+
+You may add additional utility methods by writing them in your tracker
+``interfaces.py`` module's ``TemplatingUtils`` class. See `adding a time log
+to your issues`_ for an example. The TemplatingUtils class itself will have a
+single attribute, ``client``, which may be used to access the ``client.db``
+when you need to perform arbitrary database queries.
 
 Batching
 ::::::::
@@ -1295,18 +1516,41 @@ by activity, arranged in descending order. The filter section shows filters for
 the "status" and "topic" properties, and the table includes columns for the
 "title", "status", and "fixer" properties.
 
-Filtering of indexes
-~~~~~~~~~~~~~~~~~~~~
-
-TODO
-
 Searching Views
 ---------------
 
-This is one of the class context views. The template used is typically
-"*classname*.search".
+Note: if you add a new column to the ``:columns`` form variable potentials
+      then you will need to add the column to the appropriate `index views`_
+      template so it is actually displayed.
 
-TODO
+This is one of the class context views. The template used is typically
+"*classname*.search". The form on this page should have "search" as its
+``:action`` variable. The "search" action:
+
+- sets up additional filtering, as well as performing indexed text searching
+- sets the ``:filter`` variable correctly
+- saves the query off if ``:query_name`` is set.
+
+The searching page should lay out any fields that you wish to allow the user
+to search one. If your schema contains a large number of properties, you
+should be wary of making all of those properties available for searching, as
+this can cause confusion. If the additional properties are Strings, consider
+having their value indexed, and then they will be searchable using the full
+text indexed search. This is both faster, and more useful for the end user.
+
+The two special form values on search pages which are handled by the "search"
+action are:
+
+:search_text
+  Text to perform a search of the text index with. Results from that search
+  will be used to limit the results of other filters (using an intersection
+  operation)
+:query_name
+  If supplied, the search parameters (including :search_text) will be saved
+  off as a the query item and registered against the user's queries property.
+  Note that the *classic* template schema has this ability, but the *minimal*
+  template schema does not.
+
 
 Item Views
 ----------
@@ -1421,90 +1665,69 @@ through the "journal" method of the item*::
 Defining new web actions
 ------------------------
 
-XXX
+You may define new actions to be triggered by the ``:action`` form variable.
+These are added to the tracker ``interfaces.py`` as methods on the ``Client``
+class. 
+
+Adding action methods takes three steps; first you `define the new action
+method`_, then you `register the action method`_ with the cgi interface so
+it may be triggered by the ``:action`` form variable. Finally you actually
+`use the new action`_ in your HTML form.
+
+See "`setting up a "wizard" (or "druid") for controlled adding of issues`_"
+for an example.
+
+Define the new action method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The action methods have the following interface::
+
+    def myActionMethod(self):
+        ''' Perform some action. No return value is required.
+        '''
+
+The *self* argument is an instance of your tracker ``instance.Client`` class - 
+thus it's mostly implemented by ``roundup.cgi.Client``. See the docstring of
+that class for details of what it can do.
+
+The method will typically check the ``self.form`` variable's contents. It
+may then:
+
+- add information to ``self.ok_message`` or ``self.error_message``
+- change the ``self.template`` variable to alter what the user will see next
+- raise Unauthorised, SendStaticFile, SendFile, NotFound or Redirect
+  exceptions
 
 
-Access Controls
-===============
+Register the action method
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A set of Permissions are built in to the security module by default:
+The method is now written, but isn't available to the user until you add it to
+the `instance.Client`` class ``actions`` variable, like so::
 
-- Edit (everything)
-- View (everything)
+    actions = client.Class.actions + (
+        ('myaction', 'myActionMethod'),
+    )
 
-The default interfaces define:
+This maps the action name "myaction" to the action method we defined.
 
-- Web Registration
-- Web Access
-- Web Roles
-- Email Registration
-- Email Access
 
-These are hooked into the default Roles:
+Use the new action
+~~~~~~~~~~~~~~~~~~
 
-- Admin (Edit everything, View everything, Web Roles)
-- User (Web Access, Email Access)
-- Anonymous (Web Registration, Email Registration)
+In your HTML form, add a hidden form element like so::
 
-And finally, the "admin" user gets the "Admin" Role, and the "anonymous" user
-gets the "Anonymous" assigned when the database is initialised on installation.
-The two default schemas then define:
+  <input type="hidden" name=":action" value="myaction">
 
-- Edit issue, View issue (both)
-- Edit file, View file (both)
-- Edit msg, View msg (both)
-- Edit support, View support (extended only)
-
-and assign those Permissions to the "User" Role. New users are assigned the
-Roles defined in the config file as:
-
-- NEW_WEB_USER_ROLES
-- NEW_EMAIL_USER_ROLES
-
-You may alter the configuration variables to change the Role that new web or
-email users get, for example to not give them access to the web interface if
-they register through email.
-
-You may use the ``roundup-admin`` "``security``" command to display the
-current Role and Permission configuration in your tracker.
-
-Adding a new Permission
------------------------
-
-When adding a new Permission, you will need to:
-
-1. add it to your tracker's dbinit so it is created
-2. enable it for the Roles that should have it (verify with
-   "``roundup-admin security``")
-3. add it to the relevant HTML interface templates
-4. add it to the appropriate xxxPermission methods on in your tracker
-   interfaces module
-
-Example Scenarios
------------------
-
-**automatic registration of users in the e-mail gateway**
- By giving the "anonymous" user the "Email Registration" Role, any
- unidentified user will automatically be registered with the tracker (with
- no password, so they won't be able to log in through the web until an admin
- sets them a password). Note: this is the default behaviour in the tracker
- templates that ship with Roundup.
-
-**anonymous access through the e-mail gateway**
- Give the "anonymous" user the "Email Access" and ("Edit", "issue") Roles
- but not giving them the "Email Registration" Role. This means that when an
- unknown user sends email into the tracker, they're automatically logged in
- as "anonymous". Since they don't have the "Email Registration" Role, they
- won't be automatically registered, but since "anonymous" has permission
- to use the gateway, they'll still be able to submit issues. Note that the
- Sender information - their email address - will not be available - they're
- *anonymous*.
-
-XXX more examples needed
+where "myaction" is the name you registered in the previous step.
 
 
 Examples
 ========
+
+.. contents::
+   :local:
+   :depth: 1
 
 Adding a new field to the classic schema
 ----------------------------------------
@@ -1918,8 +2141,10 @@ to.
 
      stat = Class(db, "status", ... , transitions=Multilink('status'), ...)
 
-   and then edit the statuses already created through the web using the
-   generic class list / CSV editor.
+   and then edit the statuses already created either:
+
+   a. through the web using the class list -> status class editor, or
+   b. using the roundup-admin "set" command.
 
 2. add an auditor module ``checktransition.py`` in your tracker's
    ``detectors`` directory::
@@ -1967,26 +2192,23 @@ to.
    which displays only the allowed status to transition to.
 
 
-Displaying entire message contents in the issue display
--------------------------------------------------------
+Displaying only message summaries in the issue display
+------------------------------------------------------
 
 Alter the issue.item template section for messages to::
 
  <table class="messages" tal:condition="context/messages">
-  <tr><th colspan=3 class="header">Messages</th></tr>
-  <tal:block tal:repeat="msg context/messages/reverse">
-   <tr>
-    <th><a tal:attributes="href string:msg${msg/id}"
-           tal:content="string:msg${msg/id}"></a></th>
-    <th tal:content="string:Author: ${msg/author}">author</th>
-    <th tal:content="string:Date: ${msg/date}">date</th>
-   </tr>
-   <tr>
-    <td colspan="3" class="content">
-     <pre tal:content="msg/content">content</pre>
-    </td>
-   </tr>
-  </tal:block>
+  <tr><th colspan=5 class="header">Messages</th></tr>
+  <tr tal:repeat="msg context/messages">
+   <td><a tal:attributes="href string:msg${msg/id}"
+          tal:content="string:msg${msg/id}"></a></td>
+   <td tal:content="msg/author">author</td>
+   <td nowrap tal:content="msg/date/pretty">date</td>
+   <td tal:content="msg/summary">summary</td>
+   <td>
+    <a tal:attributes="href string:?:remove:messages=${msg/id}&:action=edit">remove</a>
+   </td>
+  </tr>
  </table>
 
 Restricting the list of users that are assignable to a task
@@ -2100,8 +2322,8 @@ Setting up a "wizard" (or "druid") for controlled adding of issues
    encode those actions in methods on the interfaces Client class and insert
    hooks to those actions in the "actions" attribute on that class, like so::
 
-    actions = client.Class.actions + (
-        ('page1_submit', page1SubmitAction),
+    actions = client.Client.actions + (
+        ('page1_submit', 'page1SubmitAction'),
     )
 
     def page1SubmitAction(self):
@@ -2157,9 +2379,436 @@ matches.
 We also remove the redundant password fields from the ``user.item`` template.
 
 
+Adding a "vacation" flag to users for stopping nosy messages
+------------------------------------------------------------
+
+When users go on vacation and set up vacation email bouncing, you'll start to
+see a lot of messages come back through Roundup "Fred is on vacation". Not
+very useful, and relatively easy to stop.
+
+1. add a "vacation" flag to your users::
+
+         user = Class(db, "user",
+                    username=String(),   password=Password(),
+                    address=String(),    realname=String(),
+                    phone=String(),      organisation=String(),
+                    alternate_addresses=String(),
+                    roles=String(), queries=Multilink("query"),
+                    vacation=Boolean())
+
+2. edit your detector ``nosyreactor.py`` so that the ``nosyreaction()``
+   consists of::
+
+    def nosyreaction(db, cl, nodeid, oldvalues):
+        # send a copy of all new messages to the nosy list
+        for msgid in determineNewMessages(cl, nodeid, oldvalues):
+            try:
+                users = db.user
+                messages = db.msg
+
+                # figure the recipient ids
+                sendto = []
+                r = {}
+                recipients = messages.get(msgid, 'recipients')
+                for recipid in messages.get(msgid, 'recipients'):
+                    r[recipid] = 1
+
+                # figure the author's id, and indicate they've received the
+                # message
+                authid = messages.get(msgid, 'author')
+
+                # possibly send the message to the author, as long as they aren't
+                # anonymous
+                if (db.config.MESSAGES_TO_AUTHOR == 'yes' and
+                        users.get(authid, 'username') != 'anonymous'):
+                    sendto.append(authid)
+                r[authid] = 1
+
+                # now figure the nosy people who weren't recipients
+                nosy = cl.get(nodeid, 'nosy')
+                for nosyid in nosy:
+                    # Don't send nosy mail to the anonymous user (that user
+                    # shouldn't appear in the nosy list, but just in case they
+                    # do...)
+                    if users.get(nosyid, 'username') == 'anonymous':
+                        continue
+                    # make sure they haven't seen the message already
+                    if not r.has_key(nosyid):
+                        # send it to them
+                        sendto.append(nosyid)
+                        recipients.append(nosyid)
+
+                # generate a change note
+                if oldvalues:
+                    note = cl.generateChangeNote(nodeid, oldvalues)
+                else:
+                    note = cl.generateCreateNote(nodeid)
+
+                # we have new recipients
+                if sendto:
+                    # filter out the people on vacation
+                    sendto = [i for i in sendto if not users.get(i, 'vacation', 0)]
+
+                    # map userids to addresses
+                    sendto = [users.get(i, 'address') for i in sendto]
+
+                    # update the message's recipients list
+                    messages.set(msgid, recipients=recipients)
+
+                    # send the message
+                    cl.send_message(nodeid, msgid, note, sendto)
+            except roundupdb.MessageSendError, message:
+                raise roundupdb.DetectorError, message
+
+   Note that this is the standard nosy reaction code, with the small addition
+   of::
+
+    # filter out the people on vacation
+    sendto = [i for i in sendto if not users.get(i, 'vacation', 0)]
+
+   which filters out the users that have the vacation flag set to true.
+
+
+Adding a time log to your issues
+--------------------------------
+
+We want to log the dates and amount of time spent working on issues, and be
+able to give a summary of the total time spent on a particular issue.
+
+1. Add a new class to your tracker ``dbinit.py``::
+
+    # storage for time logging
+    timelog = Class(db, "timelog", period=Interval())
+
+   Note that we automatically get the date of the time log entry creation
+   through the standard property "creation".
+
+2. Link to the new class from your issue class (again, in ``dbinit.py``)::
+
+    issue = IssueClass(db, "issue", 
+                    assignedto=Link("user"), topic=Multilink("keyword"),
+                    priority=Link("priority"), status=Link("status"),
+                    times=Multilink("timelog"))
+
+   the "times" property is the new link to the "timelog" class.
+
+3. We'll need to let people add in times to the issue, so in the web interface
+   we'll have a new entry field, just below the change note box::
+
+    <tr>
+     <th nowrap>Time Log</th>
+     <td colspan=3><input name=":timelog">
+      (enter as "3y 1m 4d 2:40:02" or parts thereof)
+     </td>
+    </tr>
+
+   Note that we've made up a new form variable, but since we place a colon ":"
+   in front of it, it won't clash with any existing property variables. The
+   names you *can't* use are ``:note``, ``:file``, ``:action``, ``:required``
+   and ``:template``. These variables are described in the section
+   `performing actions in web requests`_.
+
+4. We also need to handle this new field in the CGI interface - the way to
+   do this is through implementing a new form action (see `Setting up a
+   "wizard" (or "druid") for controlled adding of issues`_ for another example
+   where we implemented a new CGI form action).
+
+   In this case, we'll want our action to:
+
+   1. create a new "timelog" entry,
+   2. fake that the issue's "times" property has been edited, and then
+   3. call the normal CGI edit action handler.
+
+   The code to do this is::
+
+    actions = client.Client.actions + (
+        ('edit_with_timelog', 'timelogEditAction'),
+    )
+
+    def timelogEditAction(self):
+        ''' Handle the creation of a new time log entry if necessary.
+
+            If we create a new entry, fake up a CGI form value for the altered
+            "times" property of the issue being edited.
+
+            Punt to the regular edit action when we're done.
+        '''
+        # if there's a timelog value specified, create an entry
+        if self.form.has_key(':timelog') and \
+                self.form[':timelog'].value.strip():
+            period = Interval(self.form[':timelog'].value)
+            # create it
+            newid = self.db.timelog.create(period=period)
+
+            # if we're editing an existing item, get the old timelog value
+            if self.nodeid:
+                l = self.db.issue.get(self.nodeid, 'times')
+                l.append(newid)
+            else:
+                l = [newid]
+
+            # now make the fake CGI form values
+            for entry in l:
+                self.form.list.append(MiniFieldStorage('times', entry))
+
+        # punt to the normal edit action
+        return self.editItemAction()
+
+   you add this code to your Client class in your tracker's ``interfaces.py``
+   file.
+
+5. You'll also need to modify your ``issue.item`` form submit action so it
+   calls the time logging action we just created::
+
+    <tr>
+     <td>&nbsp;</td>
+     <td colspan=3>
+      <tal:block tal:condition="context/id">
+        <input type="hidden" name=":action" value="edit_with_timelog">
+        <input type="submit" name="submit" value="Submit Changes">
+      </tal:block>
+      <tal:block tal:condition="not:context/id">
+        <input type="hidden" name=":action" value="new">
+        <input type="submit" name="submit" value="Submit New Issue">
+      </tal:block>
+     </td>
+    </tr>
+
+   Note that the "context/submit" command usually handles all that for you -
+   isn't it handy? The important change is setting the action to
+   "edit_with_timelog" for edit operations (where the item exists)
+
+6. We want to display a total of the time log times that have been accumulated
+   for an issue. To do this, we'll need to actually write some Python code,
+   since it's beyond the scope of PageTemplates to perform such calculations.
+   We do this by adding a method to the TemplatingUtils class in our tracker
+   ``interfaces.py`` module::
+
+
+    class TemplatingUtils:
+        ''' Methods implemented on this class will be available to HTML
+            templates through the 'utils' variable.
+        '''
+        def totalTimeSpent(self, times):
+            ''' Call me with a list of timelog items (which have an Interval 
+                "period" property)
+            '''
+            total = Interval('')
+            for time in times:
+                total += time.period._value
+            return total
+
+   As indicated in the docstrings, we will be able to access the
+   ``totalTimeSpent`` method via the ``utils`` variable in our templates. See
+
+7. Display the time log for an issue::
+
+     <table class="otherinfo" tal:condition="context/times">
+      <tr><th colspan="3" class="header">Time Log
+       <tal:block tal:replace="python:utils.totalTimeSpent(context.times)" />
+      </th></tr>
+      <tr><th>Date</th><th>Period</th><th>Logged By</th></tr>
+      <tr tal:repeat="time context/times">
+       <td tal:content="time/creation"></td>
+       <td tal:content="time/period"></td>
+       <td tal:content="time/creator"></td>
+      </tr>
+     </table>
+
+   I put this just above the Messages log in my issue display. Note our use
+   of the ``totalTimeSpent`` method which will total up the times for the
+   issue and return a new Interval. That will be automatically displayed in
+   the template as text like "+ 1y 2:40" (1 year, 2 hours and 40 minutes).
+
+8. If you're using a persistent web server - roundup-server or mod_python for
+   example - then you'll need to restart that to pick up the code changes.
+   When that's done, you'll be able to use the new time logging interface.
+
+Using a UN*X passwd file as the user database
+---------------------------------------------
+
+On some systems the primary store of users is the UN*X passwd file. It holds
+information on users such as their username, real name, password and primary
+user group.
+
+Roundup can use this store as its primary source of user information, but it
+needs additional information too - email address(es), roundup Roles, vacation
+flags, roundup hyperdb item ids, etc. Also, "retired" users must still exist
+in the user database, unlike some passwd files in which the users are removed
+when they no longer have access to a system.
+
+To make use of the passwd file, we therefore synchronise between the two user
+stores. We also use the passwd file to validate the user logins, as described
+in the previous example, `using an external password validation source`_. We
+keep the users lists in sync using a fairly simple script that runs once a
+day, or several times an hour if more immediate access is needed. In short, it:
+
+1. parses the passwd file, finding usernames, passwords and real names,
+2. compares that list to the current roundup user list:
+
+   a. entries no longer in the passwd file are *retired*
+   b. entries with mismatching real names are *updated*
+   c. entries only exist in the passwd file are *created*
+
+3. send an email to administrators to let them know what's been done.
+
+The retiring and updating are simple operations, requiring only a call to
+``retire()`` or ``set()``. The creation operation requires more information
+though - the user's email address and their roundup Roles. We're going to
+assume that the user's email address is the same as their login name, so we
+just append the domain name to that. The Roles are determined using the
+passwd group identifier - mapping their UN*X group to an appropriate set of
+Roles.
+
+The script to perform all this, broken up into its main components, is as
+follows. Firstly, we import the necessary modules and open the tracker we're
+to work on::
+
+    import sys, os, smtplib
+    from roundup import instance, date
+
+    # open the tracker
+    tracker_home = sys.argv[1]
+    tracker = instance.open(tracker_home)
+
+Next we read in the *passwd* file from the tracker home::
+
+    # read in the users
+    file = os.path.join(tracker_home, 'users.passwd')
+    users = [x.strip().split(':') for x in open(file).readlines()]
+
+Handle special users (those to ignore in the file, and those who don't appear
+in the file)::
+
+    # users to not keep ever, pre-load with the users I know aren't
+    # "real" users
+    ignore = ['ekmmon', 'bfast', 'csrmail']
+
+    # users to keep - pre-load with the roundup-specific users
+    keep = ['comment_pool', 'network_pool', 'admin', 'dev-team', 'cs_pool',
+        'anonymous', 'system_pool', 'automated']
+
+Now we map the UN*X group numbers to the Roles that users should have::
+
+    roles = {
+     '501': 'User,Tech',  # tech
+     '502': 'User',       # finance
+     '503': 'User,CSR',   # customer service reps
+     '504': 'User',       # sales
+     '505': 'User',       # marketing
+    }
+
+Now we do all the work. Note that the body of the script (where we have the
+tracker database open) is wrapped in a ``try`` / ``finally`` clause, so that
+we always close the database cleanly when we're finished. So, we now do all
+the work::
+
+    # open the database
+    db = tracker.open('admin')
+    try:
+        # store away messages to send to the tracker admins
+        msg = []
+
+        # loop over the users list read in from the passwd file
+        for user,passw,uid,gid,real,home,shell in users:
+            if user in ignore:
+                # this user shouldn't appear in our tracker
+                continue
+            keep.append(user)
+            try:
+                # see if the user exists in the tracker
+                uid = db.user.lookup(user)
+
+                # yes, they do - now check the real name for correctness
+                if real != db.user.get(uid, 'realname'):
+                    db.user.set(uid, realname=real)
+                    msg.append('FIX %s - %s'%(user, real))
+            except KeyError:
+                # nope, the user doesn't exist
+                db.user.create(username=user, realname=real,
+                    address='%s@ekit-inc.com'%user, roles=roles[gid])
+                msg.append('ADD %s - %s (%s)'%(user, real, roles[gid]))
+
+        # now check that all the users in the tracker are also in our "keep"
+        # list - retire those who aren't
+        for uid in db.user.list():
+            user = db.user.get(uid, 'username')
+            if user not in keep:
+                db.user.retire(uid)
+                msg.append('RET %s'%user)
+
+        # if we did work, then send email to the tracker admins
+        if msg:
+            # create the email
+            msg = '''Subject: %s user database maintenance
+
+            %s
+            '''%(db.config.TRACKER_NAME, '\n'.join(msg))
+
+            # send the email
+            smtp = smtplib.SMTP(db.config.MAILHOST)
+            addr = db.config.ADMIN_EMAIL
+            smtp.sendmail(addr, addr, msg)
+
+        # now we're done - commit the changes
+        db.commit()
+    finally:
+        # always close the database cleanly
+        db.close()
+
+And that's it!
+
+
+Enabling display of either message summaries or the entire messages
+-------------------------------------------------------------------
+
+This is pretty simple - all we need to do is copy the code from the example
+`displaying only message summaries in the issue display`_ into our template
+alongside the summary display, and then introduce a switch that shows either
+one or the other. We'll use a new form variable, ``:whole_messages`` to
+achieve this::
+
+ <table class="messages" tal:condition="context/messages">
+  <tal:block tal:condition="not:request/form/:whole_messages/value | python:0">
+   <tr><th colspan=3 class="header">Messages</th>
+       <th colspan=2 class="header">
+         <a href="?:whole_messages=yes">show entire messages</a>
+       </th>
+   </tr>
+   <tr tal:repeat="msg context/messages">
+    <td><a tal:attributes="href string:msg${msg/id}"
+           tal:content="string:msg${msg/id}"></a></td>
+    <td tal:content="msg/author">author</td>
+    <td nowrap tal:content="msg/date/pretty">date</td>
+    <td tal:content="msg/summary">summary</td>
+    <td>
+     <a tal:attributes="href string:?:remove:messages=${msg/id}&:action=edit">remove</a>
+    </td>
+   </tr>
+  </tal:block>
+
+  <tal:block tal:condition="request/form/:whole_messages/value | python:0">
+   <tr><th colspan=2 class="header">Messages</th>
+       <th class="header"><a href="?:whole_messages=">show only summaries</a></th>
+   </tr>
+   <tal:block tal:repeat="msg context/messages">
+    <tr>
+     <th tal:content="msg/author">author</th>
+     <th nowrap tal:content="msg/date/pretty">date</th>
+     <th style="text-align: right">
+      (<a tal:attributes="href string:?:remove:messages=${msg/id}&:action=edit">remove</a>)
+     </th>
+    </tr>
+    <tr><td colspan=3 tal:content="msg/content"></td></tr>
+   </tal:block>
+  </tal:block>
+ </table>
+
+
 -------------------
 
 Back to `Table of Contents`_
 
 .. _`Table of Contents`: index.html
+.. _`design documentation`: design.html
 
