@@ -15,10 +15,11 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.16 2002/02/14 23:38:12 richard Exp $
+# $Id: __init__.py,v 1.17 2002/05/29 01:16:17 richard Exp $
 
 import os, tempfile, unittest, shutil
-os.environ['SENDMAILDEBUG'] = tempfile.mktemp()
+import roundup.roundupdb
+roundup.roundupdb.SENDMAILDEBUG=os.environ['SENDMAILDEBUG']=tempfile.mktemp()
 
 # figure all the modules available
 dir = os.path.split(__file__)[0]
@@ -39,6 +40,18 @@ def go(tests=all_tests):
 
 #
 # $Log: __init__.py,v $
+# Revision 1.17  2002/05/29 01:16:17  richard
+# Sorry about this huge checkin! It's fixing a lot of related stuff in one go
+# though.
+#
+# . #541941 ] changing multilink properties by mail
+# . #526730 ] search for messages capability
+# . #505180 ] split MailGW.handle_Message
+#   - also changed cgi client since it was duplicating the functionality
+# . build htmlbase if tests are run using CVS checkout (removed note from
+#   installation.txt)
+# . don't create an empty message on email issue creation if the email is empty
+#
 # Revision 1.16  2002/02/14 23:38:12  richard
 # Fixed the unit tests for the mailgw re: the x-roundup-name header.
 # Also made the test runner more user-friendly:

@@ -9,7 +9,14 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: run_tests,v 1.6 2002/05/25 07:24:29 rochecompaan Exp $
+# $Id: run_tests,v 1.7 2002/05/29 01:16:16 richard Exp $
+
+# make sure we have the htmlbase
+try:
+    from roundup.templates.classic import htmlbase
+except ImportError:
+    import setup
+    setup.buildTemplates()
 
 from test import go
 import sys
@@ -20,6 +27,18 @@ else:
 
 #
 # $Log: run_tests,v $
+# Revision 1.7  2002/05/29 01:16:16  richard
+# Sorry about this huge checkin! It's fixing a lot of related stuff in one go
+# though.
+#
+# . #541941 ] changing multilink properties by mail
+# . #526730 ] search for messages capability
+# . #505180 ] split MailGW.handle_Message
+#   - also changed cgi client since it was duplicating the functionality
+# . build htmlbase if tests are run using CVS checkout (removed note from
+#   installation.txt)
+# . don't create an empty message on email issue creation if the email is empty
+#
 # Revision 1.6  2002/05/25 07:24:29  rochecompaan
 # oops
 #

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: __init__.py,v 1.3 2001/08/07 00:24:43 richard Exp $
+#$Id: __init__.py,v 1.4 2002/05/29 01:16:17 richard Exp $
 
 def init(db):
     ''' execute the init functions of all the modules in this directory
@@ -35,12 +35,27 @@ def init(db):
 
 #
 #$Log: __init__.py,v $
+#Revision 1.4  2002/05/29 01:16:17  richard
+#Sorry about this huge checkin! It's fixing a lot of related stuff in one go
+#though.
+#
+#. #541941 ] changing multilink properties by mail
+#. #526730 ] search for messages capability
+#. #505180 ] split MailGW.handle_Message
+#  - also changed cgi client since it was duplicating the functionality
+#. build htmlbase if tests are run using CVS checkout (removed note from
+#  installation.txt)
+#. don't create an empty message on email issue creation if the email is empty
+#
 #Revision 1.3  2001/08/07 00:24:43  richard
 #stupid typo
 #
 #Revision 1.2  2001/08/07 00:15:51  richard
 #Added the copyright/license notice to (nearly) all files at request of
 #Bizar Software.
+#
+#Revision 1.1  2001/07/23 23:29:10  richard
+#Adding the classic template
 #
 #Revision 1.1  2001/07/23 03:50:47  anthonybaxter
 #moved templates to proper location
