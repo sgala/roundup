@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.52 2002/01/14 02:20:14 richard Exp $
+# $Id: htmltemplate.py,v 1.53 2002/01/14 04:03:32 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -146,7 +146,7 @@ class TemplateFunctions:
             if value is None:
                 value = ''
             else:
-                value = cgi.escape(value)
+                value = cgi.escape(str(value))
                 value = '&quot;'.join(value.split('"'))
             s = '<input name="%s" value="%s" size="%s">'%(property, value, size)
         elif isinstance(propclass, hyperdb.Password):
@@ -889,6 +889,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.53  2002/01/14 04:03:32  richard
+# How about that ... date fields have never worked ...
+#
 # Revision 1.52  2002/01/14 02:20:14  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
