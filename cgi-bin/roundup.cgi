@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 
-# $Id: roundup.cgi,v 1.3 2001/07/23 04:33:30 richard Exp $
+# $Id: roundup.cgi,v 1.4 2001/07/23 04:47:27 anthonybaxter Exp $
 
 # python version check
 import sys
 if int(sys.version[0]) < 2:
     print "Content-Type: text/plain\n"
     print "Roundup requires Python 2.0 or newer."
+    sys.exit(0)
 
 #
 ##  Configuration
 #
 
 # This indicates where the Roundup instance lives
-ROUNDUPS = {
+ROUNDUP_INSTANCE_HOMES = {
     'test': '/tmp/roundup_test',
 }
 
@@ -90,8 +91,8 @@ try:
     path = string.split(os.environ['PATH_INFO'], '/')
     instance = path[1]
     os.environ['PATH_INFO'] = string.join(path[2:], '/')
-    if ROUNDUPS.has_key(instance):
-        instance_home = ROUNDUPS[instance]
+    if ROUNDUP_INSTANCE_HOMES.has_key(instance):
+        instance_home = ROUNDUP_INSTANCE_HOMES[instance]
         module_path, instance = os.path.split(instance_home)
         sys.path.insert(0, module_path)
         try:
@@ -110,6 +111,10 @@ sys.stdout, sys.stderr = out, err
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.4  2001/07/23 04:47:27  anthonybaxter
+# renamed ROUNDUPS to ROUNDUP_INSTANCE_HOMES
+# sys.exit(0) if python version wrong.
+#
 # Revision 1.3  2001/07/23 04:33:30  richard
 # brought the CGI instance config dict in line with roundup-server
 #
