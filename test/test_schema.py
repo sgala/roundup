@@ -1,4 +1,4 @@
-# $Id: test_schema.py,v 1.3 2001/07/25 04:34:31 richard Exp $ 
+# $Id: test_schema.py,v 1.1 2001/07/27 06:55:07 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -58,6 +58,9 @@ def suite():
 
 #
 # $Log: test_schema.py,v $
+# Revision 1.1  2001/07/27 06:55:07  richard
+# moving tests -> test
+#
 # Revision 1.3  2001/07/25 04:34:31  richard
 # Added id and log to tests files...
 #
