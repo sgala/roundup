@@ -72,7 +72,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.20 2001/10/17 23:13:19 richard Exp $
+$Id: mailgw.py,v 1.21 2001/10/21 00:53:42 richard Exp $
 '''
 
 
@@ -382,7 +382,7 @@ Subject was: "%s"
             if properties.has_key('title') and not props.has_key('title'):
                 props['title'] = title
             props['messages'] = [message_id]
-            props['nosy'] = recipients[:]
+            props['nosy'] = props.get('nosy', []) + recipients
             props['nosy'].append(author)
             props['nosy'].sort()
             nodeid = cl.create(**props)
@@ -418,6 +418,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.21  2001/10/21 00:53:42  richard
+# bug #473130: Nosy list not set correctly
+#
 # Revision 1.20  2001/10/17 23:13:19  richard
 # Did a fair bit of work on the admin tool. Now has an extra command "table"
 # which displays node information in a tabular format. Also fixed import and
