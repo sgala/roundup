@@ -15,12 +15,12 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.28 2001/10/08 00:34:31 richard Exp $
+# $Id: cgi_client.py,v 1.29 2001/10/09 07:25:59 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback, mimetypes
 import base64, Cookie, time
 
-import roundupdb, htmltemplate, date, hyperdb
+import roundupdb, htmltemplate, date, hyperdb, password
 
 class Unauthorised(ValueError):
     pass
@@ -503,7 +503,10 @@ class Client:
             return self.login(message='No such user "%s"'%name)
 
         # and that the password is correct
+        pw = self.db.user.get(uid, 'password')
+        print password, pw, `pw`
         if password != self.db.user.get(uid, 'password'):
+            self.make_user_anonymous()
             return self.login(message='Incorrect password')
 
         # construct the cookie
@@ -659,6 +662,8 @@ def parsePropsFromForm(cl, form, nodeid=0):
         proptype = cl.properties[key]
         if isinstance(proptype, hyperdb.String):
             value = form[key].value.strip()
+        elif isinstance(proptype, hyperdb.Password):
+            value = password.Password(form[key].value.strip())
         elif isinstance(proptype, hyperdb.Date):
             value = date.Date(form[key].value.strip())
         elif isinstance(proptype, hyperdb.Interval):
@@ -701,6 +706,10 @@ def parsePropsFromForm(cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.29  2001/10/09 07:25:59  richard
+# Added the Password property type. See "pydoc roundup.password" for
+# implementation details. Have updated some of the documentation too.
+#
 # Revision 1.28  2001/10/08 00:34:31  richard
 # Change message was stuffing up for multilinks with no key property.
 #

@@ -15,12 +15,12 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.7 2001/08/07 00:24:43 richard Exp $
+# $Id: dbinit.py,v 1.8 2001/10/09 07:25:59 richard Exp $
 
 import os
 
 import instance_config
-from roundup import roundupdb, cgi_client, mailgw 
+from roundup import roundupdb
 import select_db
 
 from roundup.roundupdb import Class, FileClass
@@ -45,7 +45,7 @@ def open(name=None):
     ''' as from the roundupdb method openDB 
  
     ''' 
-    from roundup.hyperdb import String, Date, Link, Multilink
+    from roundup.hyperdb import String, Password, Date, Link, Multilink
 
     # open the database
     db = Database(instance_config.DATABASE, name)
@@ -64,7 +64,7 @@ def open(name=None):
     keyword.setkey("name")
 
     user = Class(db, "user", 
-                    username=String(),   password=String(),
+                    username=String(),   password=Password(),
                     address=String(),    realname=String(), 
                     phone=String(),      organisation=String())
     user.setkey("username")
@@ -125,6 +125,10 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.8  2001/10/09 07:25:59  richard
+# Added the Password property type. See "pydoc roundup.password" for
+# implementation details. Have updated some of the documentation too.
+#
 # Revision 1.7  2001/08/07 00:24:43  richard
 # stupid typo
 #

@@ -15,10 +15,10 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.9 2001/08/12 06:32:36 richard Exp $
+#$Id: back_bsddb.py,v 1.10 2001/10/09 07:25:59 richard Exp $
 
 import bsddb, os, marshal
-from roundup import hyperdb, date
+from roundup import hyperdb, date, password
 
 #
 # Now the database
@@ -103,6 +103,8 @@ class Database(hyperdb.Database):
                 node[key] = node[key].get_tuple()
             elif isinstance(properties[key], hyperdb.Interval):
                 node[key] = node[key].get_tuple()
+            elif isinstance(properties[key], hyperdb.Password):
+                node[key] = str(node[key])
 
         # now save the marshalled data
         db[nodeid] = marshal.dumps(node)
@@ -124,6 +126,10 @@ class Database(hyperdb.Database):
                 res[key] = date.Date(res[key])
             elif isinstance(properties[key], hyperdb.Interval):
                 res[key] = date.Interval(res[key])
+            elif isinstance(properties[key], hyperdb.Password):
+                p = password.Password()
+                p.unpack(res[key])
+                res[key] = p
 
         if not cldb: db.close()
         return res
@@ -219,6 +225,10 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.10  2001/10/09 07:25:59  richard
+#Added the Password property type. See "pydoc roundup.password" for
+#implementation details. Have updated some of the documentation too.
+#
 #Revision 1.9  2001/08/12 06:32:36  richard
 #using isinstance(blah, Foo) now instead of isFooType
 #
