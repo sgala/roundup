@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.32 2002/04/15 23:25:15 richard Exp $
+#$Id: back_anydbm.py,v 1.33 2002/04/24 10:38:26 rochecompaan Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -61,6 +61,8 @@ class Database(FileStorage, hyperdb.Database):
         self.dirtynodes = {}    # keep track of the dirty nodes by class
         self.newnodes = {}      # keep track of the new nodes by class
         self.transactions = []
+        # ensure files are group readable and writable
+        os.umask(0002)
 
     def __repr__(self):
         return '<back_anydbm instance at %x>'%id(self) 
@@ -469,6 +471,9 @@ class Database(FileStorage, hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.33  2002/04/24 10:38:26  rochecompaan
+#All database files are now created group readable and writable.
+#
 #Revision 1.32  2002/04/15 23:25:15  richard
 #. node ids are now generated from a lockable store - no more race conditions
 #
