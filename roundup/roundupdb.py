@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.31 2001/12/15 19:24:39 rochecompaan Exp $
+# $Id: roundupdb.py,v 1.32 2001/12/15 23:48:35 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -26,6 +26,9 @@ import mimetools, MimeWriter, cStringIO
 import base64, mimetypes
 
 import hyperdb, date
+
+# set to indicate to roundup not to actually _send_ email
+ROUNDUPDBSENDMAILDEBUG = os.environ.get('ROUNDUPDBSENDMAILDEBUG', '')
 
 class DesignatorError(ValueError):
     pass
@@ -401,10 +404,14 @@ class IssueClass(Class):
 
         # now try to send the message
         try:
-            smtp = smtplib.SMTP(self.MAILHOST)
-            # send the message as admin so bounces are sent there instead
-            # of to roundup
-            smtp.sendmail(self.ADMIN_EMAIL, sendto, message.getvalue())
+            if ROUNDUPDBSENDMAILDEBUG:
+                print 'From: %s\nTo: %s\n%s\n=-=-=-=-=-=-=-='%(
+                    self.ADMIN_EMAIL, sendto, message.getvalue())
+            else:
+                smtp = smtplib.SMTP(self.MAILHOST)
+                # send the message as admin so bounces are sent there instead
+                # of to roundup
+                smtp.sendmail(self.ADMIN_EMAIL, sendto, message.getvalue())
         except socket.error, value:
             raise MessageSendError, \
                 "Couldn't send confirmation email: mailhost %s"%value
@@ -497,6 +504,10 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.32  2001/12/15 23:48:35  richard
+# Added ROUNDUPDBSENDMAILDEBUG so one can test the sendmail method without
+# actually sending mail :)
+#
 # Revision 1.31  2001/12/15 19:24:39  rochecompaan
 #  . Modified cgi interface to change properties only once all changes are
 #    collected, files created and messages generated.
