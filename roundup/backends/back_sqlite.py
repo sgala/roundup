@@ -1,9 +1,10 @@
-# $Id: back_sqlite.py,v 1.6 2002/09/27 01:04:38 richard Exp $
+# $Id: back_sqlite.py,v 1.8.2.1 2003/03/06 05:46:57 richard Exp $
 __doc__ = '''
 See https://pysqlite.sourceforge.net/ for pysqlite info
 '''
 import base64, marshal
 from roundup.backends.rdbms_common import *
+from roundup.backends import locking
 import sqlite
 
 class Database(Database):
@@ -14,6 +15,13 @@ class Database(Database):
         # ensure files are group readable and writable
         os.umask(0002)
         db = os.path.join(self.config.DATABASE, 'db')
+
+        # lock it
+        lockfilenm = db[:-3] + 'lck'
+        self.lockfile = locking.acquire_lock(lockfilenm)
+        self.lockfile.write(str(os.getpid()))
+        self.lockfile.flush()
+
         self.conn = sqlite.connect(db=db)
         self.cursor = self.conn.cursor()
         try:
@@ -37,6 +45,12 @@ class Database(Database):
             if str(value) != 'close failed - Connection is closed.':
                 raise
 
+        # release the lock too
+        if self.lockfile is not None:
+            locking.release_lock(self.lockfile)
+        if self.lockfile is not None:
+            self.lockfile.close()
+            self.lockfile = None
 
     def rollback(self):
         ''' Reverse all actions from the current transaction.
@@ -63,6 +77,9 @@ class Database(Database):
             if method == self.doStoreFile:
                 self.rollbackStoreFile(*args)
         self.transactions = []
+
+        # clear the cache
+        self.clearCache()
 
     def __repr__(self):
         return '<roundlite 0x%x>'%id(self)
@@ -155,7 +172,7 @@ class Database(Database):
                 d[k] = date.Date(v)
             elif isinstance(prop, Interval) and v is not None:
                 d[k] = date.Interval(v)
-            elif isinstance(prop, Password):
+            elif isinstance(prop, Password) and v is not None:
                 p = password.Password()
                 p.unpack(v)
                 d[k] = p
