@@ -16,7 +16,7 @@
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #
 
-__doc__ = '''
+'''
 An e-mail gateway for Roundup.
 
 Incoming messages are examined for multiple parts:
@@ -73,12 +73,12 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.93 2002/09/26 22:15:54 richard Exp $
+$Id: mailgw.py,v 1.104.2.1 2003/02/06 05:44:49 richard Exp $
 '''
 
 import string, re, os, mimetools, cStringIO, smtplib, socket, binascii, quopri
 import time, random, sys
-import traceback, MimeWriter
+import traceback, MimeWriter, rfc822
 import hyperdb, date, password
 
 SENDMAILDEBUG = os.environ.get('SENDMAILDEBUG', '')
@@ -90,6 +90,10 @@ class MailUsageError(ValueError):
     pass
 
 class MailUsageHelp(Exception):
+    pass
+
+class MailLoop(Exception):
+    ''' We've seen this message before... '''
     pass
 
 class Unauthorized(Exception):
@@ -106,6 +110,26 @@ def initialiseSecurity(security):
     p = security.addPermission(name="Email Access",
         description="User may use the email interface")
     security.addPermissionToRole('Admin', p)
+
+def getparam(str, param):
+    ''' From the rfc822 "header" string, extract "param" if it appears.
+    '''
+    if ';' not in str:
+        return None
+    str = str[str.index(';'):]
+    while str[:1] == ';':
+        str = str[1:]
+        if ';' in str:
+            # XXX Should parse quotes!
+            end = str.index(';')
+        else:
+            end = len(str)
+        f = str[:end]
+        if '=' in f:
+            i = f.index('=')
+            if f[:i].strip().lower() == param:
+                return rfc822.unquote(f[i+1:].strip())
+    return None
 
 class Message(mimetools.Message):
     ''' subclass mimetools.Message so we can retrieve the parts of the
@@ -130,7 +154,7 @@ class Message(mimetools.Message):
         s.seek(0)
         return Message(s)
 
-subject_re = re.compile(r'(?P<refwd>\s*\W?\s*(fwd|re|aw)\s*\W?\s*)*'
+subject_re = re.compile(r'(?P<refwd>\s*\W?\s*(fw|fwd|re|aw)\W\s*)*'
     r'\s*(?P<quote>")?(\[(?P<classname>[^\d\s]+)(?P<nodeid>\d+)?\])?'
     r'\s*(?P<title>[^[]+)?"?(\[(?P<args>.+?)\])?', re.I)
 
@@ -145,8 +169,16 @@ class MailGW:
 
     def do_pipe(self):
         ''' Read a message from standard input and pass it to the mail handler.
+
+            Read into an internal structure that we can seek on (in case
+            there's an error).
+
+            XXX: we may want to read this into a temporary file instead...
         '''
-        self.main(sys.stdin)
+        s = cStringIO.StringIO()
+        s.write(sys.stdin.read())
+        s.seek(0)
+        self.main(s)
         return 0
 
     def do_mailbox(self, filename):
@@ -262,8 +294,12 @@ class MailGW:
                 m = ['']
                 m.append(str(value))
                 m = self.bounce_message(message, sendto, m)
+            except MailLoop:
+                # XXX we should use a log file here...
+                return
             except:
                 # bounce the message back to the sender with the error message
+                # XXX we should use a log file here...
                 sendto = [sendto[0][1], self.instance.config.ADMIN_EMAIL]
                 m = ['']
                 m.append('An unexpected error occurred during the processing')
@@ -277,6 +313,7 @@ class MailGW:
                 m = self.bounce_message(message, sendto, m)
         else:
             # very bad-looking message - we don't even know who sent it
+            # XXX we should use a log file here...
             sendto = [self.instance.config.ADMIN_EMAIL]
             m = ['Subject: badly formed message from mail gateway']
             m.append('')
@@ -311,44 +348,33 @@ class MailGW:
         '''
         msg = cStringIO.StringIO()
         writer = MimeWriter.MimeWriter(msg)
+        writer.addheader('X-Roundup-Loop', 'hello')
         writer.addheader('Subject', subject)
         writer.addheader('From', '%s <%s>'% (self.instance.config.TRACKER_NAME,
             self.instance.config.TRACKER_EMAIL))
         writer.addheader('To', ','.join(sendto))
+        writer.addheader('Date', time.strftime("%a, %d %b %Y %H:%M:%S +0000",
+            time.gmtime()))
         writer.addheader('MIME-Version', '1.0')
         part = writer.startmultipartbody('mixed')
         part = writer.nextpart()
         body = part.startbody('text/plain')
         body.write('\n'.join(error))
 
-        # reconstruct the original message
-        m = cStringIO.StringIO()
-        w = MimeWriter.MimeWriter(m)
-        # default the content_type, just in case...
-        content_type = 'text/plain'
-        # add the headers except the content-type
-        for header in message.headers:
-            header_name = header.split(':')[0]
-            if header_name.lower() == 'content-type':
-                content_type = message.getheader(header_name)
-            elif message.getheader(header_name):
-                w.addheader(header_name, message.getheader(header_name))
-        # now attach the message body
-        body = w.startbody(content_type)
-        try:
-            message.rewindbody()
-        except IOError:
-            body.write("*** couldn't include message body: read from pipe ***")
-        else:
-            body.write(message.fp.read())
-
         # attach the original message to the returned message
         part = writer.nextpart()
         part.addheader('Content-Disposition','attachment')
         part.addheader('Content-Description','Message you sent')
-        part.addheader('Content-Transfer-Encoding', '7bit')
-        body = part.startbody('message/rfc822')
-        body.write(m.getvalue())
+        body = part.startbody('text/plain')
+        for header in message.headers:
+            body.write(header)
+        body.write('\n')
+        try:
+            message.rewindbody()
+        except IOError, message:
+            body.write("*** couldn't include message body: %s ***"%message)
+        else:
+            body.write(message.fp.read())
 
         writer.lastpart()
         return msg
@@ -377,10 +403,14 @@ class MailGW:
 
         Parse the message as per the module docstring.
         '''
+        # detect loops
+        if message.getheader('x-roundup-loop', ''):
+            raise MailLoop
+
         # handle the subject line
         subject = message.getheader('subject', '')
 
-        if subject.strip() == 'help':
+        if subject.strip().lower() == 'help':
             raise MailUsageHelp
 
         m = subject_re.match(subject)
@@ -652,7 +682,7 @@ Unknown address: %s
                     props[propname] = value.lower() in ('yes', 'true', 'on', '1')
                 elif isinstance(proptype, hyperdb.Number):
                     value = value.strip()
-                    props[propname] = int(value)
+                    props[propname] = float(value)
 
             # handle any errors parsing the argument list
             if errors:
@@ -727,9 +757,29 @@ Subject was: "%s"
                     name = mailmess.getheader('subject')
                     part.fp.seek(i)
                     attachments.append((name, 'message/rfc822', part.fp.read()))
+                elif subtype == 'multipart/alternative':
+                    # Search for text/plain in message with attachment and
+                    # alternative text representation
+                    part.getPart()
+                    while 1:
+                        # get the next part
+                        subpart = part.getPart()
+                        if subpart is None:
+                            break
+                        # parse it
+                        if subpart.gettype() == 'text/plain' and not content:
+                            content = self.get_part_data_decoded(subpart) 
                 else:
                     # try name on Content-Type
                     name = part.getparam('name')
+                    if name:
+                        name = name.strip()
+                    if not name:
+                        disp = part.getheader('content-disposition', None)
+                        if disp:
+                            name = getparam(disp, 'filename')
+                            if name:
+                                name = name.strip()
                     # this is just an attachment
                     data = self.get_part_data_decoded(part) 
                     attachments.append((name, part.gettype(), data))
@@ -767,9 +817,9 @@ not find a text/plain part to use.
             content = self.get_part_data_decoded(message) 
  
         # figure how much we should muck around with the email body
-        keep_citations = getattr(self.instance, 'EMAIL_KEEP_QUOTED_TEXT',
+        keep_citations = getattr(self.instance.config, 'EMAIL_KEEP_QUOTED_TEXT',
             'no') == 'yes'
-        keep_body = getattr(self.instance, 'EMAIL_LEAVE_BODY_UNCHANGED',
+        keep_body = getattr(self.instance.config, 'EMAIL_LEAVE_BODY_UNCHANGED',
             'no') == 'yes'
 
         # parse the body of the message, stripping out bits as appropriate
@@ -859,8 +909,7 @@ def uidFromAddress(db, address, create=1):
     # try the user alternate addresses if possible
     props = db.user.getprops()
     if props.has_key('alternate_addresses'):
-        users = db.user.filter(None, {'alternate_addresses': address},
-            [], [])
+        users = db.user.filter(None, {'alternate_addresses': address})
         user = extractUserFromList(db.user, users)
         if user is not None: return user
 
@@ -879,7 +928,7 @@ def parseContent(content, keep_citations, keep_body,
         blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
         eol=re.compile(r'[\r\n]+'), 
         signature=re.compile(r'^[>|\s]*[-_]+\s*$'),
-        original_message=re.compile(r'^[>|\s]*-----Original Message-----$')):
+        original_msg=re.compile(r'^[>|\s]*-----\s?Original Message\s?-----$')):
     ''' The message body is divided into sections by blank lines.
         Sections where the second and all subsequent lines begin with a ">"
         or "|" character are considered "quoting sections". The first line of
@@ -920,26 +969,35 @@ def parseContent(content, keep_citations, keep_body,
                     l.append(section)
                 continue
             # keep this section - it has reponse stuff in it
-            if not summary:
-                # and while we're at it, use the first non-quoted bit as
-                # our summary
-                summary = line
             lines = lines[lines.index(line):]
             section = '\n'.join(lines)
+            # and while we're at it, use the first non-quoted bit as
+            # our summary
+            summary = section
 
         if not summary:
             # if we don't have our summary yet use the first line of this
             # section
-            summary = lines[0]
+            summary = section
         elif signature.match(lines[0]) and 2 <= len(lines) <= 10:
             # lose any signature
             break
-        elif original_message.match(lines[0]):
+        elif original_msg.match(lines[0]):
             # ditch the stupid Outlook quoting of the entire original message
             break
 
         # and add the section to the output
         l.append(section)
+
+    # figure the summary - find the first sentence-ending punctuation or the
+    # first whole line, whichever is longest
+    sentence = re.search(r'^([^!?\.]+[!?\.])', summary)
+    if sentence:
+        sentence = sentence.group(1)
+    else:
+        sentence = ''
+    first = eol.split(summary)[0]
+    summary = max(sentence, first)
 
     # Now reconstitute the message content minus the bits we don't care
     # about.

@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_mailgw.py,v 1.32 2002/09/26 03:04:24 richard Exp $
+# $Id: test_mailgw.py,v 1.37.2.1 2003/02/06 05:44:49 richard Exp $
 
 import unittest, cStringIO, tempfile, os, shutil, errno, imp, sys, difflib
 
@@ -31,19 +31,13 @@ class DiffHelper:
            the first to be the "original" but in the calls in this file,
            the second arg is the original. Ho hum.
         '''
-        if s1 == s2:
+        # we have to special-case the Date: header here 'cos we can't test
+        # for it properly
+        l1=s1.strip().split('\n')
+        l2=[x for x in s2.strip().split('\n') if not x.startswith('Date: ')]
+        if l1 == l2:
             return
 
-        # under python2.[12] we allow a difference of one trailing empty line.
-        if sys.version_info[0:2] == (2,1):
-            if s1+'\n' == s2:
-                return
-        if sys.version_info[0:2] == (2,2):
-            if s1 == s2+'\n':
-                return
-        
-        l1=s1.split('\n')
-        l2=s2.split('\n')
         s = difflib.SequenceMatcher(None, l1, l2)
         res = ['Generated message not correct (diff follows):']
         for value, s1s, s1e, s2s, s2e in s.get_opcodes():
@@ -81,13 +75,14 @@ class MailgwTestCase(unittest.TestCase, DiffHelper):
         # and open the database
         self.db = self.instance.open('admin')
         self.db.user.create(username='Chef', address='chef@bork.bork.bork',
-            roles='User')
+            realname='Bork, Chef', roles='User')
         self.db.user.create(username='richard', address='richard@test',
             roles='User')
         self.db.user.create(username='mary', address='mary@test',
-            roles='User')
+            roles='User', realname='Contrary, Mary')
         self.db.user.create(username='john', address='john@test',
-            alternate_addresses='jondoe@test\njohn.doe@test', roles='User')
+            alternate_addresses='jondoe@test\njohn.doe@test', roles='User',
+            realname='John Doe')
 
     def tearDown(self):
         if os.path.exists(os.environ['SENDMAILDEBUG']):
@@ -118,6 +113,7 @@ This is a test submission of a new issue.
         l = self.db.issue.get(nodeid, 'nosy')
         l.sort()
         self.assertEqual(l, ['3', '4'])
+        return nodeid
 
     def testNewIssue(self):
         self.doNewIssue()
@@ -204,15 +200,16 @@ TO: chef@bork.bork.bork, mary@test, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, mary@test, richard@test
-From: "Chef" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: "Bork, Chef" <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-New submission from Chef <chef@bork.bork.bork>:
+New submission from Bork, Chef <chef@bork.bork.bork>:
 
 This is a test submission of a new issue.
 
@@ -223,10 +220,10 @@ messages: 1
 nosy: Chef, mary, richard
 status: unread
 title: Testing...
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
 
     # BUG
@@ -259,26 +256,27 @@ TO: chef@bork.bork.bork, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, richard@test
-From: "mary" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: "Contrary, Mary" <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-mary <mary@test> added the comment:
+Contrary, Mary <mary@test> added the comment:
 
 This is a second followup
 
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
 
     def testFollowup(self):
@@ -307,12 +305,13 @@ TO: chef@bork.bork.bork, john@test, mary@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, john@test, mary@test
-From: "richard" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: richard <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
@@ -325,10 +324,10 @@ This is a followup
 assignedto:  -> mary
 nosy: +john, mary
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
 
     def testFollowupTitleMatch(self):
@@ -353,12 +352,13 @@ TO: chef@bork.bork.bork, john@test, mary@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, john@test, mary@test
-From: "richard" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: richard <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
@@ -371,10 +371,10 @@ This is a followup
 assignedto:  -> mary
 nosy: +john, mary
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
 
     def testFollowupNosyAuthor(self):
@@ -400,16 +400,17 @@ TO: chef@bork.bork.bork, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, richard@test
-From: "john" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: John Doe <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-john <john@test> added the comment:
+John Doe <john@test> added the comment:
 
 This is a followup
 
@@ -417,10 +418,10 @@ This is a followup
 ----------
 nosy: +john
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 
 ''')
 
@@ -448,12 +449,13 @@ TO: chef@bork.bork.bork
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork
-From: "richard" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: richard <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
@@ -465,10 +467,10 @@ This is a followup
 ----------
 nosy: +john
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 
 ''')
 
@@ -496,16 +498,17 @@ TO: chef@bork.bork.bork, john@test, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, john@test, richard@test
-From: "john" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: John Doe <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-john <john@test> added the comment:
+John Doe <john@test> added the comment:
 
 This is a followup
 
@@ -513,10 +516,10 @@ This is a followup
 ----------
 nosy: +john
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 
 ''')
 
@@ -543,26 +546,27 @@ TO: chef@bork.bork.bork, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, richard@test
-From: "john" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: John Doe <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-john <john@test> added the comment:
+John Doe <john@test> added the comment:
 
 This is a followup
 
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 
 ''')
 
@@ -590,12 +594,13 @@ TO: chef@bork.bork.bork
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork
-From: "richard" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: richard <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
@@ -606,10 +611,10 @@ This is a followup
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 
 ''')
 
@@ -698,25 +703,26 @@ TO: chef@bork.bork.bork, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, richard@test
-From: "mary" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: "Contrary, Mary" <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-mary <mary@test> added the comment:
+Contrary, Mary <mary@test> added the comment:
 
 A message with encoding (encoded oe =F6)
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
 
 
@@ -752,26 +758,62 @@ TO: chef@bork.bork.bork, richard@test
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork, richard@test
-From: "mary" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: "Contrary, Mary" <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
-mary <mary@test> added the comment:
+Contrary, Mary <mary@test> added the comment:
 
 A message with first part encoded (encoded oe =F6)
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
+
+    def testContentDisposition(self):
+        self.doNewIssue()
+        message = cStringIO.StringIO('''Content-Type: text/plain;
+  charset="iso-8859-1"
+From: mary <mary@test>
+To: issue_tracker@your.tracker.email.domain.example
+Message-Id: <followup_dummy_id>
+In-Reply-To: <dummy_test_message_id>
+Subject: [issue1] Testing...
+Content-Type: multipart/mixed; boundary="bCsyhTFzCvuiizWE" 
+Content-Disposition: inline 
+ 
+ 
+--bCsyhTFzCvuiizWE 
+Content-Type: text/plain; charset=us-ascii 
+Content-Disposition: inline 
+
+test attachment binary 
+
+--bCsyhTFzCvuiizWE 
+Content-Type: application/octet-stream 
+Content-Disposition: attachment; filename="main.dvi" 
+
+xxxxxx 
+
+--bCsyhTFzCvuiizWE--
+''')
+        handler = self.instance.MailGW(self.instance, self.db)
+        handler.trapExceptions = 0
+        handler.main(message)
+        messages = self.db.issue.get('1', 'messages')
+        messages.sort()
+        file = self.db.msg.get(messages[-1], 'files')[0]
+        self.assertEqual(self.db.file.get(file, 'name'), 'main.dvi')
 
     def testFollowupStupidQuoting(self):
         self.doNewIssue()
@@ -796,12 +838,13 @@ TO: chef@bork.bork.bork
 Content-Type: text/plain
 Subject: [issue1] Testing...
 To: chef@bork.bork.bork
-From: "richard" <issue_tracker@your.tracker.email.domain.example>
-Reply-To: "Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
+From: richard <issue_tracker@your.tracker.email.domain.example>
+Reply-To: Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
 MIME-Version: 1.0
 Message-Id: <followup_dummy_id>
 In-Reply-To: <dummy_test_message_id>
 X-Roundup-Name: Roundup issue tracker
+X-Roundup-Loop: hello
 Content-Transfer-Encoding: quoted-printable
 
 
@@ -812,11 +855,58 @@ This is a followup
 
 ----------
 status: unread -> chatting
-_________________________________________________________________________
-"Roundup issue tracker" <issue_tracker@your.tracker.email.domain.example>
-http://your.tracker.url.example/issue1
-_________________________________________________________________________
+_______________________________________________________________________
+Roundup issue tracker <issue_tracker@your.tracker.email.domain.example>
+http://tracker.example/cgi-bin/roundup.cgi/bugs/issue1
+_______________________________________________________________________
 ''')
+
+    def testEmailQuoting(self):
+        self.instance.config.EMAIL_KEEP_QUOTED_TEXT = 'no'
+        self.innerTestQuoting('''This is a followup
+''')
+
+    def testEmailQuotingRemove(self):
+        self.instance.config.EMAIL_KEEP_QUOTED_TEXT = 'yes'
+        self.innerTestQuoting('''Blah blah wrote:
+> Blah bklaskdfj sdf asdf jlaskdf skj sdkfjl asdf
+>  skdjlkjsdfalsdkfjasdlfkj dlfksdfalksd fj
+>
+
+This is a followup
+''')
+
+    def innerTestQuoting(self, expect):
+        nodeid = self.doNewIssue()
+
+        messages = self.db.issue.get(nodeid, 'messages')
+
+        message = cStringIO.StringIO('''Content-Type: text/plain;
+  charset="iso-8859-1"
+From: richard <richard@test>
+To: issue_tracker@your.tracker.email.domain.example
+Message-Id: <followup_dummy_id>
+In-Reply-To: <dummy_test_message_id>
+Subject: Re: [issue1] Testing...
+
+Blah blah wrote:
+> Blah bklaskdfj sdf asdf jlaskdf skj sdkfjl asdf
+>  skdjlkjsdfalsdkfjasdlfkj dlfksdfalksd fj
+>
+
+This is a followup
+''')
+        handler = self.instance.MailGW(self.instance, self.db)
+        handler.trapExceptions = 0
+        handler.main(message)
+
+        # figure the new message id
+        newmessages = self.db.issue.get(nodeid, 'messages')
+        for msg in messages:
+            newmessages.remove(msg)
+        messageid = newmessages[0]
+
+        self.compareStrings(self.db.msg.get(messageid, 'content'), expect)
 
 def suite():
     l = [unittest.makeSuite(MailgwTestCase),

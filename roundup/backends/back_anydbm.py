@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.86 2002/09/26 03:04:24 richard Exp $
+#$Id: back_anydbm.py,v 1.96.2.1 2003/02/06 05:44:49 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -28,7 +28,7 @@ from roundup import hyperdb, date, password, roundupdb, security
 from blobfiles import FileStorage
 from sessions import Sessions
 from roundup.indexer import Indexer
-from locking import acquire_lock, release_lock
+from roundup.backends import locking
 from roundup.hyperdb import String, Password, Date, Interval, Link, \
     Multilink, DatabaseError, Boolean, Number
 
@@ -71,6 +71,12 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         self.security = security.Security(self)
         # ensure files are group readable and writable
         os.umask(0002)
+
+        # lock it
+        lockfilenm = os.path.join(self.dir, 'lock')
+        self.lockfile = locking.acquire_lock(lockfilenm)
+        self.lockfile.write(str(os.getpid()))
+        self.lockfile.flush()
 
     def post_init(self):
         ''' Called once the schema initialisation has finished.
@@ -203,12 +209,6 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
                 mode)
         return dbm.open(path, mode)
 
-    def lockdb(self, name):
-        ''' Lock a database file
-        '''
-        path = os.path.join(os.getcwd(), self.dir, '%s.lock'%name)
-        return acquire_lock(path)
-
     #
     # Node IDs
     #
@@ -216,7 +216,6 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         ''' Generate a new id for the given class
         '''
         # open the ids DB - create if if doesn't exist
-        lock = self.lockdb('_ids')
         db = self.opendb('_ids', 'c')
         if db.has_key(classname):
             newid = db[classname] = str(int(db[classname]) + 1)
@@ -225,18 +224,15 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
             newid = str(self.getclass(classname).count()+1)
             db[classname] = newid
         db.close()
-        release_lock(lock)
         return newid
 
     def setid(self, classname, setid):
         ''' Set the id counter: used during import of database
         '''
         # open the ids DB - create if if doesn't exist
-        lock = self.lockdb('_ids')
         db = self.opendb('_ids', 'c')
         db[classname] = str(setid)
         db.close()
-        release_lock(lock)
 
     #
     # Nodes
@@ -366,7 +362,7 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
             # get the property spec
             prop = properties[k]
 
-            if isinstance(prop, Password):
+            if isinstance(prop, Password) and v is not None:
                 d[k] = str(v)
             elif isinstance(prop, Date) and v is not None:
                 d[k] = v.serialise()
@@ -397,7 +393,7 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
                 d[k] = date.Date(v)
             elif isinstance(prop, Interval) and v is not None:
                 d[k] = date.Interval(v)
-            elif isinstance(prop, Password):
+            elif isinstance(prop, Password) and v is not None:
                 p = password.Password()
                 p.unpack(v)
                 d[k] = p
@@ -696,7 +692,11 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
     def close(self):
         ''' Nothing to do
         '''
-        pass
+        if self.lockfile is not None:
+            locking.release_lock(self.lockfile)
+        if self.lockfile is not None:
+            self.lockfile.close()
+            self.lockfile = None
 
 _marker = []
 class Class(hyperdb.Class):
@@ -888,7 +888,7 @@ class Class(hyperdb.Class):
         # done
         self.db.addnode(self.classname, newid, propvalues)
         if self.do_journal:
-            self.db.addjournal(self.classname, newid, 'create', propvalues)
+            self.db.addjournal(self.classname, newid, 'create', {})
 
         self.fireReactors('create', newid, None)
 
@@ -970,7 +970,7 @@ class Class(hyperdb.Class):
             creation = None
         if d.has_key('activity'):
             del d['activity']
-        self.db.addjournal(self.classname, newid, 'create', d, creator,
+        self.db.addjournal(self.classname, newid, 'create', {}, creator,
             creation)
         return newid
 
@@ -1145,9 +1145,11 @@ class Class(hyperdb.Class):
 
             # if the value's the same as the existing value, no sense in
             # doing anything
-            if node.has_key(propname) and value == node[propname]:
+            current = node.get(propname, None)
+            if value == current:
                 del propvalues[propname]
                 continue
+            journalvalues[propname] = current
 
             # do stuff based on the prop type
             if isinstance(prop, Link):
@@ -1169,7 +1171,7 @@ class Class(hyperdb.Class):
 
                 if self.do_journal and prop.do_journal:
                     # register the unlink with the old linked node
-                    if node[propname] is not None:
+                    if node.has_key(propname) and node[propname] is not None:
                         self.db.addjournal(link_class, node[propname], 'unlink',
                             (self.classname, nodeid, propname))
 
@@ -1283,8 +1285,7 @@ class Class(hyperdb.Class):
         self.db.setnode(self.classname, nodeid, node)
 
         if self.do_journal:
-            propvalues.update(journalvalues)
-            self.db.addjournal(self.classname, nodeid, 'set', propvalues)
+            self.db.addjournal(self.classname, nodeid, 'set', journalvalues)
 
         self.fireReactors('set', nodeid, oldvalues)
 
@@ -1325,7 +1326,7 @@ class Class(hyperdb.Class):
 
     def destroy(self, nodeid):
         '''Destroy a node.
-        
+
         WARNING: this method should never be used except in extremely rare
                  situations where there could never be links to the node being
                  deleted
@@ -1348,7 +1349,7 @@ class Class(hyperdb.Class):
 
         The returned list contains tuples of the form
 
-            (date, tag, action, params)
+            (nodeid, date, tag, action, params)
 
         'date' is a Timestamp object specifying the time of the change and
         'tag' is the journaltag specified when the database was opened.
@@ -1422,7 +1423,6 @@ class Class(hyperdb.Class):
                 if node.has_key(self.db.RETIRED_FLAG):
                     continue
                 if node[self.key] == keyvalue:
-                    cldb.close()
                     return nodeid
         finally:
             cldb.close()
@@ -1506,6 +1506,8 @@ class Class(hyperdb.Class):
                 if node.has_key(self.db.RETIRED_FLAG):
                     continue
                 for key, value in requirements.items():
+                    if not node.has_key(key):
+                        break
                     if node[key] is None or node[key].lower() != value:
                         break
                 else:
@@ -1531,8 +1533,8 @@ class Class(hyperdb.Class):
         l.sort()
         return l
 
-    def filter(self, search_matches, filterspec, sort, group, 
-            num_re = re.compile('^\d+$')):
+    def filter(self, search_matches, filterspec, sort=(None,None),
+            group=(None,None), num_re = re.compile('^\d+$')):
         ''' Return a list of the ids of the active nodes in this class that
             match the 'filter' spec, sorted by the group spec and then the
             sort spec.
@@ -1589,7 +1591,7 @@ class Class(hyperdb.Class):
                                 k, entry, self.properties[k].classname)
                     u.append(entry)
                 l.append((MULTILINK, k, u))
-            elif isinstance(propclass, String):
+            elif isinstance(propclass, String) and k != 'id':
                 # simple glob searching
                 v = re.sub(r'([\|\{\}\\\.\+\[\]\(\)])', r'\\\1', v)
                 v = v.replace('?', '.')
@@ -1601,6 +1603,10 @@ class Class(hyperdb.Class):
                 else:
                     bv = v
                 l.append((OTHER, k, bv))
+            elif isinstance(propclass, Date):
+                l.append((OTHER, k, date.Date(v)))
+            elif isinstance(propclass, Interval):
+                l.append((OTHER, k, date.Interval(v)))
             elif isinstance(propclass, Number):
                 l.append((OTHER, k, int(v)))
             else:
@@ -1618,6 +1624,10 @@ class Class(hyperdb.Class):
                     continue
                 # apply filter
                 for t, k, v in filterspec:
+                    # handle the id prop
+                    if k == 'id' and v == nodeid:
+                        continue
+
                     # make sure the node has the property
                     if not node.has_key(k):
                         # this node doesn't have this property, so reject it
@@ -1697,9 +1707,9 @@ class Class(hyperdb.Class):
                 if isinstance(propclass, String):
                     # clean up the strings
                     if av and av[0] in string.uppercase:
-                        av = an[prop] = av.lower()
+                        av = av.lower()
                     if bv and bv[0] in string.uppercase:
-                        bv = bn[prop] = bv.lower()
+                        bv = bv.lower()
                 if (isinstance(propclass, String) or
                         isinstance(propclass, Date)):
                     # it might be a string that's really an integer
@@ -1900,13 +1910,12 @@ class FileClass(Class):
     def get(self, nodeid, propname, default=_marker, cache=1):
         ''' trap the content propname and get it from the file
         '''
-
-        poss_msg = 'Possibly a access right configuration problem.'
+        poss_msg = 'Possibly an access right configuration problem.'
         if propname == 'content':
             try:
                 return self.db.getfile(self.classname, nodeid, None)
             except IOError, (strerror):
-                # BUG: by catching this we donot see an error in the log.
+                # XXX by catching this we donot see an error in the log.
                 return 'ERROR reading file: %s%s\n%s\n%s'%(
                         self.classname, nodeid, poss_msg, strerror)
         if default is not _marker:
