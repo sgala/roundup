@@ -1,4 +1,4 @@
-# $Id: test_db.py,v 1.6 2001/07/27 06:23:59 richard Exp $ 
+# $Id: test_db.py,v 1.7 2001/07/27 06:26:43 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -135,6 +135,10 @@ class ReadOnlyDBTestCase(unittest.TestCase):
         self.db = Database('_test_dir')
         setupSchema(self.db, 0)
 
+    def tearDown(self):
+        self.db.close()
+        shutil.rmtree('_test_dir')
+
     def testExceptions(self):
         # this tests the exceptions that should be raised
         ar = self.assertRaises
@@ -153,6 +157,9 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.7  2001/07/27 06:26:43  richard
+# oops - wasn't deleting the test dir after the read-only tests
+#
 # Revision 1.6  2001/07/27 06:23:59  richard
 # consistency
 #
