@@ -15,19 +15,35 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.63 2002/04/15 23:25:15 richard Exp $
+# $Id: hyperdb.py,v 1.64 2002/05/15 06:21:21 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
 """
 
 # standard python modules
-import re, string, weakref, os
+import re, string, weakref, os, time
 
 # roundup modules
 import date, password
 
+# configure up the DEBUG and TRACE captures
+class Sink:
+    def write(self, content):
+        pass
 DEBUG = os.environ.get('HYPERDBDEBUG', '')
+if DEBUG and __debug__:
+    DEBUG = open(DEBUG, 'a')
+else:
+    DEBUG = Sink()
+TRACE = os.environ.get('HYPERDBTRACE', '')
+if TRACE and __debug__:
+    TRACE = open(TRACE, 'w')
+else:
+    TRACE = Sink()
+def traceMark():
+    print >>TRACE, '**MARK', time.ctime()
+del Sink
 
 #
 # Types
@@ -175,7 +191,8 @@ transaction.
         '''Copy the node contents, converting non-marshallable data into
            marshallable data.
         '''
-        if DEBUG: print 'serialise', classname, node
+        if __debug__:
+            print >>DEBUG, 'serialise', classname, node
         properties = self.getclass(classname).getprops()
         d = {}
         for k, v in node.items():
@@ -206,7 +223,8 @@ transaction.
     def unserialise(self, classname, node):
         '''Decode the marshalled node data
         '''
-        if DEBUG: print 'unserialise', classname, node
+        if __debug__:
+            print >>DEBUG, 'unserialise', classname, node
         properties = self.getclass(classname).getprops()
         d = {}
         for k, v in node.items():
@@ -1127,6 +1145,14 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.64  2002/05/15 06:21:21  richard
+#  . node caching now works, and gives a small boost in performance
+#
+# As a part of this, I cleaned up the DEBUG output and implemented TRACE
+# output (HYPERDBTRACE='file to trace to') with checkpoints at the start of
+# CGI requests. Run roundup with python -O to skip all the DEBUG/TRACE stuff
+# (using if __debug__ which is compiled out with -O)
+#
 # Revision 1.63  2002/04/15 23:25:15  richard
 # . node ids are now generated from a lockable store - no more race conditions
 #
