@@ -7,7 +7,7 @@ recursive-include test *.py *.txt
 recursive-include doc *.html *.png *.txt *.css *.1
 recursive-include detectors *.py
 recursive-include templates *.* home* page*
-recursive-exclude roundup *.pyc *.pyo .cvsignore
+recursive-exclude roundup *.pyc *.pyo .*
 recursive-exclude frontends *.pyc *.pyo .cvsignore
 recursive-exclude templates *.pyc *.pyo .cvsignore
 include run_tests *.txt demo.py
