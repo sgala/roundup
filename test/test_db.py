@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.21 2002/04/15 23:25:15 richard Exp $ 
+# $Id: test_db.py,v 1.22 2002/05/21 05:52:11 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -366,17 +366,23 @@ def suite():
     except:
         print 'bsddb module not found, skipping bsddb DBTestCase'
 
-#    try:
-#        import bsddb3
-#        l.append(unittest.makeSuite(bsddb3DBTestCase, 'test'))
-#        l.append(unittest.makeSuite(bsddb3ReadOnlyDBTestCase, 'test'))
-#    except:
-#        print 'bsddb3 module not found, skipping bsddb3 DBTestCase'
+    try:
+        import bsddb3
+        l.append(unittest.makeSuite(bsddb3DBTestCase, 'test'))
+        l.append(unittest.makeSuite(bsddb3ReadOnlyDBTestCase, 'test'))
+    except:
+        print 'bsddb3 module not found, skipping bsddb3 DBTestCase'
 
     return unittest.TestSuite(l)
 
 #
 # $Log: test_db.py,v $
+# Revision 1.22  2002/05/21 05:52:11  richard
+# Well whadya know, bsddb3 works again.
+# The backend is implemented _exactly_ the same as bsddb - so there's no
+# using its transaction or locking support. It'd be nice to use those some
+# day I suppose.
+#
 # Revision 1.21  2002/04/15 23:25:15  richard
 # . node ids are now generated from a lockable store - no more race conditions
 #
