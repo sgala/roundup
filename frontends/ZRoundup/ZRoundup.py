@@ -14,7 +14,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: ZRoundup.py,v 1.9 2002/07/04 01:25:22 dman13 Exp $
+# $Id: ZRoundup.py,v 1.8.2.1 2002/07/04 01:26:26 dman13 Exp $
 #
 ''' ZRoundup module - exposes the roundup web interface to Zope
 
@@ -208,7 +208,7 @@ modulesecurity.apply(globals())
 
 #
 # $Log: ZRoundup.py,v $
-# Revision 1.9  2002/07/04 01:25:22  dman13
+# Revision 1.8.2.1  2002/07/04 01:26:26  dman13
 # fixed #576086 (dumb copying mistake)
 #
 # Revision 1.8  2002/06/16 01:01:42  dman13
