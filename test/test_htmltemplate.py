@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_htmltemplate.py,v 1.14 2002/05/15 06:37:31 richard Exp $ 
+# $Id: test_htmltemplate.py,v 1.15 2002/07/08 06:39:00 richard Exp $ 
 
 import unittest, cgi, time
 
@@ -43,13 +43,15 @@ class Class:
             return 'hello\nworld'
     def list(self):
         return ['1', '2']
+    def filter(self, search_matches, filterspec, sort, group):
+        return ['1', '2']
     def getprops(self):
         return {'string': String(), 'date': Date(), 'interval': Interval(),
             'link': Link('other'), 'multilink': Multilink('other'),
             'password': Password(), 'html': String(), 'key': String(),
             'novalue': String(), 'filename': String(), 'multiline': String(),
             'reldate': Date()}
-    def labelprop(self):
+    def labelprop(self, default_to_id=0):
         return 'key'
 
 class Database:
@@ -353,6 +355,9 @@ def suite():
 
 #
 # $Log: test_htmltemplate.py,v $
+# Revision 1.15  2002/07/08 06:39:00  richard
+# Fixed unit test support class so the tests ran again.
+#
 # Revision 1.14  2002/05/15 06:37:31  richard
 # ehem and the unit test
 #
