@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.54 2002/05/29 01:16:17 richard Exp $
+# $Id: roundupdb.py,v 1.55 2002/06/11 04:58:07 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -352,7 +352,7 @@ class IssueClass(Class):
 
         # we have new recipients
         if sendto:
-	    # map userids to addresses
+            # map userids to addresses
             sendto = [users.get(i, 'address') for i in sendto]
 
             # update the message's recipients list
@@ -634,6 +634,9 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.55  2002/06/11 04:58:07  richard
+# detabbing
+#
 # Revision 1.54  2002/05/29 01:16:17  richard
 # Sorry about this huge checkin! It's fixing a lot of related stuff in one go
 # though.
