@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.103 2002/02/20 05:05:28 richard Exp $
+# $Id: cgi_client.py,v 1.104 2002/02/20 05:45:17 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -371,12 +371,13 @@ function submit_once() {
         w('</tt>')
 
         w('<form onSubmit="return submit_once()" method="POST">')
-	w('<textarea name="rows" cols=80 rows=15>')
+        w('<textarea name="rows" cols=80 rows=15>')
+        p = csv.parser()
         for nodeid in cl.list():
             l = []
             for name in props:
                 l.append(cgi.escape(str(cl.get(nodeid, name))))
-            w(', '.join(l) + '\n')
+            w(p.join(l) + '\n')
 
         w(_('</textarea><br><input type="submit" value="Save Changes"></form>'))
 
@@ -1287,6 +1288,10 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.104  2002/02/20 05:45:17  richard
+# Use the csv module for generating the form entry so it's correct.
+# [also noted the sf.net feature request id in the change log]
+#
 # Revision 1.103  2002/02/20 05:05:28  richard
 #  . Added simple editing for classes that don't define a templated interface.
 #    - access using the admin "class list" interface
