@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.10 2001/10/09 07:25:59 richard Exp $
+#$Id: back_bsddb.py,v 1.11 2001/10/09 23:58:10 richard Exp $
 
 import bsddb, os, marshal
 from roundup import hyperdb, date, password
@@ -95,18 +95,6 @@ class Database(hyperdb.Database):
         ''' add the specified node to its class's db
         '''
         db = self.getclassdb(classname, 'c')
-
-        # convert the instance data to builtin types
-        properties = self.classes[classname].properties
-        for key in properties.keys():
-            if isinstance(properties[key], hyperdb.Date):
-                node[key] = node[key].get_tuple()
-            elif isinstance(properties[key], hyperdb.Interval):
-                node[key] = node[key].get_tuple()
-            elif isinstance(properties[key], hyperdb.Password):
-                node[key] = str(node[key])
-
-        # now save the marshalled data
         db[nodeid] = marshal.dumps(node)
         db.close()
     setnode = addnode
@@ -118,19 +106,6 @@ class Database(hyperdb.Database):
         if not db.has_key(nodeid):
             raise IndexError, nodeid
         res = marshal.loads(db[nodeid])
-
-        # convert the marshalled data to instances
-        properties = self.classes[classname].properties
-        for key in properties.keys():
-            if isinstance(properties[key], hyperdb.Date):
-                res[key] = date.Date(res[key])
-            elif isinstance(properties[key], hyperdb.Interval):
-                res[key] = date.Interval(res[key])
-            elif isinstance(properties[key], hyperdb.Password):
-                p = password.Password()
-                p.unpack(res[key])
-                res[key] = p
-
         if not cldb: db.close()
         return res
 
@@ -225,6 +200,12 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.11  2001/10/09 23:58:10  richard
+#Moved the data stringification up into the hyperdb.Class class' get, set
+#and create methods. This means that the data is also stringified for the
+#journal call, and removes duplication of code from the backends. The
+#backend code now only sees strings.
+#
 #Revision 1.10  2001/10/09 07:25:59  richard
 #Added the Password property type. See "pydoc roundup.password" for
 #implementation details. Have updated some of the documentation too.
