@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: interfaces.py,v 1.10 2001/12/20 15:43:01 rochecompaan Exp $
+# $Id: interfaces.py,v 1.11 2002/01/02 02:32:38 richard Exp $
 
 import instance_config
 from roundup import cgi_client, mailgw 
@@ -38,10 +38,13 @@ class MailGW(mailgw.MailGW):
     ISSUE_TRACKER_EMAIL = instance_config.ISSUE_TRACKER_EMAIL
     ADMIN_EMAIL = instance_config.ADMIN_EMAIL
     MAILHOST = instance_config.MAILHOST
-    ANONYMOUS_ACCESS = instance_config.ANONYMOUS_ACCESS
+    ANONYMOUS_REGISTER = instance_config.ANONYMOUS_REGISTER
 
 #
 # $Log: interfaces.py,v $
+# Revision 1.11  2002/01/02 02:32:38  richard
+# ANONYMOUS_ACCESS -> ANONYMOUS_REGISTER
+#
 # Revision 1.10  2001/12/20 15:43:01  rochecompaan
 # Features added:
 #  .  Multilink properties are now displayed as comma separated values in

@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.46 2002/01/02 02:31:38 richard Exp $
+$Id: mailgw.py,v 1.47 2002/01/02 02:32:38 richard Exp $
 '''
 
 
@@ -387,7 +387,7 @@ Subject was: "%s"
         #
 
         # Don't create users if ANONYMOUS_REGISTER is denied
-        if self.ANONYMOUS_ACCESS == 'deny':
+        if self.ANONYMOUS_REGISTER == 'deny':
             create = 0
         else:
             create = 1
@@ -708,6 +708,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.47  2002/01/02 02:32:38  richard
+# ANONYMOUS_ACCESS -> ANONYMOUS_REGISTER
+#
 # Revision 1.46  2002/01/02 02:31:38  richard
 # Sorry for the huge checkin message - I was only intending to implement #496356
 # but I found a number of places where things had been broken by transactions:
