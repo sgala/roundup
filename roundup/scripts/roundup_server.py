@@ -1,5 +1,3 @@
-#!/usr/bin/python
-#
 # Copyright (c) 2001 Bizar Software Pty Ltd (http://www.bizarsoftware.com.au/)
 # This module is free software, and you may redistribute it and/or modify
 # under the same terms as Python, so long as this copyright message and
@@ -18,7 +16,7 @@
 # 
 """ HTTP Server that serves roundup.
 
-$Id: roundup_server.py,v 1.4 2002/02/21 07:02:54 richard Exp $
+$Id: roundup_server.py,v 1.5 2002/03/14 23:59:24 richard Exp $
 """
 
 # python version check
@@ -249,6 +247,9 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup_server.py,v $
+# Revision 1.5  2002/03/14 23:59:24  richard
+#  . #517734 ] web header customisation is obscure
+#
 # Revision 1.4  2002/02/21 07:02:54  richard
 # The correct var is "HTTP_HOST"
 #
