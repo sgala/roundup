@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.31 2002/04/03 05:54:31 richard Exp $
+#$Id: back_anydbm.py,v 1.32 2002/04/15 23:25:15 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -26,6 +26,7 @@ serious bugs, and is not available)
 import whichdb, anydbm, os, marshal
 from roundup import hyperdb, date
 from blobfiles import FileStorage
+from locking import acquire_lock, release_lock
 
 #
 # Now the database
@@ -130,6 +131,7 @@ class Database(FileStorage, hyperdb.Database):
         '''
         if hyperdb.DEBUG:
             print '_opendb', (self, name, mode)
+
         # determine which DB wrote the class file
         db_type = ''
         path = os.path.join(os.getcwd(), self.dir, name)
@@ -158,6 +160,31 @@ class Database(FileStorage, hyperdb.Database):
         if hyperdb.DEBUG:
             print "_opendb %r.open(%r, %r)"%(db_type, path, mode)
         return dbm.open(path, mode)
+
+    def _lockdb(self, name):
+        ''' Lock a database file
+        '''
+        path = os.path.join(os.getcwd(), self.dir, '%s.lock'%name)
+        return acquire_lock(path)
+
+    #
+    # Node IDs
+    #
+    def newid(self, classname):
+        ''' Generate a new id for the given class
+        '''
+        # open the ids DB - create if if doesn't exist
+        lock = self._lockdb('_ids')
+        db = self._opendb('_ids', 'c')
+        if db.has_key(classname):
+            newid = db[classname] = str(int(db[classname]) + 1)
+        else:
+            # the count() bit is transitional - older dbs won't start at 1
+            newid = str(self.getclass(classname).count()+1)
+            db[classname] = newid
+        db.close()
+        release_lock(lock)
+        return newid
 
     #
     # Nodes
@@ -442,6 +469,12 @@ class Database(FileStorage, hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.32  2002/04/15 23:25:15  richard
+#. node ids are now generated from a lockable store - no more race conditions
+#
+#We're using the portalocker code by Jonathan Feinberg that was contributed
+#to the ASPN Python cookbook. This gives us locking across Unix and Windows.
+#
 #Revision 1.31  2002/04/03 05:54:31  richard
 #Fixed serialisation problem by moving the serialisation step out of the
 #hyperdb.Class (get, set) into the hyperdb.Database.
