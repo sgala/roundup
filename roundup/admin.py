@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: admin.py,v 1.13 2002/05/30 23:58:14 richard Exp $
+# $Id: admin.py,v 1.14 2002/06/11 06:41:50 richard Exp $
 
 import sys, os, getpass, getopt, re, UserDict, shlex, shutil
 try:
@@ -316,7 +316,7 @@ Command help:
 
 
     def do_initialise(self, instance_home, args):
-        '''Usage: initialise [adminpw [adminemail]]
+        '''Usage: initialise [adminpw]
         Initialise a new Roundup instance.
 
         The administrator details will be set at this step.
@@ -332,14 +332,6 @@ Command help:
             while adminpw != confirm:
                 adminpw = getpass.getpass(_('Admin Password: '))
                 confirm = getpass.getpass(_('       Confirm: '))
-
-        # email
-        if len(args) > 2:
-            adminemail = args[2]
-        else:
-            adminemail = ''
-            while not adminemail:
-                adminemail = raw_input(_('   Admin Email: ')).strip()
 
         # make sure the instance home is installed
         if not os.path.exists(instance_home):
@@ -1121,6 +1113,9 @@ if __name__ == '__main__':
 
 #
 # $Log: admin.py,v $
+# Revision 1.14  2002/06/11 06:41:50  richard
+# Removed prompt for admin email in initialisation.
+#
 # Revision 1.13  2002/05/30 23:58:14  richard
 # oops
 #
