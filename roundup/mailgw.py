@@ -72,7 +72,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.18 2001/10/11 06:38:57 richard Exp $
+$Id: mailgw.py,v 1.19 2001/10/11 23:43:04 richard Exp $
 '''
 
 
@@ -216,7 +216,7 @@ Subject was: "%s"
         args = m.group('args')
         if args:
             for prop in string.split(args, ';'):
-                Try:
+                try:
                     key, value = prop.split('=')
                 except ValueError, message:
                     raise MailUsageError, '''
@@ -416,6 +416,10 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.19  2001/10/11 23:43:04  richard
+# Implemented the comma-separated printing option in the admin tool.
+# Fixed a typo (more of a vim-o actually :) in mailgw.
+#
 # Revision 1.18  2001/10/11 06:38:57  richard
 # Initial cut at trying to handle people responding to CC'ed messages that
 # create an issue.
