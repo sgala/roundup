@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.87 2002/04/03 06:12:46 richard Exp $
+# $Id: htmltemplate.py,v 1.88 2002/04/24 08:34:35 rochecompaan Exp $
 
 __doc__ = """
 Template engine.
@@ -223,9 +223,8 @@ class TemplateFunctions:
         elif isinstance(propclass, hyperdb.Multilink):
             sortfunc = self.make_sort_function(propclass.classname)
             linkcl = self.db.classes[propclass.classname]
-            list = linkcl.list()
-            list.sort(sortfunc)
-            l = []
+            if value:
+                value.sort(sortfunc)
             # map the id to the label property
             if not showid:
                 k = linkcl.labelprop()
@@ -1128,6 +1127,12 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.88  2002/04/24 08:34:35  rochecompaan
+# Sorting was applied to all nodes of the MultiLink class instead of
+# the nodes that are actually linked to in the "field" template
+# function.  This adds about 20+ seconds in the display of an issue if
+# your database has a 1000 or more issue in it.
+#
 # Revision 1.87  2002/04/03 06:12:46  richard
 # Fix for date properties as labels.
 #
