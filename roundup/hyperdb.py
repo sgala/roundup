@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.39 2001/12/02 05:06:16 richard Exp $
+# $Id: hyperdb.py,v 1.40 2001/12/14 23:42:57 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -101,6 +101,9 @@ class Class:
 
         # do the db-related init stuff
         db.addclass(self)
+
+    def __repr__(self):
+        return '<hypderdb.Class "%s">'%self.classname
 
     # Editing nodes:
 
@@ -868,6 +871,11 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.40  2001/12/14 23:42:57  richard
+# yuck, a gdbm instance tests false :(
+# I've left the debugging code in - it should be removed one day if we're ever
+# _really_ anal about performace :)
+#
 # Revision 1.39  2001/12/02 05:06:16  richard
 # . We now use weakrefs in the Classes to keep the database reference, so
 #   the close() method on the database is no longer needed.
