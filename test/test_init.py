@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_init.py,v 1.11 2002/07/11 01:12:34 richard Exp $
+# $Id: test_init.py,v 1.12 2002/07/11 01:13:13 richard Exp $
 
 import unittest, os, shutil, errno, imp, sys
 
@@ -146,12 +146,15 @@ def suite():
         l.append(unittest.makeSuite(metakitClassicTestCase, 'test'))
         l.append(unittest.makeSuite(metakitExtendedTestCase, 'test'))
     except:
-        print 'metakit module not found, skipping bsddb3 DBTestCase'
+        print 'metakit module not found, skipping metakit DBTestCase'
 
     return unittest.TestSuite(l)
 
 #
 # $Log: test_init.py,v $
+# Revision 1.12  2002/07/11 01:13:13  richard
+# *** empty log message ***
+#
 # Revision 1.11  2002/07/11 01:12:34  richard
 # Forgot to add to init tests
 #
