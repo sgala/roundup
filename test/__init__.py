@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.9 2002/01/02 02:31:38 richard Exp $
+# $Id: __init__.py,v 1.10 2002/01/05 02:09:46 richard Exp $
 
 import unittest
 import os, tempfile
@@ -36,10 +36,14 @@ def go():
         test_token.suite(),
     ))
     runner = unittest.TextTestRunner()
-    runner.run(suite)
+    result = runner.run(suite)
+    return result.wasSuccessful()
 
 #
 # $Log: __init__.py,v $
+# Revision 1.10  2002/01/05 02:09:46  richard
+# make setup abort if tests fail
+#
 # Revision 1.9  2002/01/02 02:31:38  richard
 # Sorry for the huge checkin message - I was only intending to implement #496356
 # but I found a number of places where things had been broken by transactions:
