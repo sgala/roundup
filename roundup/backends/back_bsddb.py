@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.18 2002/05/15 06:21:21 richard Exp $
+#$Id: back_bsddb.py,v 1.18.2.1 2002/09/03 06:35:16 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in BSDDB.
 '''
@@ -49,7 +49,7 @@ class Database(back_anydbm.Database):
         if os.path.exists(path):
             return bsddb.btopen(path, mode)
         else:
-            return bsddb.btopen(path, 'n')
+            return bsddb.btopen(path, 'c')
 
     def _opendb(self, name, mode):
         '''Low-level database opener that gets around anydbm/dbm
@@ -61,8 +61,8 @@ class Database(back_anydbm.Database):
         path = os.path.join(os.getcwd(), self.dir, name)
         if not os.path.exists(path):
             if __debug__:
-                print >>hyperdb.DEBUG, "_opendb bsddb.open(%r, 'n')"%path
-            return bsddb.btopen(path, 'n')
+                print >>hyperdb.DEBUG, "_opendb bsddb.open(%r, 'c')"%path
+            return bsddb.btopen(path, 'c')
 
         # open the database with the correct module
         if __debug__:
@@ -119,6 +119,9 @@ class Database(back_anydbm.Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.18.2.1  2002/09/03 06:35:16  richard
+#more backend database strangeness fixed
+#
 #Revision 1.18  2002/05/15 06:21:21  richard
 # . node caching now works, and gives a small boost in performance
 #
