@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup-mailgw,v 1.7 2001/08/07 00:24:42 richard Exp $
+# $Id: roundup-mailgw,v 1.8 2001/11/01 22:04:37 richard Exp $
 
 import sys
 if int(sys.version[0]) < 2:
@@ -37,13 +37,19 @@ if not instance_home:
 import roundup.instance
 instance = roundup.instance.open(instance_home)
 
-# invokde the mail handler
+# invoke the mail handler
 db = instance.open('admin')
 handler = instance.MailGW(db)
 handler.main(sys.stdin)
 
 #
 # $Log: roundup-mailgw,v $
+# Revision 1.8  2001/11/01 22:04:37  richard
+# Started work on supporting a pop3-fetching server
+# Fixed bugs:
+#  . bug #477104 ] HTML tag error in roundup-server
+#  . bug #477107 ] HTTP header problem
+#
 # Revision 1.7  2001/08/07 00:24:42  richard
 # stupid typo
 #
