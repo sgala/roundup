@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.141 2002/07/17 12:39:10 gmcm Exp $
+# $Id: cgi_client.py,v 1.142 2002/07/18 11:17:30 gmcm Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -1585,6 +1585,12 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
                 l.append(entry)
             l.sort()
             value = l
+        elif isinstance(proptype, hyperdb.Boolean):
+            value = form[key].value.strip()
+            props[key] = value = value.lower() in ('yes', 'true', 'on', '1')
+        elif isinstance(proptype, hyperdb.Number):
+            value = form[key].value.strip()
+            props[key] = value = int(value)
 
         # get the old value
         if nodeid:
@@ -1604,6 +1610,11 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.142  2002/07/18 11:17:30  gmcm
+# Add Number and Boolean types to hyperdb.
+# Add conversion cases to web, mail & admin interfaces.
+# Add storage/serialization cases to back_anydbm & back_metakit.
+#
 # Revision 1.141  2002/07/17 12:39:10  gmcm
 # Saving, running & editing queries.
 #
