@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.22 2002/01/14 02:20:15 richard Exp $
+#$Id: back_anydbm.py,v 1.23 2002/01/18 04:32:04 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -398,7 +398,8 @@ class Database(hyperdb.Database):
         for method, args in self.transactions:
             # delete temporary files
             if method == self._doStoreFile:
-                os.remove(args[0]+".tmp")
+                if os.path.exists(args[0]+".tmp"):
+                    os.remove(args[0]+".tmp")
         self.cache = {}
         self.dirtynodes = {}
         self.newnodes = {}
@@ -406,6 +407,10 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.23  2002/01/18 04:32:04  richard
+#Rollback was breaking because a message hadn't actually been written to the file. Needs
+#more investigation.
+#
 #Revision 1.22  2002/01/14 02:20:15  richard
 # . changed all config accesses so they access either the instance or the
 #   config attriubute on the db. This means that all config is obtained from
