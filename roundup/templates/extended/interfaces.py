@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: interfaces.py,v 1.9 2001/08/07 00:24:43 richard Exp $
+# $Id: interfaces.py,v 1.10 2001/10/05 02:23:24 richard Exp $
 
 import instance_config, urlparse, os
 from roundup import cgi_client, mailgw 
@@ -47,11 +47,29 @@ class Client(cgi_client.Client):
         else:
             message = ''
         style = open(os.path.join(self.TEMPLATES, 'style.css')).read()
-        userid = self.db.user.lookup(self.user)
+        user_name = self.user or ''
         if self.user == 'admin':
-            extras = ' | <a href="list_classes">Class List</a>'
+            admin_links = ' | <a href="list_classes">Class List</a>'
         else:
-            extras = ''
+            admin_links = ''
+        if self.user not in (None, 'anonymous'):
+            userid = self.db.user.lookup(self.user)
+            user_info = '''
+<a href="issue?assignedto=%s&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=priority">My Issues</a> |
+<a href="support?assignedto=%s&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=customername">My Support</a> |
+<a href="user%s">My Details</a> | <a href="logout">Logout</a>
+'''%(userid, userid, userid)
+        else:
+            user_info = '<a href="login">Login</a>'
+        if self.user is not None:
+            add_links = '''
+| Add
+<a href="newissue">Issue</a>,
+<a href="newsupport">Support</a>,
+<a href="newuser">User</a>
+'''
+        else:
+            add_links = ''
         self.write('''<html><head>
 <title>%s</title>
 <style type="text/css">%s</style>
@@ -68,17 +86,12 @@ class Client(cgi_client.Client):
 | Unassigned
 <a href="issue?assignedto=admin&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=priority">Issues</a>,
 <a href="support?assignedto=admin&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=customername">Support</a>
-| Add
-<a href="newissue">Issue</a>,
-<a href="newsupport">Support</a>,
-<a href="newuser">User</a>
+%s
 %s</td>
-<td align=right>
-<a href="issue?assignedto=%s&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=priority">My Issues</a> |
-<a href="support?assignedto=%s&status=unread,deferred,chatting,need-eg,in-progress,testing,done-cbb&:sort=activity&:columns=id,activity,status,title,assignedto&:group=customername">My Support</a> |
-<a href="user%s">My Details</a></td>
+<td align=right>%s</td>
 </table>
-'''%(title, style, message, title, self.user, extras, userid, userid, userid))
+'''%(title, style, message, title, user_name, add_links, admin_links,
+    user_info))
  
 class MailGW(mailgw.MailGW): 
     ''' derives basic mail gateway implementation from the standard module, 
@@ -90,6 +103,26 @@ class MailGW(mailgw.MailGW):
 
 #
 # $Log: interfaces.py,v $
+# Revision 1.10  2001/10/05 02:23:24  richard
+#  . roundup-admin create now prompts for property info if none is supplied
+#    on the command-line.
+#  . hyperdb Class getprops() method may now return only the mutable
+#    properties.
+#  . Login now uses cookies, which makes it a whole lot more flexible. We can
+#    now support anonymous user access (read-only, unless there's an
+#    "anonymous" user, in which case write access is permitted). Login
+#    handling has been moved into cgi_client.Client.main()
+#  . The "extended" schema is now the default in roundup init.
+#  . The schemas have had their page headings modified to cope with the new
+#    login handling. Existing installations should copy the interfaces.py
+#    file from the roundup lib directory to their instance home.
+#  . Incorrectly had a Bizar Software copyright on the cgitb.py module from
+#    Ping - has been removed.
+#  . Fixed a whole bunch of places in the CGI interface where we should have
+#    been returning Not Found instead of throwing an exception.
+#  . Fixed a deviation from the spec: trying to modify the 'id' property of
+#    an item now throws an exception.
+#
 # Revision 1.9  2001/08/07 00:24:43  richard
 # stupid typo
 #

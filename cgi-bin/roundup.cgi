@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.12 2001/10/01 05:55:41 richard Exp $
+# $Id: roundup.cgi,v 1.13 2001/10/05 02:23:24 richard Exp $
 
 # python version check
 import sys
@@ -59,55 +59,38 @@ except:
     traceback.print_exc(None, s)
     print cgi.escape(s.getvalue()), "</pre>"
 
-def main(instance, out):
-    from roundup import cgi_client
-    db = instance.open('admin')
-    auth = os.environ.get("HTTP_CGI_AUTHORIZATION", None)
-    message = 'Unauthorised'
-    if auth:
-        import binascii
-        l = binascii.a2b_base64(auth.split(' ')[1]).split(':')
-        user = l[0]
-        password = None
-        if len(l) > 1:
-            password = l[1]
+def main(out, err):
+    import os, string
+    import roundup.instance
+    path = string.split(os.environ['PATH_INFO'], '/')
+    instance = path[1]
+    os.environ['INSTANCE_NAME'] = instance
+    os.environ['PATH_INFO'] = string.join(path[2:], '/')
+    if ROUNDUP_INSTANCE_HOMES.has_key(instance):
+        instance_home = ROUNDUP_INSTANCE_HOMES[instance]
+        instance = roundup.instance.open(instance_home)
+        from roundup import cgi_client
+        client = instance.Client(instance, out, os.environ)
         try:
-            uid = db.user.lookup(user)
-        except KeyError:
-            auth = None
-            message = 'Username not recognised'
-        else:
-            if password != db.user.get(uid, 'password'):
-                message = 'Incorrect password'
-                auth = None
-    if not auth:
-        out.write('Content-Type: text/html\n')
-        out.write('Status: 401\n')
-        out.write('WWW-Authenticate: basic realm="Roundup"\n\n')
-        keys = os.environ.keys()
-        keys.sort()
-        out.write(message)
-        return
-    client = instance.Client(out, db, os.environ, user)
-    try:
-        client.main()
-    except cgi_client.Unauthorised:
-        out.write('Content-Type: text/html\n')
-        out.write('Status: 403\n\n')
-        out.write('Unauthorised')
-
-def index(out):
-    ''' Print up an index of the available instances
-    '''
-    import urllib
-    w = out.write
-    w("Content-Type: text/html\n\n")
-    w('<html><head><title>Roundup instances index</title><head>\n')
-    w('<body><h1>Roundup instances index</h1><ol>\n')
-    for instance in ROUNDUP_INSTANCE_HOMES.keys():
-        w('<li><a href="%s/index">%s</a>\n'%(urllib.quote(instance),
-            instance))
-    w('</ol></body></html>')
+            client.main()
+        except cgi_client.Unauthorised:
+            out.write('Content-Type: text/html\n')
+            out.write('Status: 403\n\n')
+            out.write('Unauthorised')
+        except cgi_client.NotFound:
+            out.write('Content-Type: text/html\n')
+            out.write('Status: 404\n\n')
+            out.write('Not found: %s'%client.path)
+    else:
+        import urllib
+        w = out.write
+        w("Content-Type: text/html\n\n")
+        w('<html><head><title>Roundup instances index</title><head>\n')
+        w('<body><h1>Roundup instances index</h1><ol>\n')
+        for instance in ROUNDUP_INSTANCE_HOMES.keys():
+            w('<li><a href="%s/index">%s</a>\n'%(urllib.quote(instance),
+                instance))
+        w('</ol></body></html>')
 
 #
 # Now do the actual CGI handling
@@ -115,17 +98,7 @@ def index(out):
 out, err = sys.stdout, sys.stderr
 try:
     sys.stdout = sys.stderr = LOG
-    import os, string
-    import roundup.instance
-    path = string.split(os.environ['PATH_INFO'], '/')
-    instance = path[1]
-    os.environ['PATH_INFO'] = string.join(path[2:], '/')
-    if ROUNDUP_INSTANCE_HOMES.has_key(instance):
-        instance_home = ROUNDUP_INSTANCE_HOMES[instance]
-        instance = roundup.instance.open(instance_home)
-        main(instance, out)
-    else:
-        index(out)
+    main(out, err)
 except:
     sys.stdout, sys.stderr = out, err
     out.write('Content-Type: text/html\n\n')
@@ -135,6 +108,26 @@ sys.stdout, sys.stderr = out, err
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.13  2001/10/05 02:23:24  richard
+#  . roundup-admin create now prompts for property info if none is supplied
+#    on the command-line.
+#  . hyperdb Class getprops() method may now return only the mutable
+#    properties.
+#  . Login now uses cookies, which makes it a whole lot more flexible. We can
+#    now support anonymous user access (read-only, unless there's an
+#    "anonymous" user, in which case write access is permitted). Login
+#    handling has been moved into cgi_client.Client.main()
+#  . The "extended" schema is now the default in roundup init.
+#  . The schemas have had their page headings modified to cope with the new
+#    login handling. Existing installations should copy the interfaces.py
+#    file from the roundup lib directory to their instance home.
+#  . Incorrectly had a Bizar Software copyright on the cgitb.py module from
+#    Ping - has been removed.
+#  . Fixed a whole bunch of places in the CGI interface where we should have
+#    been returning Not Found instead of throwing an exception.
+#  . Fixed a deviation from the spec: trying to modify the 'id' property of
+#    an item now throws an exception.
+#
 # Revision 1.12  2001/10/01 05:55:41  richard
 # Fixes to the top-level index
 #
