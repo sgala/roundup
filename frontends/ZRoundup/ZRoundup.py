@@ -14,7 +14,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: ZRoundup.py,v 1.8 2002/06/16 01:01:42 dman13 Exp $
+# $Id: ZRoundup.py,v 1.9 2002/07/04 01:25:22 dman13 Exp $
 #
 ''' ZRoundup module - exposes the roundup web interface to Zope
 
@@ -129,7 +129,8 @@ class ZRoundup(Item, PropertyManager, Implicit, Persistent):
 
         # figure out the path components to set
         url = urlparse.urlparse( self.absolute_url() )
-        path_components = url[2].split( '/' )
+        path = url[2]
+        path_components = path.split( '/' )
                                                 
         # special case when roundup is '/' in this virtual host,
         if path == "/" :
@@ -207,6 +208,9 @@ modulesecurity.apply(globals())
 
 #
 # $Log: ZRoundup.py,v $
+# Revision 1.9  2002/07/04 01:25:22  dman13
+# fixed #576086 (dumb copying mistake)
+#
 # Revision 1.8  2002/06/16 01:01:42  dman13
 # remove CR characters embedded in messages (ZRoundup)
 #
