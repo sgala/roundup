@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.59 2002/01/17 07:58:24 grubert Exp $
+# $Id: htmltemplate.py,v 1.60 2002/01/17 08:48:19 grubert Exp $
 
 __doc__ = """
 Template engine.
@@ -463,7 +463,12 @@ class TemplateFunctions:
             elif type(args)==type({}):
                 for k in args.keys():
                     # special treatment of date, maybe links to files, authors, recipient ?
-                    arg_s += '%s: %s,'%(k,str(args[k]))
+                    if k=='superseder' and len(args[k])>0:
+                        arg_s += '<br />superseder: '
+                        for ssdr in args[k]:
+                            arg_s += '<a href="issue%s">issue%s</a>,'%(ssdr,ssdr)
+                    else:
+                        arg_s += '%s: %s,'%(k,str(args[k]))
             else:
                 arg_s = str(args)
             # shouldnt _() be used ?
@@ -898,6 +903,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.60  2002/01/17 08:48:19  grubert
+#  . display superseder as html link in history.
+#
 # Revision 1.59  2002/01/17 07:58:24  grubert
 #  . display links a html link in history.
 #
