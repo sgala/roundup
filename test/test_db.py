@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.9 2001/12/02 05:06:16 richard Exp $ 
+# $Id: test_db.py,v 1.10 2001/12/03 21:33:39 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -78,6 +78,7 @@ class DBTestCase(MyTestCase):
         self.db.status.get('2', "name")
         self.db.issue.get('5', "title")
         self.db.issue.find(status = self.db.status.lookup("in-progress"))
+        self.db.commit()
         self.db.issue.history('5')
         self.db.status.history('1')
         self.db.status.history('2')
@@ -238,6 +239,9 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.10  2001/12/03 21:33:39  richard
+# Fixes so the tests use commit and not close
+#
 # Revision 1.9  2001/12/02 05:06:16  richard
 # . We now use weakrefs in the Classes to keep the database reference, so
 #   the close() method on the database is no longer needed.

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_schema.py,v 1.5 2001/10/09 07:25:59 richard Exp $ 
+# $Id: test_schema.py,v 1.6 2001/12/03 21:33:39 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -35,7 +35,6 @@ class SchemaTestCase(unittest.TestCase):
         self.db.clear()
 
     def tearDown(self):
-        self.db.close()
         shutil.rmtree('_test_dir')
 
     def testA_Status(self):
@@ -76,6 +75,9 @@ def suite():
 
 #
 # $Log: test_schema.py,v $
+# Revision 1.6  2001/12/03 21:33:39  richard
+# Fixes so the tests use commit and not close
+#
 # Revision 1.5  2001/10/09 07:25:59  richard
 # Added the Password property type. See "pydoc roundup.password" for
 # implementation details. Have updated some of the documentation too.
