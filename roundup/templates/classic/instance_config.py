@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.13 2002/03/14 23:59:24 richard Exp $
+# $Id: instance_config.py,v 1.14 2002/04/23 15:46:49 rochecompaan Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -83,6 +83,12 @@ MESSAGES_TO_AUTHOR = 'no'       # either 'yes' or 'no'
 # Where to place the email signature
 EMAIL_SIGNATURE_POSITION = 'bottom'
 
+# Keep email citations
+EMAIL_KEEP_QUOTED_TEXT = 'no'
+
+# Preserve the email body as is
+EMAIL_LEAVE_BODY_UNCHANGED = 'no'
+
 # Default class to use in the mailgw if one isn't supplied in email
 # subjects. To disable, comment out the variable below or leave it blank.
 # Examples:
@@ -144,6 +150,11 @@ USER_INDEX = {
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.14  2002/04/23 15:46:49  rochecompaan
+#  . stripping of the email message body can now be controlled through
+#    the config variables EMAIL_KEEP_QUOTED_TEST and
+#    EMAIL_LEAVE_BODY_UNCHANGED.
+#
 # Revision 1.13  2002/03/14 23:59:24  richard
 #  . #517734 ] web header customisation is obscure
 #
