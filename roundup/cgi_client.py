@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.74 2001/12/02 05:06:16 richard Exp $
+# $Id: cgi_client.py,v 1.75 2001/12/04 01:25:08 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -341,6 +341,7 @@ class Client:
                 else:
                     message = _('nothing changed')
             except:
+                self.db.rollback()
                 s = StringIO.StringIO()
                 traceback.print_exc(None, s)
                 message = '<pre>%s</pre>'%cgi.escape(s.getvalue())
@@ -399,6 +400,7 @@ class Client:
                 message = _('%(changes)s edited ok')%{'changes':
                     ', '.join(changed)}
             except:
+                self.db.rollback()
                 s = StringIO.StringIO()
                 traceback.print_exc(None, s)
                 message = '<pre>%s</pre>'%cgi.escape(s.getvalue())
@@ -560,6 +562,7 @@ class Client:
                 # and some nice feedback for the user
                 message = _('%(classname)s created ok')%{'classname': cn}
             except:
+                self.db.rollback()
                 s = StringIO.StringIO()
                 traceback.print_exc(None, s)
                 message = '<pre>%s</pre>'%cgi.escape(s.getvalue())
@@ -1068,6 +1071,10 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.75  2001/12/04 01:25:08  richard
+# Added some rollbacks where we were catching exceptions that would otherwise
+# have stopped committing.
+#
 # Revision 1.74  2001/12/02 05:06:16  richard
 # . We now use weakrefs in the Classes to keep the database reference, so
 #   the close() method on the database is no longer needed.
