@@ -55,7 +55,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.7 2001/08/03 07:18:22 richard Exp $
+$Id: mailgw.py,v 1.8 2001/08/05 07:06:07 richard Exp $
 '''
 
 
@@ -297,7 +297,6 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
     # extract out the summary from the message
     summary = ''
     l = []
-    print sections
     for section in sections:
         section = section.strip()
         if not section:
@@ -318,6 +317,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.8  2001/08/05 07:06:07  richard
+# removed some print statements
+#
 # Revision 1.7  2001/08/03 07:18:22  richard
 # Implemented correct mail splitting (was taking a shortcut). Added unit
 # tests. Also snips signatures now too.
