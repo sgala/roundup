@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.63 2001/11/26 22:55:56 richard Exp $
+# $Id: cgi_client.py,v 1.64 2001/11/26 22:56:35 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -308,7 +308,7 @@ class Client:
         keys = self.form.keys()
         num_re = re.compile('^\d+$')
         # don't try to set properties if the user has just logged in
-        if keys and not self.form.has_key('__login_name')::
+        if keys and not self.form.has_key('__login_name'):
             try:
                 props, changed = parsePropsFromForm(self.db, cl, self.form,
                     self.nodeid)
@@ -1038,6 +1038,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.64  2001/11/26 22:56:35  richard
+# typo
+#
 # Revision 1.63  2001/11/26 22:55:56  richard
 # Feature:
 #  . Added INSTANCE_NAME to configuration - used in web and email to identify
