@@ -1,15 +1,15 @@
-# $Id: dbinit.py,v 1.3 2001/07/23 07:14:41 richard Exp $
+# $Id: dbinit.py,v 1.4 2001/07/23 08:45:28 richard Exp $
 
 import os
 
 import instance_config
 from roundup import roundupdb, cgi_client, mailgw 
-from roundup.backends import bsddb
+import select_db
 from roundup.roundupdb import Class, FileClass
 
-class Database(roundupdb.Database, bsddb.Database):
+class Database(roundupdb.Database, select_db.Database):
     ''' Creates a hybrid database from: 
-         . the BSDDB implementation in backends.bsddb 
+         . the selected database back-end from select_db
          . the roundup extensions from roundupdb 
     ''' 
     pass 
@@ -171,6 +171,11 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.4  2001/07/23 08:45:28  richard
+# ok, so now "./roundup-admin init" will ask questions in an attempt to get a
+# workable instance_home set up :)
+# _and_ anydbm has had its first test :)
+#
 # Revision 1.3  2001/07/23 07:14:41  richard
 # Moved the database backends off into backends.
 #
