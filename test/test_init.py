@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_init.py,v 1.14 2002/07/26 08:27:00 richard Exp $
+# $Id: test_init.py,v 1.15 2002/07/29 00:56:06 richard Exp $
 
 import unittest, os, shutil, errno, imp, sys
 
@@ -91,7 +91,7 @@ class ExtendedTestCase(MyTestCase):
         l = db.keyword.list()
         ae(l, [])
         l = db.user.list()
-        ae(l, ['1'])
+        ae(l, ['1', '2'])
         l = db.msg.list()
         ae(l, [])
         l = db.file.list()
@@ -155,6 +155,10 @@ def suite():
 
 #
 # $Log: test_init.py,v $
+# Revision 1.15  2002/07/29 00:56:06  richard
+# Removed the unnecessary volatiledb and the related complications. Security
+# much simpler and self-contained now.
+#
 # Revision 1.14  2002/07/26 08:27:00  richard
 # Very close now. The cgi and mailgw now use the new security API. The two
 # templates have been migrated to that setup. Lots of unit tests. Still some
