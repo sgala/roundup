@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.30 2001/11/09 10:11:08 richard Exp $
+# $Id: hyperdb.py,v 1.31 2001/11/12 22:01:06 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -545,7 +545,7 @@ class Class:
             if node.has_key(self.db.RETIRED_FLAG):
                 continue
             for key, value in requirements.items():
-                if node[key].lower() != value:
+                if node[key] and node[key].lower() != value:
                     break
             else:
                 l.append(nodeid)
@@ -849,6 +849,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.31  2001/11/12 22:01:06  richard
+# Fixed issues with nosy reaction and author copies.
+#
 # Revision 1.30  2001/11/09 10:11:08  richard
 #  . roundup-admin now handles all hyperdb exceptions
 #

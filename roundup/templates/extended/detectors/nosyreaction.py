@@ -15,7 +15,9 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: nosyreaction.py,v 1.4 2001/10/30 00:54:45 richard Exp $
+#$Id: nosyreaction.py,v 1.5 2001/11/12 22:01:07 richard Exp $
+
+from roundup import roundupdb
 
 def nosyreaction(db, cl, nodeid, oldvalues):
     ''' A standard detector is provided that watches for additions to the
@@ -51,7 +53,10 @@ def nosyreaction(db, cl, nodeid, oldvalues):
 
     # send a copy to the nosy list
     for msgid in messages:
-        cl.sendmessage(nodeid, msgid)
+        try:
+            cl.sendmessage(nodeid, msgid)
+        except roundupdb.MessageSendError, message:
+            raise roundupdb.DetectorError, message
 
     # update the nosy list with the recipients from the new messages
     nosy = cl.get(nodeid, 'nosy')
@@ -82,6 +87,9 @@ def init(db):
 
 #
 #$Log: nosyreaction.py,v $
+#Revision 1.5  2001/11/12 22:01:07  richard
+#Fixed issues with nosy reaction and author copies.
+#
 #Revision 1.4  2001/10/30 00:54:45  richard
 #Features:
 # . #467129 ] Lossage when username=e-mail-address
