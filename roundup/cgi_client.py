@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.108 2002/02/21 07:02:54 richard Exp $
+# $Id: cgi_client.py,v 1.109 2002/02/21 07:08:19 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -405,7 +405,7 @@ function help_window(helpurl) {
         w = self.write
         cn = self.form['classname'].value
         cl = self.db.classes[cn]
-        props = self.form['columns'].value.split(',')
+        props = self.form['properties'].value.split(',')
 
         w('<table border=1 cellspacing=0 cellpaddin=2>')
         w('<tr>')
@@ -1325,6 +1325,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.109  2002/02/21 07:08:19  richard
+# oops
+#
 # Revision 1.108  2002/02/21 07:02:54  richard
 # The correct var is "HTTP_HOST"
 #
