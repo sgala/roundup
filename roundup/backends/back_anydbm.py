@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.21 2002/01/02 02:31:38 richard Exp $
+#$Id: back_anydbm.py,v 1.22 2002/01/14 02:20:15 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -40,9 +40,10 @@ class Database(hyperdb.Database):
         . perhaps detect write collisions (related to above)?
 
     """
-    def __init__(self, storagelocator, journaltag=None):
+    def __init__(self, config, journaltag=None):
         """Open a hyperdatabase given a specifier to some storage.
 
+        The 'storagelocator' is obtained from config.DATABASE.
         The meaning of 'storagelocator' depends on the particular
         implementation of the hyperdatabase.  It could be a file name,
         a directory path, a socket descriptor for a connection to a
@@ -53,7 +54,8 @@ class Database(hyperdb.Database):
         None, the database is opened in read-only mode: the Class.create(),
         Class.set(), and Class.retire() methods are disabled.
         """
-        self.dir, self.journaltag = storagelocator, journaltag
+        self.config, self.journaltag = config, journaltag
+        self.dir = config.DATABASE
         self.classes = {}
         self.cache = {}         # cache of nodes loaded or created
         self.dirtynodes = {}    # keep track of the dirty nodes by class
@@ -404,6 +406,15 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.22  2002/01/14 02:20:15  richard
+# . changed all config accesses so they access either the instance or the
+#   config attriubute on the db. This means that all config is obtained from
+#   instance_config instead of the mish-mash of classes. This will make
+#   switching to a ConfigParser setup easier too, I hope.
+#
+#At a minimum, this makes migration a _little_ easier (a lot easier in the
+#0.5.0 switch, I hope!)
+#
 #Revision 1.21  2002/01/02 02:31:38  richard
 #Sorry for the huge checkin message - I was only intending to implement #496356
 #but I found a number of places where things had been broken by transactions:

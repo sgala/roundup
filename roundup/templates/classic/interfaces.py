@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: interfaces.py,v 1.11 2002/01/02 02:32:38 richard Exp $
+# $Id: interfaces.py,v 1.12 2002/01/14 02:20:15 richard Exp $
 
 import instance_config
 from roundup import cgi_client, mailgw 
@@ -24,24 +24,25 @@ class Client(cgi_client.Client):
     ''' derives basic CGI implementation from the standard module, 
         with any specific extensions 
     ''' 
-    INSTANCE_NAME = instance_config.INSTANCE_NAME
-    TEMPLATES = instance_config.TEMPLATES
-    FILTER_POSITION = instance_config.FILTER_POSITION
-    ANONYMOUS_ACCESS = instance_config.ANONYMOUS_ACCESS
-    ANONYMOUS_REGISTER = instance_config.ANONYMOUS_REGISTER
+    pass
 
 class MailGW(mailgw.MailGW): 
     ''' derives basic mail gateway implementation from the standard module, 
         with any specific extensions 
     ''' 
-    INSTANCE_NAME = instance_config.INSTANCE_NAME
-    ISSUE_TRACKER_EMAIL = instance_config.ISSUE_TRACKER_EMAIL
-    ADMIN_EMAIL = instance_config.ADMIN_EMAIL
-    MAILHOST = instance_config.MAILHOST
-    ANONYMOUS_REGISTER = instance_config.ANONYMOUS_REGISTER
+    pass
 
 #
 # $Log: interfaces.py,v $
+# Revision 1.12  2002/01/14 02:20:15  richard
+#  . changed all config accesses so they access either the instance or the
+#    config attriubute on the db. This means that all config is obtained from
+#    instance_config instead of the mish-mash of classes. This will make
+#    switching to a ConfigParser setup easier too, I hope.
+#
+# At a minimum, this makes migration a _little_ easier (a lot easier in the
+# 0.5.0 switch, I hope!)
+#
 # Revision 1.11  2002/01/02 02:32:38  richard
 # ANONYMOUS_ACCESS -> ANONYMOUS_REGISTER
 #

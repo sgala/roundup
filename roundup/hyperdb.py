@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.46 2002/01/07 10:42:23 richard Exp $
+# $Id: hyperdb.py,v 1.47 2002/01/14 02:20:15 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -98,9 +98,11 @@ transaction.
     # flag to set on retired entries
     RETIRED_FLAG = '__hyperdb_retired'
 
-    def __init__(self, storagelocator, journaltag=None):
+    # XXX deviates from spec: storagelocator is obtained from the config
+    def __init__(self, config, journaltag=None):
         """Open a hyperdatabase given a specifier to some storage.
 
+        The 'storagelocator' is obtained from config.DATABASE.
         The meaning of 'storagelocator' depends on the particular
         implementation of the hyperdatabase.  It could be a file name,
         a directory path, a socket descriptor for a connection to a
@@ -1027,6 +1029,15 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.47  2002/01/14 02:20:15  richard
+#  . changed all config accesses so they access either the instance or the
+#    config attriubute on the db. This means that all config is obtained from
+#    instance_config instead of the mish-mash of classes. This will make
+#    switching to a ConfigParser setup easier too, I hope.
+#
+# At a minimum, this makes migration a _little_ easier (a lot easier in the
+# 0.5.0 switch, I hope!)
+#
 # Revision 1.46  2002/01/07 10:42:23  richard
 # oops
 #

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.51 2002/01/10 10:02:15 grubert Exp $
+# $Id: htmltemplate.py,v 1.52 2002/01/14 02:20:14 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -506,6 +506,7 @@ class IndexTemplateReplace:
 class IndexTemplate(TemplateFunctions):
     def __init__(self, client, templates, classname):
         self.client = client
+        self.instance = client.instance
         self.templates = templates
         self.classname = classname
 
@@ -551,8 +552,8 @@ class IndexTemplate(TemplateFunctions):
             columns = l
 
         # display the filter section
-        if (show_display_form and hasattr(self.client, 'FILTER_POSITION') and
-                self.client.FILTER_POSITION in ('top and bottom', 'top')):
+        if (show_display_form and 
+                self.instance.FILTER_POSITION in ('top and bottom', 'top')):
             w('<form action="index">\n')
             self.filter_section(filter_template, filter, columns, group,
                 all_filters, all_columns, show_customization)
@@ -633,8 +634,8 @@ class IndexTemplate(TemplateFunctions):
         w('</table>')
 
         # display the filter section
-        if (show_display_form and hasattr(self.client, 'FILTER_POSITION') and
-                self.client.FILTER_POSITION in ('top and bottom', 'bottom')):
+        if (show_display_form and hasattr(self.instance, 'FILTER_POSITION') and
+                self.instance.FILTER_POSITION in ('top and bottom', 'bottom')):
             w('<form action="index">\n')
             self.filter_section(filter_template, filter, columns, group,
                 all_filters, all_columns, show_customization)
@@ -823,6 +824,7 @@ class ItemTemplateReplace:
 class ItemTemplate(TemplateFunctions):
     def __init__(self, client, templates, classname):
         self.client = client
+        self.instance = client.instance
         self.templates = templates
         self.classname = classname
 
@@ -855,6 +857,7 @@ class ItemTemplate(TemplateFunctions):
 class NewItemTemplate(TemplateFunctions):
     def __init__(self, client, templates, classname):
         self.client = client
+        self.instance = client.instance
         self.templates = templates
         self.classname = classname
 
@@ -886,6 +889,15 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.52  2002/01/14 02:20:14  richard
+#  . changed all config accesses so they access either the instance or the
+#    config attriubute on the db. This means that all config is obtained from
+#    instance_config instead of the mish-mash of classes. This will make
+#    switching to a ConfigParser setup easier too, I hope.
+#
+# At a minimum, this makes migration a _little_ easier (a lot easier in the
+# 0.5.0 switch, I hope!)
+#
 # Revision 1.51  2002/01/10 10:02:15  grubert
 # In do_history: replace "." in date by " " so html wraps more sensible.
 # Should this be done in date's string converter ?

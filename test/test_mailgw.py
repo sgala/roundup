@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_mailgw.py,v 1.2 2002/01/11 23:22:29 richard Exp $
+# $Id: test_mailgw.py,v 1.3 2002/01/14 02:20:15 richard Exp $
 
 import unittest, cStringIO, tempfile, os, shutil, errno, imp, sys
 
@@ -73,7 +73,7 @@ This is a test submission of a new issue.
 ''')
         handler = self.instance.MailGW(self.instance, self.db)
         # TODO: fix the damn config - this is apalling
-        self.instance.IssueClass.MESSAGES_TO_AUTHOR = 'yes'
+        self.db.config.MESSAGES_TO_AUTHOR = 'yes'
         handler.main(message)
 
         self.assertEqual(open(os.environ['SENDMAILDEBUG']).read(),
@@ -188,6 +188,15 @@ def suite():
 
 #
 # $Log: test_mailgw.py,v $
+# Revision 1.3  2002/01/14 02:20:15  richard
+#  . changed all config accesses so they access either the instance or the
+#    config attriubute on the db. This means that all config is obtained from
+#    instance_config instead of the mish-mash of classes. This will make
+#    switching to a ConfigParser setup easier too, I hope.
+#
+# At a minimum, this makes migration a _little_ easier (a lot easier in the
+# 0.5.0 switch, I hope!)
+#
 # Revision 1.2  2002/01/11 23:22:29  richard
 #  . #502437 ] rogue reactor and unittest
 #    in short, the nosy reactor was modifying the nosy list. That code had
