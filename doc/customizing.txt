@@ -2,7 +2,7 @@
 Customising Roundup
 ===================
 
-:Version: $Revision: 1.130 $
+:Version: $Revision: 1.131 $
 
 .. This document borrows from the ZopeBook section on ZPT. The original is at:
    http://www.zope.org/Documentation/Books/ZopeBook/current/ZPT.stx
@@ -2883,6 +2883,11 @@ some security declarations::
 
 You would then (as an "admin" user) edit the details of the appropriate
 users, and add "SysAdmin" to their Roles list.
+
+Alternatively, you might want to change the Edit/View permissions granted
+for the "issue" class so that it's only available to users with the "System"
+or "Developer" Role, and then the new class you're adding is available to
+all with the "User" Role.
 
 
 Using External User Databases
