@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.13 2001/10/30 00:54:45 richard Exp $
+# $Id: dbinit.py,v 1.14 2001/11/21 02:34:18 richard Exp $
 
 import os
 
@@ -110,7 +110,7 @@ def open(name=None):
                     assignedto=Link("user"), priority=Link("priority"), 
                     status=Link("status"), product=Link("product"), 
                     platform=Multilink("platform"), version=String(),
-                    supportcall=Multilink("support"))
+                    targetversion=String(), supportcall=Multilink("support"))
 
     import detectors
     detectors.init(db)
@@ -176,6 +176,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.14  2001/11/21 02:34:18  richard
+# Added a target version field to the extended issue schema
+#
 # Revision 1.13  2001/10/30 00:54:45  richard
 # Features:
 #  . #467129 ] Lossage when username=e-mail-address

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.11 2001/10/09 23:58:10 richard Exp $
+#$Id: back_bsddb.py,v 1.12 2001/11/21 02:34:18 richard Exp $
 
 import bsddb, os, marshal
 from roundup import hyperdb, date, password
@@ -179,7 +179,7 @@ class Database(hyperdb.Database):
             we can be del'ed and the underlying bsddb connections closed
             cleanly.
         '''
-        self.classes = None
+        self.classes = {}
 
 
     #
@@ -200,6 +200,9 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.12  2001/11/21 02:34:18  richard
+#Added a target version field to the extended issue schema
+#
 #Revision 1.11  2001/10/09 23:58:10  richard
 #Moved the data stringification up into the hyperdb.Class class' get, set
 #and create methods. This means that the data is also stringified for the
