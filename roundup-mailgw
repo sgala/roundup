@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# $Id: roundup-mailgw,v 1.3 2001/08/03 00:59:34 richard Exp $
+# $Id: roundup-mailgw,v 1.4 2001/08/03 01:28:33 richard Exp $
 
 import sys
 if int(sys.version[0]) < 2:
@@ -18,7 +18,7 @@ if not instance_home:
 
 # get the instance
 import imp
-instance = imp.load_module('instance', None, instance_home, ('', '', 5))
+instance = imp.load_package('instance', instance_home)
 
 # invokde the mail handler
 db = instance.open('admin')
@@ -27,6 +27,9 @@ handler.main(sys.stdin)
 
 #
 # $Log: roundup-mailgw,v $
+# Revision 1.4  2001/08/03 01:28:33  richard
+# Used the much nicer load_package, pointed out by Steve Majewski.
+#
 # Revision 1.3  2001/08/03 00:59:34  richard
 # Instance import now imports the instance using imp.load_module so that
 # we can have instance homes of "roundup" or other existing python package
