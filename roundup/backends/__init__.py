@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.8 2001/12/10 22:20:01 richard Exp $
+# $Id: __init__.py,v 1.9 2001/12/12 02:30:51 richard Exp $
 
 __all__ = []
 
@@ -30,25 +30,34 @@ try:
     __all__.append('anydbm')
 except AssertionError:
     del back_anydbm
-except:
+except ImportError:
     pass
 
 try:
     import back_bsddb
     bsddb = back_bsddb
     __all__.append('bsddb')
-except:
+except ImportError:
     pass
 
 try:
     import back_bsddb3
     bsddb3 = back_bsddb3
     __all__.append('bsddb3')
-except:
+except ImportError:
     pass
 
 #
 # $Log: __init__.py,v $
+# Revision 1.9  2001/12/12 02:30:51  richard
+# I fixed the problems with people whose anydbm was using the dbm module at the
+# backend. It turns out the dbm module modifies the file name to append ".db"
+# and my check to determine if we're opening an existing or new db just
+# tested os.path.exists() on the filename. Well, no longer! We now perform a
+# much better check _and_ cope with the anydbm implementation module changing
+# too!
+# I also fixed the backends __init__ so only ImportError is squashed.
+#
 # Revision 1.8  2001/12/10 22:20:01  richard
 # Enabled transaction support in the bsddb backend. It uses the anydbm code
 # where possible, only replacing methods where the db is opened (it uses the
