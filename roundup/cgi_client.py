@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.86 2001/12/20 15:43:01 rochecompaan Exp $
+# $Id: cgi_client.py,v 1.87 2001/12/23 23:18:49 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -108,7 +108,8 @@ class Client:
         user_name = self.user or ''
         if self.user == 'admin':
             admin_links = _(' | <a href="list_classes">Class List</a>' \
-                          ' | <a href="user">User List</a>')
+                          ' | <a href="user">User List</a>' \
+                          ' | <a href="newuser">Add User</a>')
         else:
             admin_links = ''
         if self.user not in (None, 'anonymous'):
@@ -120,14 +121,7 @@ class Client:
         else:
             user_info = _('<a href="login">Login</a>')
         if self.user is not None:
-            if self.user == 'admin':
-                add_links = _('''
-| Add
-<a href="newissue">Issue</a>,
-<a href="newuser">User</a>
-''')
-            else:
-                add_links = _('''
+            add_links = _('''
 | Add
 <a href="newissue">Issue</a>
 ''')
@@ -1052,7 +1046,8 @@ class ExtendedClient(Client):
         user_name = self.user or ''
         if self.user == 'admin':
             admin_links = _(' | <a href="list_classes">Class List</a>' \
-                          ' | <a href="user">User List</a>')
+                          ' | <a href="user">User List</a>' \
+                          ' | <a href="newuser">Add User</a>')
         else:
             admin_links = ''
         if self.user not in (None, 'anonymous'):
@@ -1065,15 +1060,7 @@ class ExtendedClient(Client):
         else:
             user_info = _('<a href="login">Login</a>')
         if self.user is not None:
-            if self.user == 'admin':
-                add_links = _('''
-| Add
-<a href="newissue">Issue</a>,
-<a href="newsupport">Support</a>,
-<a href="newuser">User</a>
-''')
-            else:
-                add_links = _('''
+            add_links = _('''
 | Add
 <a href="newissue">Issue</a>,
 <a href="newsupport">Support</a>,
@@ -1176,6 +1163,10 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.87  2001/12/23 23:18:49  richard
+# We already had an admin-specific section of the web heading, no need to add
+# another one :)
+#
 # Revision 1.86  2001/12/20 15:43:01  rochecompaan
 # Features added:
 #  .  Multilink properties are now displayed as comma separated values in
