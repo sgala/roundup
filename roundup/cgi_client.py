@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.157 2002/08/13 20:16:09 gmcm Exp $
+# $Id: cgi_client.py,v 1.158 2002/08/15 00:40:10 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -1113,7 +1113,9 @@ function help_window(helpurl, width, height) {
 
     def showuser(self, message=None, num_re=re.compile('^\d+$')):
         '''Display a user page for editing. Make sure the user is allowed
-            to edit this node, and also check for password changes.
+           to edit this node, and also check for password changes.
+
+           Note: permission checks for this node are handled in the template.
         '''
         user = self.db.user
 
@@ -1123,11 +1125,6 @@ function help_window(helpurl, width, height) {
         except IndexError:
             raise NotFound, 'user%s'%self.nodeid
 
-        # ok, so we need to be able to edit everything, or be this node's
-        # user
-        userid = self.db.user.lookup(self.user)
-        # removed check on user's permissions - this needs to be done
-	# through require tags in user.item
         #
         # perform any editing
         #
@@ -1748,6 +1745,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.158  2002/08/15 00:40:10  richard
+# cleanup
+#
 # Revision 1.157  2002/08/13 20:16:09  gmcm
 # Use a real parser for templates.
 # Rewrite htmltemplate to use the parser (hack, hack).
