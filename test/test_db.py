@@ -15,13 +15,14 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.13 2002/01/14 02:20:15 richard Exp $ 
+# $Id: test_db.py,v 1.14 2002/01/16 07:02:57 richard Exp $ 
 
 import unittest, os, shutil
 
 from roundup.hyperdb import String, Password, Link, Multilink, Date, \
     Interval, Class, DatabaseError
 from roundup.roundupdb import FileClass
+from roundup import date
 
 def setupSchema(db, create):
     status = Class(db, "status", name=String())
@@ -33,7 +34,7 @@ def setupSchema(db, create):
         status.create(name="resolved")
     Class(db, "user", username=String(), password=Password())
     Class(db, "issue", title=String(), status=Link("status"),
-        nosy=Multilink("user"))
+        nosy=Multilink("user"), deadline=Date(), foo=Interval())
     FileClass(db, "file", name=String(), type=String())
     db.commit()
 
@@ -76,9 +77,19 @@ class anydbmDBTestCase(MyTestCase):
         props = self.db.issue.getprops()
         keys = props.keys()
         keys.sort()
-        self.assertEqual(keys, ['fixer', 'id', 'nosy', 'status', 'title'])
+        self.assertEqual(keys, ['deadline', 'fixer', 'foo', 'id', 'nosy',
+            'status', 'title'])
         self.db.issue.set('5', status='2')
         self.db.issue.get('5', "status")
+
+        a = self.db.issue.get('5', "deadline")
+        self.db.issue.set('5', deadline=date.Date())
+        self.assertNotEqual(a, self.db.issue.get('5', "deadline"))
+
+        a = self.db.issue.get('5', "foo")
+        self.db.issue.set('5', foo=date.Interval('-1d'))
+        self.assertNotEqual(a, self.db.issue.get('5', "foo"))
+
         self.db.status.get('2', "name")
         self.db.issue.get('5', "title")
         self.db.issue.find(status = self.db.status.lookup("in-progress"))
@@ -274,6 +285,10 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.14  2002/01/16 07:02:57  richard
+#  . lots of date/interval related changes:
+#    - more relaxed date format for input
+#
 # Revision 1.13  2002/01/14 02:20:15  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
