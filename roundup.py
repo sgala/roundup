@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-# $Id: roundup.py,v 1.2 2001/07/19 05:52:22 anthonybaxter Exp $ 
+# $Id: roundup.py,v 1.3 2001/07/19 06:08:24 anthonybaxter Exp $ 
 
 import sys
 if int(sys.version[0]) < 2:
@@ -35,7 +35,7 @@ def usage():
 
  roundup init
  roundup spec classname
- roundup create [-user login] classanme propname=value ...
+ roundup create [-user login] classname propname=value ...
  roundup list [-list] classname
  roundup history [-list] designator
  roundup get [-list] designator[,designator,...] propname
@@ -206,8 +206,14 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup.py,v $
+# Revision 1.3  2001/07/19 06:08:24  anthonybaxter
+# fixed typo in usage string because it was bugging me each time I saw it.
+#
 # Revision 1.2  2001/07/19 05:52:22  anthonybaxter
-# Added CVS keywords $Id$ and $Log$ to all python files.
+# Added CVS keywords $Id: roundup.py,v 1.3 2001/07/19 06:08:24 anthonybaxter Exp $ and $Log: roundup.py,v $
+# Added CVS keywords $Id$ and Revision 1.3  2001/07/19 06:08:24  anthonybaxter
+# Added CVS keywords $Id$ and fixed typo in usage string because it was bugging me each time I saw it.
+# Added CVS keywords $Id$ and to all python files.
 #
 #
 
