@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb3.py,v 1.12 2002/05/21 05:52:11 richard Exp $
+#$Id: back_bsddb3.py,v 1.12.2.1 2002/07/08 06:51:02 richard Exp $
 
 import bsddb3, os, marshal
 from roundup import hyperdb, date
@@ -46,7 +46,7 @@ class Database(back_anydbm.Database):
         if os.path.exists(path):
             return bsddb3.btopen(path, mode)
         else:
-            return bsddb3.btopen(path, 'n')
+            return bsddb3.btopen(path, 'c')
 
     def _opendb(self, name, mode):
         '''Low-level database opener that gets around anydbm/dbm
@@ -58,8 +58,8 @@ class Database(back_anydbm.Database):
         path = os.path.join(os.getcwd(), self.dir, name)
         if not os.path.exists(path):
             if __debug__:
-                print >>hyperdb.DEBUG, "_opendb bsddb3.open(%r, 'n')"%path
-            return bsddb3.btopen(path, 'n')
+                print >>hyperdb.DEBUG, "_opendb bsddb3.open(%r, 'c')"%path
+            return bsddb3.btopen(path, 'c')
 
         # open the database with the correct module
         if __debug__:
@@ -115,6 +115,9 @@ class Database(back_anydbm.Database):
 
 #
 #$Log: back_bsddb3.py,v $
+#Revision 1.12.2.1  2002/07/08 06:51:02  richard
+# . bsddb3 backend should use 'c' for create, not 'n' for nuke
+#
 #Revision 1.12  2002/05/21 05:52:11  richard
 #Well whadya know, bsddb3 works again.
 #The backend is implemented _exactly_ the same as bsddb - so there's no
