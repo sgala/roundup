@@ -2,7 +2,7 @@
 HTML Templating Mechanisms
 ==========================
 
-:Version: $Revision: 1.2 $
+:Version: $Revision: 1.3 $
 
 Current Situation and Issues
 ============================
@@ -38,8 +38,8 @@ Arguments for switching templating systems:
 
 *Pros*
 
-  - we can be editor-friendly
   - more flexibility in templating control and content
+  - we can be well-formed
 
 *Cons*
 
