@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.40 2001/11/03 01:56:51 richard Exp $
+# $Id: htmltemplate.py,v 1.41 2001/11/15 10:26:01 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -660,6 +660,7 @@ class IndexTemplate(TemplateFunctions):
 
         if not show_customization:
             w('</table>\n')
+            return
 
         w('<tr class="location-bar"><th>&nbsp;</th>')
         for name in names:
@@ -849,6 +850,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.41  2001/11/15 10:26:01  richard
+#  . missing "return" in filter_section (thanks Roch'e Compaan)
+#
 # Revision 1.40  2001/11/03 01:56:51  richard
 # More HTML compliance fixes. This will probably fix the Netscape problem
 # too.
