@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.74 2002/05/29 01:16:17 richard Exp $
+$Id: mailgw.py,v 1.74.2.1 2002/07/22 22:03:01 richard Exp $
 '''
 
 
@@ -595,6 +595,16 @@ Unknown address: %s
                     name = mailmess.getheader('subject')
                     part.fp.seek(i)
                     attachments.append((name, 'message/rfc822', part.fp.read()))
+                elif subtype == 'multipart/alternative':
+                    # probably from outlook express - get the text/plain
+                    # alternative
+                    while 1:
+                        p = part.getPart()
+                        if p is None:
+                            break
+                        if p.gettype() == 'text/plain':
+                            content = self.get_part_data_decoded(p) 
+                            break
                 else:
                     # try name on Content-Type
                     name = part.getparam('name')
@@ -765,6 +775,9 @@ def parseContent(content, keep_citations, keep_body,
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.74.2.1  2002/07/22 22:03:01  richard
+# . #562686 ] email attachments from outlook express
+#
 # Revision 1.74  2002/05/29 01:16:17  richard
 # Sorry about this huge checkin! It's fixing a lot of related stuff in one go
 # though.
