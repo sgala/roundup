@@ -15,13 +15,13 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: blobfiles.py,v 1.4 2002/06/19 03:07:19 richard Exp $
+#$Id: blobfiles.py,v 1.5 2002/07/08 06:58:15 richard Exp $
 '''
 This module exports file storage for roundup backends.
 Files are stored into a directory hierarchy.
 '''
 
-import os, os.path
+import os
 
 def files_in_dir(dir):       
     if not os.path.exists(dir):
@@ -106,11 +106,19 @@ class FileStorage:
         '''
         # the file is currently ".tmp" - move it to its real name to commit
         os.rename(name+".tmp", name)
-        pattern = name.split('/')[-1]
-        self.indexer.add_files(dir=os.path.dirname(name), pattern=pattern)
+        self.indexer.add_file(name)
         self.indexer.save_index()
 
 # $Log: blobfiles.py,v $
+# Revision 1.5  2002/07/08 06:58:15  richard
+# cleaned up the indexer code:
+#  - it splits more words out (much simpler, faster splitter)
+#  - removed code we'll never use (roundup.roundup_indexer has the full
+#    implementation, and replaces roundup.indexer)
+#  - only index text/plain and rfc822/message (ideas for other text formats to
+#    index are welcome)
+#  - added simple unit test for indexer. Needs more tests for regression.
+#
 # Revision 1.4  2002/06/19 03:07:19  richard
 # Moved the file storage commit into blobfiles where it belongs.
 #
