@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.17 2002/05/22 00:32:34 richard Exp $
+# $Id: instance_config.py,v 1.18 2002/05/25 07:16:25 rochecompaan Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -118,6 +118,11 @@ HEADER_INDEX_LINKS = ['DEFAULT', 'ALL_SUPPORT', 'UNASSIGNED_ISSUE',
 # list the classes that users are able to add nodes to
 HEADER_ADD_LINKS = ['issue', 'support']
 
+# list the classes that users can search
+HEADER_SEARCH_LINKS = ['issue', 'support']
+
+SEARCH_FILTERS = ['ISSUE_FILTER', 'SUPPORT_FILTER']
+
 # Now the DEFAULT display specifications. TODO: describe format
 DEFAULT_INDEX = {
   'LABEL': 'All Issues',
@@ -197,8 +202,21 @@ MY_SUPPORT_INDEX = {
   },
 }
 
+ISSUE_FILTER = {
+  'CLASS': 'issue',
+  'FILTER': ['status', 'priority', 'assignedto', 'creator']
+}
+
+SUPPORT_FILTER = {
+  'CLASS': 'issue',
+  'FILTER': ['status', 'priority', 'assignedto', 'creator']
+}
+
 #
 # $Log: instance_config.py,v $
+# Revision 1.18  2002/05/25 07:16:25  rochecompaan
+# Merged search_indexing-branch with HEAD
+#
 # Revision 1.17  2002/05/22 00:32:34  richard
 #  . changed the default message list in issues to display the message body
 #  . made backends.__init__ be more specific about which ImportErrors it really
@@ -223,6 +241,15 @@ MY_SUPPORT_INDEX = {
 #  . stripping of the email message body can now be controlled through
 #    the config variables EMAIL_KEEP_QUOTED_TEST and
 #    EMAIL_LEAVE_BODY_UNCHANGED.
+#
+# Revision 1.13.2.2  2002/05/02 11:49:19  rochecompaan
+# Allow customization of the search filters that should be displayed
+# on the search page.
+#
+# Revision 1.13.2.1  2002/04/20 13:23:34  rochecompaan
+# We now have a separate search page for nodes.  Search links for
+# different classes can be customized in instance_config similar to
+# index links.
 #
 # Revision 1.13  2002/03/14 23:59:24  richard
 #  . #517734 ] web header customisation is obscure
