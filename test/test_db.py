@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.30 2002/07/14 06:06:34 richard Exp $ 
+# $Id: test_db.py,v 1.31 2002/07/14 23:17:45 richard Exp $ 
 
 import unittest, os, shutil, time
 
@@ -506,6 +506,7 @@ def suite():
          unittest.makeSuite(anydbmDBTestCase, 'test'),
          unittest.makeSuite(anydbmReadOnlyDBTestCase, 'test')
     ]
+#    return unittest.TestSuite(l)
 
     try:
         import bsddb
@@ -532,6 +533,9 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.31  2002/07/14 23:17:45  richard
+# minor change to make testing easier
+#
 # Revision 1.30  2002/07/14 06:06:34  richard
 # Did some old TODOs
 #
