@@ -2038,6 +2038,7 @@ env: %(env)s
     def indexargs_url(self, url, args):
         ''' Embed the current index args in a URL
         '''
+        q = urllib.quote
         sc = self.special_char
         l = ['%s=%s'%(k,v) for k,v in args.items()]
 
@@ -2065,24 +2066,24 @@ env: %(env)s
         if self.filter and not specials.has_key('filter'):
             l.append(sc+'filter=%s'%(','.join(self.filter)))
         if self.search_text and not specials.has_key('search_text'):
-            l.append(sc+'search_text=%s'%self.search_text)
+            l.append(sc+'search_text=%s'%q(self.search_text))
         if not specials.has_key('pagesize'):
             l.append(sc+'pagesize=%s'%self.pagesize)
         if not specials.has_key('startwith'):
             l.append(sc+'startwith=%s'%self.startwith)
 
         # finally, the remainder of the filter args in the request
-        props = self.client.db.getclass(self.classname).getprops()
-        q = urllib.quote
-        for k,v in self.filterspec.items():
-            if not args.has_key(k):
-                if type(v) == type([]):
-                    if isinstance(props[k], hyperdb.String):
-                        l.append('%s=%s'%(k, '%20'.join([q(i) for i in v])))
+        if self.classname and self.filterspec:
+            props = self.client.db.getclass(self.classname).getprops()
+            for k,v in self.filterspec.items():
+                if not args.has_key(k):
+                    if type(v) == type([]):
+                        if isinstance(props[k], hyperdb.String):
+                            l.append('%s=%s'%(k, '%20'.join([q(i) for i in v])))
+                        else:
+                            l.append('%s=%s'%(k, ','.join([q(i) for i in v])))
                     else:
-                        l.append('%s=%s'%(k, ','.join([q(i) for i in v])))
-                else:
-                    l.append('%s=%s'%(k, q(v)))
+                        l.append('%s=%s'%(k, q(v)))
         return '%s?%s'%(url, '&'.join(l))
     indexargs_href = indexargs_url
 
