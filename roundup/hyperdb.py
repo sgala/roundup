@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.23 2001/10/09 23:58:10 richard Exp $
+# $Id: hyperdb.py,v 1.24 2001/10/10 03:54:57 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -215,7 +215,7 @@ class Class:
             if isinstance(prop, Multilink):
                 propvalues[key] = []
             else:
-                propvalues[key] = None
+                propvalues[key] = ''
 
         # convert all data to strings
         for key, prop in self.properties.items():
@@ -805,13 +805,23 @@ class Node:
     def __init__(self, cl, nodeid):
         self.__dict__['cl'] = cl
         self.__dict__['nodeid'] = nodeid
-    def keys(self):
-        return self.cl.getprops().keys()
+    def keys(self, protected=1):
+        return self.cl.getprops(protected=protected).keys()
+    def values(self, protected=1):
+        l = []
+        for name in self.cl.getprops(protected=protected).keys():
+            l.append(self.cl.get(self.nodeid, name))
+        return l
+    def items(self, protected=1):
+        l = []
+        for name in self.cl.getprops(protected=protected).keys():
+            l.append((name, self.cl.get(self.nodeid, name)))
+        return l
     def has_key(self, name):
         return self.cl.getprops().has_key(name)
     def __getattr__(self, name):
         if self.__dict__.has_key(name):
-            return self.__dict__['name']
+            return self.__dict__[name]
         try:
             return self.cl.get(self.nodeid, name)
         except KeyError, value:
@@ -839,6 +849,11 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.24  2001/10/10 03:54:57  richard
+# Added database importing and exporting through CSV files.
+# Uses the csv module from object-craft for exporting if it's available.
+# Requires the csv module for importing.
+#
 # Revision 1.23  2001/10/09 23:58:10  richard
 # Moved the data stringification up into the hyperdb.Class class' get, set
 # and create methods. This means that the data is also stringified for the
