@@ -72,7 +72,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.26 2001/10/30 00:54:45 richard Exp $
+$Id: mailgw.py,v 1.27 2001/10/30 11:26:10 richard Exp $
 '''
 
 
@@ -251,8 +251,9 @@ Subject was: "%s"
         #
         author = self.db.uidFromAddress(message.getaddrlist('from')[0])
         recipients = []
+        tracker_email = self.ISSUE_TRACKER_EMAIL.lower()
         for recipient in message.getaddrlist('to') + message.getaddrlist('cc'):
-            if recipient[1].strip().lower() == self.ISSUE_TRACKER_EMAIL:
+            if recipient[1].strip().lower() == tracker_email:
                 continue
             recipients.append(self.db.uidFromAddress(recipient))
 
@@ -444,6 +445,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.27  2001/10/30 11:26:10  richard
+# Case-insensitive match for ISSUE_TRACKER_EMAIL in address in e-mail.
+#
 # Revision 1.26  2001/10/30 00:54:45  richard
 # Features:
 #  . #467129 ] Lossage when username=e-mail-address
