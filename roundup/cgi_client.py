@@ -15,14 +15,14 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.87 2001/12/23 23:18:49 richard Exp $
+# $Id: cgi_client.py,v 1.88 2002/01/02 02:31:38 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
 """
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback, mimetypes
-import binascii, Cookie, time
+import binascii, Cookie, time, random
 
 import roundupdb, htmltemplate, date, hyperdb, password
 from roundup.i18n import _
@@ -456,11 +456,16 @@ class Client:
             # don't generate a useless message
             return None, files
 
+        # handle the messageid
+        # TODO: handle inreplyto
+        messageid = "%s.%s.%s%s-%s"%(time.time(), random.random(),
+            classname, nodeid, self.MAIL_DOMAIN)
+
         # now create the message, attaching the files
         content = '\n'.join(m)
         message_id = self.db.msg.create(author=self.getuid(),
             recipients=[], date=date.Date('.'), summary=summary,
-            content=content, files=files)
+            content=content, files=files, messageid=messageid)
 
         # update the messages property
         return message_id, files
@@ -1163,6 +1168,21 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.88  2002/01/02 02:31:38  richard
+# Sorry for the huge checkin message - I was only intending to implement #496356
+# but I found a number of places where things had been broken by transactions:
+#  . modified ROUNDUPDBSENDMAILDEBUG to be SENDMAILDEBUG and hold a filename
+#    for _all_ roundup-generated smtp messages to be sent to.
+#  . the transaction cache had broken the roundupdb.Class set() reactors
+#  . newly-created author users in the mailgw weren't being committed to the db
+#
+# Stuff that made it into CHANGES.txt (ie. the stuff I was actually working
+# on when I found that stuff :):
+#  . #496356 ] Use threading in messages
+#  . detectors were being registered multiple times
+#  . added tests for mailgw
+#  . much better attaching of erroneous messages in the mail gateway
+#
 # Revision 1.87  2001/12/23 23:18:49  richard
 # We already had an admin-specific section of the web heading, no need to add
 # another one :)

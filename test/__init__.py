@@ -15,12 +15,14 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.8 2001/12/31 05:09:20 richard Exp $
+# $Id: __init__.py,v 1.9 2002/01/02 02:31:38 richard Exp $
 
 import unittest
+import os, tempfile
+os.environ['SENDMAILDEBUG'] = tempfile.mktemp()
 
 import test_dates, test_schema, test_db, test_multipart, test_mailsplit
-import test_init, test_token
+import test_init, test_token, test_mailgw
 
 def go():
     suite = unittest.TestSuite((
@@ -30,6 +32,7 @@ def go():
         test_init.suite(),
         test_multipart.suite(),
         test_mailsplit.suite(),
+        test_mailgw.suite(),
         test_token.suite(),
     ))
     runner = unittest.TextTestRunner()
@@ -37,6 +40,21 @@ def go():
 
 #
 # $Log: __init__.py,v $
+# Revision 1.9  2002/01/02 02:31:38  richard
+# Sorry for the huge checkin message - I was only intending to implement #496356
+# but I found a number of places where things had been broken by transactions:
+#  . modified ROUNDUPDBSENDMAILDEBUG to be SENDMAILDEBUG and hold a filename
+#    for _all_ roundup-generated smtp messages to be sent to.
+#  . the transaction cache had broken the roundupdb.Class set() reactors
+#  . newly-created author users in the mailgw weren't being committed to the db
+#
+# Stuff that made it into CHANGES.txt (ie. the stuff I was actually working
+# on when I found that stuff :):
+#  . #496356 ] Use threading in messages
+#  . detectors were being registered multiple times
+#  . added tests for mailgw
+#  . much better attaching of erroneous messages in the mail gateway
+#
 # Revision 1.8  2001/12/31 05:09:20  richard
 # Added better tokenising to roundup-admin - handles spaces and stuff. Can
 # use quoting or backslashes. See the roundup.token pydoc.

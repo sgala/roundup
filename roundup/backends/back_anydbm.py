@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.20 2001/12/18 15:30:34 rochecompaan Exp $
+#$Id: back_anydbm.py,v 1.21 2002/01/02 02:31:38 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -187,23 +187,25 @@ class Database(hyperdb.Database):
             print 'savenode', (self, classname, nodeid, node)
         self.transactions.append((self._doSaveNode, (classname, nodeid, node)))
 
-    def getnode(self, classname, nodeid, db=None):
+    def getnode(self, classname, nodeid, db=None, cache=1):
         ''' get a node from the database
         '''
         if DEBUG:
             print 'getnode', (self, classname, nodeid, cldb)
-        # try the cache
-        cache = self.cache.setdefault(classname, {})
-        if cache.has_key(nodeid):
-            return cache[nodeid]
+        if cache:
+            # try the cache
+            cache = self.cache.setdefault(classname, {})
+            if cache.has_key(nodeid):
+                return cache[nodeid]
 
         # get from the database and save in the cache
         if db is None:
             db = self.getclassdb(classname)
         if not db.has_key(nodeid):
-            raise IndexError, nodeid
+            raise IndexError, "no such %s %s"%(classname, nodeid)
         res = marshal.loads(db[nodeid])
-        cache[nodeid] = res
+        if cache:
+            cache[nodeid] = res
         return res
 
     def hasnode(self, classname, nodeid, db=None):
@@ -402,6 +404,21 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.21  2002/01/02 02:31:38  richard
+#Sorry for the huge checkin message - I was only intending to implement #496356
+#but I found a number of places where things had been broken by transactions:
+# . modified ROUNDUPDBSENDMAILDEBUG to be SENDMAILDEBUG and hold a filename
+#   for _all_ roundup-generated smtp messages to be sent to.
+# . the transaction cache had broken the roundupdb.Class set() reactors
+# . newly-created author users in the mailgw weren't being committed to the db
+#
+#Stuff that made it into CHANGES.txt (ie. the stuff I was actually working
+#on when I found that stuff :):
+# . #496356 ] Use threading in messages
+# . detectors were being registered multiple times
+# . added tests for mailgw
+# . much better attaching of erroneous messages in the mail gateway
+#
 #Revision 1.20  2001/12/18 15:30:34  rochecompaan
 #Fixed bugs:
 # .  Fixed file creation and retrieval in same transaction in anydbm
