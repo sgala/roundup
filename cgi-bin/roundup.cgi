@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.27 2002/09/04 02:11:00 richard Exp $
+# $Id: roundup.cgi,v 1.28 2002/09/04 04:30:58 richard Exp $
 
 # python version check
 from roundup import version_check
@@ -126,10 +126,11 @@ def main(out, err):
     import os, string
     import roundup.instance
     path = string.split(os.environ.get('PATH_INFO', '/'), '/')
+    request = RequestWrapper(out)
+    request.path = os.environ.get('PATH_INFO', '/')
     instance = path[1]
     os.environ['INSTANCE_NAME'] = instance
     os.environ['PATH_INFO'] = string.join(path[2:], '/')
-    request = RequestWrapper(out)
     if ROUNDUP_INSTANCE_HOMES.has_key(instance):
         # redirect if we need a trailing '/'
         if len(path) == 2:
@@ -198,6 +199,9 @@ LOG.close()
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.28  2002/09/04 04:30:58  richard
+# add the path to the cgi-bin request
+#
 # Revision 1.27  2002/09/04 02:11:00  richard
 # *** empty log message ***
 #
