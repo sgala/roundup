@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.79 2002/02/21 06:57:38 richard Exp $
+# $Id: htmltemplate.py,v 1.80 2002/02/21 07:19:08 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -659,7 +659,8 @@ class TemplateFunctions:
         '''pop up a javascript window with class help
         '''
         return '<a href="javascript:help_window(\'classhelp?classname=%s&' \
-            'properties=%s\')"><b>(?)</b></a>'%(classname, properties)
+            'properties=%s\', \'%s\', \'%s\')"><b>(%s)</b></a>'%(classname,
+            properties, width, height, label)
 #
 #   INDEX TEMPLATES
 #
@@ -1081,6 +1082,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.80  2002/02/21 07:19:08  richard
+# ... and label, width and height control for extra flavour!
+#
 # Revision 1.79  2002/02/21 06:57:38  richard
 #  . Added popup help for classes using the classhelp html template function.
 #    - add <display call="classhelp('priority', 'id,name,description')">
