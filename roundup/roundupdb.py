@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.58 2002/06/16 01:05:15 dman13 Exp $
+# $Id: roundupdb.py,v 1.59 2002/06/18 03:55:25 dman13 Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -399,7 +399,7 @@ class IssueClass(Class):
             authname = users.get(authid, 'username')
         authaddr = users.get(authid, 'address')
         if authaddr:
-            authaddr = straddr( ('',authaddr) )
+            authaddr = " <%s>" % straddr( ('',authaddr) )
         else:
             authaddr = ''
 
@@ -659,6 +659,10 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.59  2002/06/18 03:55:25  dman13
+# Fixed name/address display problem introduced by an earlier change.
+# (instead of "name<addr>" display "name <addr>")
+#
 # Revision 1.58  2002/06/16 01:05:15  dman13
 # Removed temporary workaround -- it seems it was a bug in the
 # nosyreaction detector in the 0.4.1 extended template and has already
