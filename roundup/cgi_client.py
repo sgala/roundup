@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.98 2002/01/14 02:20:14 richard Exp $
+# $Id: cgi_client.py,v 1.99 2002/01/16 03:02:42 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -343,8 +343,16 @@ class Client:
             return
         assignedto_id = props['assignedto']
         if not props.has_key('nosy'):
-            props['nosy'] = [assignedto_id]
-        elif assignedto_id not in props['nosy']:
+            # load current nosy
+            if self.nodeid:
+                cl = self.db.classes[self.classname]
+                l = cl.get(self.nodeid, 'nosy')
+		if assignedto_id in l:
+		    return
+		props['nosy'] = l
+            else:
+                props['nosy'] = []
+        if assignedto_id not in props['nosy']:
             props['nosy'].append(assignedto_id)
 
     def _changenode(self, props):
@@ -1165,6 +1173,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.99  2002/01/16 03:02:42  richard
+# #503793 ] changing assignedto resets nosy list
+#
 # Revision 1.98  2002/01/14 02:20:14  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
