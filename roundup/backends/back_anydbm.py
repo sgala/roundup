@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.23 2002/01/18 04:32:04 richard Exp $
+#$Id: back_anydbm.py,v 1.24 2002/01/21 16:33:20 rochecompaan Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -320,6 +320,43 @@ class Database(hyperdb.Database):
             res.append((nodeid, date_obj, self.journaltag, action, params))
         return res
 
+    def pack(self, pack_before):
+        ''' delete all journal entries before 'pack_before' '''
+        if DEBUG:
+            print 'packjournal', (self, pack_before)
+
+        pack_before = pack_before.get_tuple()
+
+        classes = self.getclasses()
+
+        # TODO: factor this out to method - we're already doing it in
+        # _opendb.
+        db_type = ''
+        path = os.path.join(os.getcwd(), self.dir, classes[0])
+        if os.path.exists(path):
+            db_type = whichdb.whichdb(path)
+            if not db_type:
+                raise hyperdb.DatabaseError, "Couldn't identify database type"
+        elif os.path.exists(path+'.db'):
+            db_type = 'dbm'
+
+        for classname in classes:
+            db_name = 'journals.%s'%classname
+            db = self._opendb(db_name, 'w')
+
+            for key in db.keys():
+                journal = marshal.loads(db[key])
+                l = []
+                for entry in journal:
+                    (nodeid, date_stamp, self.journaltag, action, 
+                        params) = entry
+                    if date_stamp > pack_before or action == 'create':
+                        l.append(entry)
+                db[key] = marshal.dumps(l)
+            if db_type == 'gdbm':
+                db.reorganize()
+            db.close()
+            
 
     #
     # Basic transaction support
@@ -407,6 +444,9 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.24  2002/01/21 16:33:20  rochecompaan
+#You can now use the roundup-admin tool to pack the database
+#
 #Revision 1.23  2002/01/18 04:32:04  richard
 #Rollback was breaking because a message hadn't actually been written to the file. Needs
 #more investigation.
