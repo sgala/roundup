@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_init.py,v 1.9 2002/05/23 04:26:05 richard Exp $
+# $Id: test_init.py,v 1.10 2002/06/11 04:59:14 richard Exp $
 
 import unittest, os, shutil, errno, imp, sys
 
@@ -129,17 +129,20 @@ def suite():
     except:
         print 'bsddb module not found, skipping bsddb DBTestCase'
 
-#    try:
-#        import bsddb3
-#        l.append(unittest.makeSuite(bsddb3ClassicTestCase, 'test'))
-#        l.append(unittest.makeSuite(bsddb3ExtendedTestCase, 'test'))
-#    except:
-#        print 'bsddb3 module not found, skipping bsddb3 DBTestCase'
+    try:
+        import bsddb3
+        l.append(unittest.makeSuite(bsddb3ClassicTestCase, 'test'))
+        l.append(unittest.makeSuite(bsddb3ExtendedTestCase, 'test'))
+    except:
+        print 'bsddb3 module not found, skipping bsddb3 DBTestCase'
 
     return unittest.TestSuite(l)
 
 #
 # $Log: test_init.py,v $
+# Revision 1.10  2002/06/11 04:59:14  richard
+# enabled testing of bsddb in test_init
+#
 # Revision 1.9  2002/05/23 04:26:05  richard
 # 'I must run unit tests before committing\n' * 100
 #
