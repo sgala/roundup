@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: date.py,v 1.11 2001/08/15 23:43:18 richard Exp $
+# $Id: date.py,v 1.12 2001/08/17 03:08:11 richard Exp $
 
 import time, re, calendar
 
@@ -324,7 +324,7 @@ class Interval:
             else:
                 return '%s weeks'%int(days/7)
         if self.day > 7:
-            return '%s weeks'%self.day
+            return '1 week'
         if self.day > 1:
             return '%s days'%self.day
         if self.day == 1 or self.hour > 12:
@@ -376,6 +376,9 @@ if __name__ == '__main__':
 
 #
 # $Log: date.py,v $
+# Revision 1.12  2001/08/17 03:08:11  richard
+# fixed prettification of intervals of 1 week
+#
 # Revision 1.11  2001/08/15 23:43:18  richard
 # Fixed some isFooTypes that I missed.
 # Refactored some code in the CGI code.
