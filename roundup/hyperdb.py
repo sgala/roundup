@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.66 2002/05/25 07:16:24 rochecompaan Exp $
+# $Id: hyperdb.py,v 1.67 2002/06/11 05:02:37 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -798,6 +798,7 @@ class Class:
             if node.has_key(self.db.RETIRED_FLAG):
                 continue
             for propname, nodeid in propspec:
+                prop = self.properties[propname]
                 property = node[propname]
                 if isinstance(prop, Link) and nodeid == property:
                     l.append(id)
@@ -1157,6 +1158,9 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.67  2002/06/11 05:02:37  richard
+#  . #565979 ] code error in hyperdb.Class.find
+#
 # Revision 1.66  2002/05/25 07:16:24  rochecompaan
 # Merged search_indexing-branch with HEAD
 #
