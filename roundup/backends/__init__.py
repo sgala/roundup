@@ -15,16 +15,18 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.9 2001/12/12 02:30:51 richard Exp $
+# $Id: __init__.py,v 1.10 2002/01/22 07:08:50 richard Exp $
 
 __all__ = []
 
 try:
-    import anydbm, dumbdbm
-    # dumbdbm in python 2,2b2, 2.1.1 and earlier is seriously broken
-    assert anydbm._defaultmod != dumbdbm
-    del anydbm
-    del dumbdbm
+    import sys
+    if not hasattr(sys, 'version_info') or sys.version_info < (2,1,2):
+        import anydbm, dumbdbm
+        # dumbdbm only works in python 2.1.2+
+        assert anydbm._defaultmod != dumbdbm
+        del anydbm
+        del dumbdbm
     import back_anydbm
     anydbm = back_anydbm
     __all__.append('anydbm')
@@ -49,6 +51,10 @@ except ImportError:
 
 #
 # $Log: __init__.py,v $
+# Revision 1.10  2002/01/22 07:08:50  richard
+# I was certain I'd already done this (there's even a change note in
+# CHANGES)...
+#
 # Revision 1.9  2001/12/12 02:30:51  richard
 # I fixed the problems with people whose anydbm was using the dbm module at the
 # backend. It turns out the dbm module modifies the file name to append ".db"
