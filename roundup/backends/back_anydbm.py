@@ -15,7 +15,13 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.13 2001/12/02 05:06:16 richard Exp $
+#$Id: back_anydbm.py,v 1.14 2001/12/10 22:20:01 richard Exp $
+'''
+This module defines a backend that saves the hyperdatabase in a database
+chosen by anydbm. It is guaranteed to always be available in python
+versions >2.1.1 (the dumbdbm fallback in 2.1.1 and earlier has several
+serious bugs, and is not available)
+'''
 
 import anydbm, os, marshal
 from roundup import hyperdb, date, password
@@ -32,7 +38,6 @@ class Database(hyperdb.Database):
         . perhaps detect write collisions (related to above)?
 
     """
-
     def __init__(self, storagelocator, journaltag=None):
         """Open a hyperdatabase given a specifier to some storage.
 
@@ -52,6 +57,7 @@ class Database(hyperdb.Database):
         self.dirtynodes = {}    # keep track of the dirty nodes by class
         self.newnodes = {}      # keep track of the new nodes by class
         self.transactions = []
+
     #
     # Classes
     #
@@ -248,6 +254,13 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.14  2001/12/10 22:20:01  richard
+#Enabled transaction support in the bsddb backend. It uses the anydbm code
+#where possible, only replacing methods where the db is opened (it uses the
+#btree opener specifically.)
+#Also cleaned up some change note generation.
+#Made the backends package work with pydoc too.
+#
 #Revision 1.13  2001/12/02 05:06:16  richard
 #. We now use weakrefs in the Classes to keep the database reference, so
 #  the close() method on the database is no longer needed.
