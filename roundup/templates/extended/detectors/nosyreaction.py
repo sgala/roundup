@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: nosyreaction.py,v 1.10 2002/01/11 23:22:29 richard Exp $
+#$Id: nosyreaction.py,v 1.11 2002/01/14 22:21:38 richard Exp $
 
 from roundup import roundupdb
 
@@ -39,6 +39,7 @@ def nosyreaction(db, cl, nodeid, oldvalues):
     if oldvalues is None:
         # the action was a create, so use all the messages in the create
         messages = cl.get(nodeid, 'messages')
+	change_note = cl.generateCreateNote(nodeid)
     elif oldvalues.has_key('messages'):
         # the action was a set (so adding new messages to an existing issue)
         m = {}
@@ -68,6 +69,9 @@ def init(db):
 
 #
 #$Log: nosyreaction.py,v $
+#Revision 1.11  2002/01/14 22:21:38  richard
+##503353 ] setting properties in initial email
+#
 #Revision 1.10  2002/01/11 23:22:29  richard
 # . #502437 ] rogue reactor and unittest
 #   in short, the nosy reactor was modifying the nosy list. That code had
