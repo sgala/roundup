@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.14 2002/08/22 07:56:51 richard Exp $
+# $Id: __init__.py,v 1.15 2002/08/23 04:48:10 richard Exp $
 
 __all__ = []
 
@@ -42,7 +42,7 @@ except ImportError, message:
     if str(message) != 'No module named gadfly': raise
 else:
     import back_gadfly
-    bsddb = back_gadfly
+    gadfly = back_gadfly
     __all__.append('gadfly')
 
 try:
@@ -74,6 +74,20 @@ else:
 
 #
 # $Log: __init__.py,v $
+# Revision 1.15  2002/08/23 04:48:10  richard
+# That's gadfly done, mostly. Things left:
+# - Class.filter (I'm a wuss ;)
+# - schema changes adding new non-multilink properties are not implemented.
+#   gadfly doesn't have an ALTER TABLE command, making that quite difficult :)
+#
+# I had to mangle two unit tests to get this all working:
+# - gadfly also can't handle two handles open on the one database, so
+#   testIDGeneration doesn't try that.
+# - testNewProperty is disabled as per the second comment above.
+#
+# I noticed test_pack was incorrect, and the *dbm tests fail there now.
+# Looking into it...
+#
 # Revision 1.14  2002/08/22 07:56:51  richard
 # Whee! It's not finished yet, but I can create a new instance and play with
 # it a little bit :)
