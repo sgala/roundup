@@ -1,4 +1,4 @@
-# $Id: hyperdb.py,v 1.5 2001/07/29 04:05:37 richard Exp $
+# $Id: hyperdb.py,v 1.6 2001/07/29 05:36:14 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -387,6 +387,28 @@ class Class:
         """Return the name of the key property for this class or None."""
         return self.key
 
+    def labelprop(self, nodeid):
+        ''' Return the property name for a label for the given node.
+
+        This method attempts to generate a consistent label for the node.
+        It tries the following in order:
+            1. key property
+            2. "name" property
+            3. "title" property
+            4. first property from the sorted property name list
+        '''
+        k = self.getkey()
+        if  k:
+            return k
+        props = self.getprops()
+        if props.has_key('name'):
+            return 'name'
+        elif props.has_key('title'):
+            return 'title'
+        props = props.keys()
+        props.sort()
+        return props[0]
+
     # TODO: set up a separate index db file for this? profile?
     def lookup(self, keyvalue):
         """Locate a particular node by its key property and return its id.
@@ -767,6 +789,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.6  2001/07/29 05:36:14  richard
+# Cleanup of the link label generation.
+#
 # Revision 1.5  2001/07/29 04:05:37  richard
 # Added the fabricated property "id".
 #
