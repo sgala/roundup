@@ -1,10 +1,11 @@
-# $Id: dbinit.py,v 1.2 2001/07/24 01:06:43 richard Exp $
+# $Id: dbinit.py,v 1.3 2001/07/24 10:46:22 anthonybaxter Exp $
 
 import os
 
 import instance_config
 from roundup import roundupdb, cgi_client, mailgw 
 import select_db
+
 from roundup.roundupdb import Class, FileClass
 
 class Database(roundupdb.Database, select_db.Database):
@@ -106,6 +107,14 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.3  2001/07/24 10:46:22  anthonybaxter
+# Added templatebuilder module. two functions - one to pack up the html base,
+# one to unpack it. Packed up the two standard templates into htmlbases.
+# Modified __init__ to install them.
+#
+# __init__.py magic was needed for the rather high levels of wierd import magic.
+# Reducing level of import magic == (good, future)
+#
 # Revision 1.2  2001/07/24 01:06:43  richard
 # Oops - accidentally duped the keywords class
 #

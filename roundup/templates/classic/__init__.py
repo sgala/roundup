@@ -1,11 +1,23 @@
-# $Id: __init__.py,v 1.1 2001/07/23 23:28:43 richard Exp $
+# $Id: __init__.py,v 1.2 2001/07/24 10:46:22 anthonybaxter Exp $
 
+import sys
 from instance_config import *
-from dbinit import *
+try:
+    from dbinit import *
+except:
+    pass # in install dir (probably :)
 from interfaces import *
 
 # 
 # $Log: __init__.py,v $
+# Revision 1.2  2001/07/24 10:46:22  anthonybaxter
+# Added templatebuilder module. two functions - one to pack up the html base,
+# one to unpack it. Packed up the two standard templates into htmlbases.
+# Modified __init__ to install them.
+#
+# __init__.py magic was needed for the rather high levels of wierd import magic.
+# Reducing level of import magic == (good, future)
+#
 # Revision 1.1  2001/07/23 23:28:43  richard
 # Adding the classic template
 #
