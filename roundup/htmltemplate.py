@@ -1,4 +1,4 @@
-# $Id: htmltemplate.py,v 1.5 2001/07/28 08:17:09 richard Exp $
+# $Id: htmltemplate.py,v 1.6 2001/07/29 04:06:42 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -238,6 +238,8 @@ class Link(Base):
             if propclass.isMultilinkType: value = []
             else: value = ''
         if propclass.isLinkType:
+            if value is None:
+                return '[not assigned]'
             linkcl = self.db.classes[propclass.classname]
             k = linkcl.getkey()
             # if the linked-to class doesn't have a key property, then try
@@ -795,6 +797,9 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.6  2001/07/29 04:06:42  richard
+# Fixed problem in link display when Link value is None.
+#
 # Revision 1.5  2001/07/28 08:17:09  richard
 # fixed use of stylesheet
 #
