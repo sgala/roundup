@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# $Id: setup.py,v 1.10 2001/07/30 07:17:44 richard Exp $
+# $Id: setup.py,v 1.11 2001/08/03 01:54:58 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -25,7 +25,7 @@ for t in templates:
 
 
 setup ( name = "roundup", 
-        version = "0.2.4",
+        version = "0.2.5",
         description = "Roundup issue tracking system.",
         author = "Richard Jones",
         author_email = "richard@sourceforge.net",
@@ -36,6 +36,9 @@ setup ( name = "roundup",
 
 #
 # $Log: setup.py,v $
+# Revision 1.11  2001/08/03 01:54:58  richard
+# Started stuff off for the 0.2.5 release
+#
 # Revision 1.10  2001/07/30 07:17:44  richard
 # Just making sure we've got the right version in there for development.
 #
