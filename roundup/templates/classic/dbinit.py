@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.24 2002/09/01 04:32:30 richard Exp $
+# $Id: dbinit.py,v 1.25 2002/09/02 07:00:22 richard Exp $
 
 import os
 
@@ -69,7 +69,8 @@ def open(name=None):
     #   content = String()    [saved to disk in <instance home>/db/files/]
     #   (it also gets the Class properties creation, activity and creator)
     msg = FileClass(db, "msg", 
-                    author=Link("user"), recipients=Multilink("user"), 
+                    author=Link("user", do_journal='no'),
+                    recipients=Multilink("user", do_journal='no'), 
                     date=Date(),         summary=String(), 
                     files=Multilink("file"),
                     messageid=String(),  inreplyto=String())
@@ -190,6 +191,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.25  2002/09/02 07:00:22  richard
+# don't journal author and recipient link events by default
+#
 # Revision 1.24  2002/09/01 04:32:30  richard
 # . Lots of cleanup in the classic html (stylesheet, search page, index page, ...)
 # . Reinstated searching, but not query saving yet
