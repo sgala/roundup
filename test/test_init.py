@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_init.py,v 1.7 2001/10/28 22:51:38 richard Exp $
+# $Id: test_init.py,v 1.8 2002/05/15 03:27:16 richard Exp $
 
 import unittest, os, shutil, errno, imp, sys
 
@@ -25,7 +25,7 @@ class MyTestCase(unittest.TestCase):
     count = 0
     def setUp(self):
         MyTestCase.count = MyTestCase.count + 1
-        self.dirname = '_test_%s'%self.count
+        self.dirname = '_test_init_%s'%self.count
         try:
             shutil.rmtree(self.dirname)
         except OSError, error:
@@ -107,28 +107,30 @@ class ExtendedTestCase(MyTestCase):
         l = db.timelog.list()
         ae(l, [])
 
+class bsddbClassicTestCase(ClassicTestCase):
+    backend = 'bsddb'
+class bsddbExtendedTestCase(ExtendedTestCase):
+    backend = 'bsddb'
+
+class bsddb3ClassicTestCase(ClassicTestCase):
+    backend = 'bsddb3'
+class bsddb3ExtendedTestCase(ExtendedTestCase):
+    backend = 'bsddb3'
+
 def suite():
     l = [unittest.makeSuite(ClassicTestCase, 'test'),
          unittest.makeSuite(ExtendedTestCase, 'test')]
     try:
         import bsddb
-        x = ClassicTestCase
-        x.backend = 'bsddb'
-        l.append(unittest.makeSuite(x, 'test'))
-        x = ExtendedTestCase
-        x.backend = 'bsddb'
-        l.append(unittest.makeSuite(x, 'test'))
+        l.append(unittest.makeSuite(bsddbClassicTestCase, 'test'))
+        l.append(unittest.makeSuite(bsddbExtendedTestCase, 'test'))
     except:
         print 'bsddb module not found, skipping bsddb DBTestCase'
 
 #    try:
 #        import bsddb3
-#        x = ClassicTestCase
-#        x.backend = 'bsddb3'
-#        l.append(unittest.makeSuite(x, 'test'))
-#        x = ExtendedTestCase
-#        x.backend = 'bsddb3'
-#        l.append(unittest.makeSuite(x, 'test'))
+#        l.append(unittest.makeSuite(bsddb3ClassicTestCase, 'test'))
+#        l.append(unittest.makeSuite(bsddb3ExtendedTestCase, 'test'))
 #    except:
 #        print 'bsddb3 module not found, skipping bsddb3 DBTestCase'
 
@@ -136,6 +138,15 @@ def suite():
 
 #
 # $Log: test_init.py,v $
+# Revision 1.8  2002/05/15 03:27:16  richard
+#  . fixed SCRIPT_NAME in ZRoundup for instances not at top level of Zope
+#    (thanks dman)
+#  . fixed some sorting issues that were breaking some unit tests under py2.2
+#  . mailgw test output dir was confusing the init test (but only on 2.2 *shrug*)
+#
+# fixed bug in the init unit test that meant only the bsddb test ran if it
+# could (it clobbered the anydbm test)
+#
 # Revision 1.7  2001/10/28 22:51:38  richard
 # Fixed ENOENT/WindowsError thing, thanks Juergen Hermann
 #

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.51 2002/04/08 03:46:42 richard Exp $
+# $Id: roundupdb.py,v 1.52 2002/05/15 03:27:16 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -423,6 +423,9 @@ class IssueClass(Class):
         # get the files for this message
         message_files = messages.get(msgid, 'files')
 
+        # make sure the To line is always the same (for testing mostly)
+        sendto.sort()
+
         # create the message
         message = cStringIO.StringIO()
         writer = MimeWriter.MimeWriter(message)
@@ -480,7 +483,8 @@ class IssueClass(Class):
         # now try to send the message
         if SENDMAILDEBUG:
             open(SENDMAILDEBUG, 'w').write('FROM: %s\nTO: %s\n%s\n'%(
-                self.db.config.ADMIN_EMAIL,', '.join(sendto),message.getvalue()))
+                self.db.config.ADMIN_EMAIL,
+                ', '.join(sendto),message.getvalue()))
         else:
             try:
                 # send the message as admin so bounces are sent there
@@ -535,6 +539,7 @@ class IssueClass(Class):
                 key = link.labelprop(default_to_id=1)
                 if key:
                     value = [link.get(entry, key) for entry in value]
+                value.sort()
                 value = ', '.join(value)
             m.append('%s: %s'%(propname, value))
         m.insert(0, '----------')
@@ -620,6 +625,15 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.52  2002/05/15 03:27:16  richard
+#  . fixed SCRIPT_NAME in ZRoundup for instances not at top level of Zope
+#    (thanks dman)
+#  . fixed some sorting issues that were breaking some unit tests under py2.2
+#  . mailgw test output dir was confusing the init test (but only on 2.2 *shrug*)
+#
+# fixed bug in the init unit test that meant only the bsddb test ran if it
+# could (it clobbered the anydbm test)
+#
 # Revision 1.51  2002/04/08 03:46:42  richard
 # make it work
 #
