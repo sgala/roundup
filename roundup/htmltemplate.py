@@ -1,4 +1,4 @@
-# $Id: htmltemplate.py,v 1.13 2001/07/30 02:37:53 richard Exp $
+# $Id: htmltemplate.py,v 1.14 2001/07/30 06:17:45 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -58,7 +58,7 @@ class Field(Base):
         to be edited
     '''
     def __call__(self, property, size=None, height=None, showid=0):
-        if not self.nodeid and self.form and self.filterspec is None:
+        if not self.nodeid and self.form is None and self.filterspec is None:
             return '[Field: not called from item]'
         propclass = self.properties[property]
         if self.nodeid:
@@ -711,12 +711,27 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
     except:
         s = open(os.path.join(templates, classname+'.item')).read()
     w('<form action="new%s">'%classname)
+    for key in form.keys():
+        if key[0] == ':':
+            value = form[key].value
+            if type(value) != type([]): value = [value]
+            for value in value:
+                w('<input type="hidden" name="%s" value="%s">'%(key, value))
     replace = ItemTemplateReplace(globals, locals(), None, None)
     w(replace.go(s))
     w('</form>')
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.14  2001/07/30 06:17:45  richard
+# Features:
+#  . Added ability for cgi newblah forms to indicate that the new node
+#    should be linked somewhere.
+# Fixed:
+#  . Fixed the agument handling for the roundup-admin find command.
+#  . Fixed handling of summary when no note supplied for newblah. Again.
+#  . Fixed detection of no form in htmltemplate Field display.
+#
 # Revision 1.13  2001/07/30 02:37:53  richard
 # Temporary measure until we have decent schema migration.
 #

@@ -1,4 +1,4 @@
-# $Id: cgi_client.py,v 1.10 2001/07/30 02:37:34 richard Exp $
+# $Id: cgi_client.py,v 1.11 2001/07/30 06:17:45 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback
 
@@ -321,7 +321,7 @@ class Client:
         # possibly perform a create
         keys = self.form.keys()
         num_re = re.compile('^\d+$')
-        if keys:
+        if [i for i in keys if i[0] != ':']:
             props = {}
             try:
                 keys = self.form.keys()
@@ -367,6 +367,32 @@ class Client:
                     props[key] = value
                 nid = cl.create(**props)
 
+                # link if necessary
+                for key in keys:
+                    print key,
+                    if key == ':multilink':
+                        value = self.form[key].value
+                        if type(value) != type([]): value = [value]
+                        for value in value:
+                            designator, property = value.split(':')
+                            print 'miltilinking to ', designator, property
+                            link, nodeid = roundupdb.splitDesignator(designator)
+                            link = self.db.classes[link]
+                            value = link.get(nodeid, property)
+                            value.append(nid)
+                            link.set(nodeid, **{property: value})
+                    elif key == ':link':
+                        value = self.form[key].value
+                        if type(value) != type([]): value = [value]
+                        for value in value:
+                            designator, property = value.split(':')
+                            print 'linking to ', designator, property
+                            link, nodeid = roundupdb.splitDesignator(designator)
+                            link = self.db.classes[link]
+                            link.set(nodeid, **{property: nid})
+                    else:
+                        print 'ignoring'
+
                 # if this item has messages, 
                 if (cl.getprops().has_key('messages') and
                         cl.getprops()['messages'].isMultilinkType and
@@ -406,8 +432,8 @@ class Client:
                             summary = note
                         m.append('\n%s\n'%note)
                     else:
-                        m.append('\nThis %s has been created through '
-                            'the web.\n'%cn)
+                        summary = 'This %s has been created through the web.'%cn
+                        m.append('\n%s\s'%summary)
 
                     # now create the message
                     content = '\n'.join(m)
@@ -499,6 +525,15 @@ class Client:
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.11  2001/07/30 06:17:45  richard
+# Features:
+#  . Added ability for cgi newblah forms to indicate that the new node
+#    should be linked somewhere.
+# Fixed:
+#  . Fixed the agument handling for the roundup-admin find command.
+#  . Fixed handling of summary when no note supplied for newblah. Again.
+#  . Fixed detection of no form in htmltemplate Field display.
+#
 # Revision 1.10  2001/07/30 02:37:34  richard
 # Temporary measure until we have decent schema migration...
 #
