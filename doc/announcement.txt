@@ -2,6 +2,10 @@
 SC-Track Roundup 0.5.7 - an issue tracking system
 =================================================
 
+Note: This releases fixes a serious bug in the sqlite and gadfly backends
+which could cause data loss. Users are strongly encouraged to upgrade to this
+version.
+
 This is a bugfix release for version 0.5.x - if you're upgrading from before
 0.5, you *must* read doc/upgrading.txt!
 
