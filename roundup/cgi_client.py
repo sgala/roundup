@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.128 2002/06/12 21:28:25 gmcm Exp $
+# $Id: cgi_client.py,v 1.129 2002/06/20 23:52:11 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -75,7 +75,16 @@ class Client:
         self.indexer = RoundupIndexer('%s/db'%instance.INSTANCE_HOME)
 
     def getuid(self):
-        return self.db.user.lookup(self.user)
+        try:
+            return self.db.user.lookup(self.user)
+        except KeyError:
+            if self.user is None:
+                # user is not logged in and username 'anonymous' doesn't
+                # exist in the database
+                err = _('anonymous users have read-only access only')
+            else:
+                err = _("sanity check: unknown user name `%s'")%self.user
+            raise Unauthorised, errmsg
 
     def header(self, headers=None):
         '''Put up the appropriate header.
@@ -1366,6 +1375,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.129  2002/06/20 23:52:11  richard
+# Better handling of unauth attempt to edit stuff
+#
 # Revision 1.128  2002/06/12 21:28:25  gmcm
 # Allow form to set user-properties on a Fileclass.
 # Don't assume that a Fileclass is named "files".
