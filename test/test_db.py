@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.56 2002/09/26 03:04:24 richard Exp $ 
+# $Id: test_db.py,v 1.63.2.1 2003/02/27 11:21:04 richard Exp $ 
 
 import unittest, os, shutil, time
 
@@ -49,8 +49,6 @@ def setupSchema(db, create, module):
 class MyTestCase(unittest.TestCase):
     def tearDown(self):
         self.db.close()
-        if hasattr(self, 'db2'):
-            self.db2.close()
         if os.path.exists('_test_dir'):
             shutil.rmtree('_test_dir')
 
@@ -77,70 +75,157 @@ class anydbmDBTestCase(MyTestCase):
         os.makedirs(config.DATABASE + '/files')
         self.db = anydbm.Database(config, 'admin')
         setupSchema(self.db, 1, anydbm)
-        self.db2 = anydbm.Database(config, 'admin')
-        setupSchema(self.db2, 0, anydbm)
+
+    #
+    # schema mutation
+    #
+    def testAddProperty(self):
+        self.db.issue.create(title="spam", status='1')
+        self.db.commit()
+
+        self.db.issue.addprop(fixer=Link("user"))
+        # force any post-init stuff to happen
+        self.db.post_init()
+        props = self.db.issue.getprops()
+        keys = props.keys()
+        keys.sort()
+        self.assertEqual(keys, ['activity', 'assignedto', 'creation',
+            'creator', 'deadline', 'files', 'fixer', 'foo', 'id', 'messages',
+            'nosy', 'status', 'superseder', 'title'])
+        self.assertEqual(self.db.issue.get('1', "fixer"), None)
+
+    def testRemoveProperty(self):
+        self.db.issue.create(title="spam", status='1')
+        self.db.commit()
+
+        del self.db.issue.properties['title']
+        self.db.post_init()
+        props = self.db.issue.getprops()
+        keys = props.keys()
+        keys.sort()
+        self.assertEqual(keys, ['activity', 'assignedto', 'creation',
+            'creator', 'deadline', 'files', 'foo', 'id', 'messages',
+            'nosy', 'status', 'superseder'])
+        self.assertEqual(self.db.issue.list(), ['1'])
+
+    def testAddRemoveProperty(self):
+        self.db.issue.create(title="spam", status='1')
+        self.db.commit()
+
+        self.db.issue.addprop(fixer=Link("user"))
+        del self.db.issue.properties['title']
+        self.db.post_init()
+        props = self.db.issue.getprops()
+        keys = props.keys()
+        keys.sort()
+        self.assertEqual(keys, ['activity', 'assignedto', 'creation',
+            'creator', 'deadline', 'files', 'fixer', 'foo', 'id', 'messages',
+            'nosy', 'status', 'superseder'])
+        self.assertEqual(self.db.issue.list(), ['1'])
+
+    def testIDGeneration(self):
+        id1 = self.db.issue.create(title="spam", status='1')
+        id2 = self.db.issue.create(title="eggs", status='2')
+        self.assertNotEqual(id1, id2)
 
     def testStringChange(self):
-        # test set & retrieve
-        self.db.issue.create(title="spam", status='1')
-        self.assertEqual(self.db.issue.get('1', 'title'), 'spam')
+        for commit in (0,1):
+            # test set & retrieve
+            nid = self.db.issue.create(title="spam", status='1')
+            self.assertEqual(self.db.issue.get(nid, 'title'), 'spam')
 
-        # change and make sure we retrieve the correct value
-        self.db.issue.set('1', title='eggs')
-        self.assertEqual(self.db.issue.get('1', 'title'), 'eggs')
+            # change and make sure we retrieve the correct value
+            self.db.issue.set(nid, title='eggs')
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, 'title'), 'eggs')
 
-        # do some commit stuff
-        self.db.commit()
-        self.assertEqual(self.db.issue.get('1', 'title'), 'eggs')
-        self.db.issue.create(title="spam", status='1')
-        self.db.commit()
-        self.assertEqual(self.db.issue.get('2', 'title'), 'spam')
-        self.db.issue.set('2', title='ham')
-        self.assertEqual(self.db.issue.get('2', 'title'), 'ham')
-        self.db.commit()
-        self.assertEqual(self.db.issue.get('2', 'title'), 'ham')
-
-        # make sure we can unset
-        self.db.issue.set('1', title=None)
-        self.assertEqual(self.db.issue.get('1', "title"), None)
+    def testStringUnset(self):
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, 'title'), 'spam')
+            # make sure we can unset
+            self.db.issue.set(nid, title=None)
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "title"), None)
 
     def testLinkChange(self):
-        self.db.issue.create(title="spam", status='1')
-        self.assertEqual(self.db.issue.get('1', "status"), '1')
-        self.db.issue.set('1', status='2')
-        self.assertEqual(self.db.issue.get('1', "status"), '2')
-        self.db.issue.set('1', status=None)
-        self.assertEqual(self.db.issue.get('1', "status"), None)
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "status"), '1')
+            self.db.issue.set(nid, status='2')
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "status"), '2')
+
+    def testLinkUnset(self):
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            if commit: self.db.commit()
+            self.db.issue.set(nid, status=None)
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "status"), None)
 
     def testMultilinkChange(self):
-        u1 = self.db.user.create(username='foo')
-        u2 = self.db.user.create(username='bar')
-        self.db.issue.create(title="spam", nosy=[u1])
-        self.assertEqual(self.db.issue.get('1', "nosy"), [u1])
-        self.db.issue.set('1', nosy=[])
-        self.assertEqual(self.db.issue.get('1', "nosy"), [])
-        self.db.issue.set('1', nosy=[u1,u2])
-        self.assertEqual(self.db.issue.get('1', "nosy"), [u1,u2])
+        for commit in (0,1):
+            u1 = self.db.user.create(username='foo%s'%commit)
+            u2 = self.db.user.create(username='bar%s'%commit)
+            nid = self.db.issue.create(title="spam", nosy=[u1])
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "nosy"), [u1])
+            self.db.issue.set(nid, nosy=[])
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "nosy"), [])
+            self.db.issue.set(nid, nosy=[u1,u2])
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "nosy"), [u1,u2])
 
     def testDateChange(self):
-        self.db.issue.create(title="spam", status='1')
-        a = self.db.issue.get('1', "deadline")
-        self.db.issue.set('1', deadline=date.Date())
-        b = self.db.issue.get('1', "deadline")
-        self.db.commit()
-        self.assertNotEqual(a, b)
-        self.assertNotEqual(b, date.Date('1970-1-1 00:00:00'))
-        self.db.issue.set('1', deadline=date.Date())
-        self.db.issue.set('1', deadline=None)
-        self.assertEqual(self.db.issue.get('1', "deadline"), None)
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            a = self.db.issue.get(nid, "deadline")
+            if commit: self.db.commit()
+            self.db.issue.set(nid, deadline=date.Date())
+            b = self.db.issue.get(nid, "deadline")
+            if commit: self.db.commit()
+            self.assertNotEqual(a, b)
+            self.assertNotEqual(b, date.Date('1970-1-1 00:00:00'))
+
+    def testDateUnset(self):
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            self.db.issue.set(nid, deadline=date.Date())
+            if commit: self.db.commit()
+            self.assertNotEqual(self.db.issue.get(nid, "deadline"), None)
+            self.db.issue.set(nid, deadline=None)
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "deadline"), None)
 
     def testIntervalChange(self):
-        self.db.issue.create(title="spam", status='1')
-        a = self.db.issue.get('1', "foo")
-        self.db.issue.set('1', foo=date.Interval('-1d'))
-        self.assertNotEqual(self.db.issue.get('1', "foo"), a)
-        self.db.issue.set('1', foo=None)
-        self.assertEqual(self.db.issue.get('1', "foo"), None)
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            if commit: self.db.commit()
+            a = self.db.issue.get(nid, "foo")
+            i = date.Interval('-1d')
+            self.db.issue.set(nid, foo=i)
+            if commit: self.db.commit()
+            self.assertNotEqual(self.db.issue.get(nid, "foo"), a)
+            self.assertEqual(i, self.db.issue.get(nid, "foo"))
+            j = date.Interval('1y')
+            self.db.issue.set(nid, foo=j)
+            if commit: self.db.commit()
+            self.assertNotEqual(self.db.issue.get(nid, "foo"), i)
+            self.assertEqual(j, self.db.issue.get(nid, "foo"))
+
+    def testIntervalUnset(self):
+        for commit in (0,1):
+            nid = self.db.issue.create(title="spam", status='1')
+            self.db.issue.set(nid, foo=date.Interval('-1d'))
+            if commit: self.db.commit()
+            self.assertNotEqual(self.db.issue.get(nid, "foo"), None)
+            self.db.issue.set(nid, foo=None)
+            if commit: self.db.commit()
+            self.assertEqual(self.db.issue.get(nid, "foo"), None)
 
     def testBooleanChange(self):
         userid = self.db.user.create(username='foo', assignable=1)
@@ -167,19 +252,6 @@ class anydbmDBTestCase(MyTestCase):
         self.db.user.retire(newid)
         self.assertRaises(KeyError, self.db.user.lookup, 'spam')
 
-    def testNewProperty(self):
-        self.db.issue.create(title="spam", status='1')
-        self.db.issue.addprop(fixer=Link("user"))
-        # force any post-init stuff to happen
-        self.db.post_init()
-        props = self.db.issue.getprops()
-        keys = props.keys()
-        keys.sort()
-        self.assertEqual(keys, ['activity', 'assignedto', 'creation',
-            'creator', 'deadline', 'files', 'fixer', 'foo', 'id', 'messages',
-            'nosy', 'status', 'superseder', 'title'])
-        self.assertEqual(self.db.issue.get('1', "fixer"), None)
-
     def testRetire(self):
         self.db.issue.create(title="spam", status='1')
         b = self.db.status.get('1', 'name')
@@ -194,15 +266,15 @@ class anydbmDBTestCase(MyTestCase):
         self.assertNotEqual(a, self.db.status.list())
 
     def testSerialisation(self):
-        self.db.issue.create(title="spam", status='1',
+        nid = self.db.issue.create(title="spam", status='1',
             deadline=date.Date(), foo=date.Interval('-1d'))
         self.db.commit()
-        assert isinstance(self.db.issue.get('1', 'deadline'), date.Date)
-        assert isinstance(self.db.issue.get('1', 'foo'), date.Interval)
-        self.db.user.create(username="fozzy",
+        assert isinstance(self.db.issue.get(nid, 'deadline'), date.Date)
+        assert isinstance(self.db.issue.get(nid, 'foo'), date.Interval)
+        uid = self.db.user.create(username="fozzy",
             password=password.Password('t. bear'))
         self.db.commit()
-        assert isinstance(self.db.user.get('1', 'password'), password.Password)
+        assert isinstance(self.db.user.get(uid, 'password'), password.Password)
 
     def testTransactions(self):
         # remember the number of items we started
@@ -369,13 +441,7 @@ class anydbmDBTestCase(MyTestCase):
         self.assertEqual(action, 'create')
         keys = params.keys()
         keys.sort()
-        self.assertEqual(keys, ['assignedto', 'deadline', 'files',
-            'foo', 'messages', 'nosy', 'status', 'superseder', 'title'])
-        self.assertEqual(None,params['deadline'])
-        self.assertEqual(None,params['foo'])
-        self.assertEqual([],params['nosy'])
-        self.assertEqual('1',params['status'])
-        self.assertEqual('spam',params['title'])
+        self.assertEqual(keys, [])
 
         # journal entry for link
         journal = self.db.getjournal('user', '1')
@@ -443,11 +509,6 @@ class anydbmDBTestCase(MyTestCase):
 
         # we should have the create and last set entries now
         self.assertEqual(jlen-1, len(self.db.getjournal('issue', id)))
-
-    def testIDGeneration(self):
-        id1 = self.db.issue.create(title="spam", status='1')
-        id2 = self.db2.issue.create(title="eggs", status='2')
-        self.assertNotEqual(id1, id2)
 
     def testSearching(self):
         self.db.file.create(content='hello', type="text/plain")
@@ -571,10 +632,9 @@ class anydbmReadOnlyDBTestCase(MyTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = anydbm.Database(config, 'admin')
         setupSchema(db, 1, anydbm)
+        db.close()
         self.db = anydbm.Database(config)
         setupSchema(self.db, 0, anydbm)
-        self.db2 = anydbm.Database(config, 'admin')
-        setupSchema(self.db2, 0, anydbm)
 
     def testExceptions(self):
         # this tests the exceptions that should be raised
@@ -595,8 +655,6 @@ class bsddbDBTestCase(anydbmDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         self.db = bsddb.Database(config, 'admin')
         setupSchema(self.db, 1, bsddb)
-        self.db2 = bsddb.Database(config, 'admin')
-        setupSchema(self.db2, 0, bsddb)
 
 class bsddbReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
     def setUp(self):
@@ -607,10 +665,9 @@ class bsddbReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = bsddb.Database(config, 'admin')
         setupSchema(db, 1, bsddb)
+        db.close()
         self.db = bsddb.Database(config)
         setupSchema(self.db, 0, bsddb)
-        self.db2 = bsddb.Database(config, 'admin')
-        setupSchema(self.db2, 0, bsddb)
 
 
 class bsddb3DBTestCase(anydbmDBTestCase):
@@ -622,8 +679,6 @@ class bsddb3DBTestCase(anydbmDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         self.db = bsddb3.Database(config, 'admin')
         setupSchema(self.db, 1, bsddb3)
-        self.db2 = bsddb3.Database(config, 'admin')
-        setupSchema(self.db2, 0, bsddb3)
 
 class bsddb3ReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
     def setUp(self):
@@ -634,10 +689,9 @@ class bsddb3ReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = bsddb3.Database(config, 'admin')
         setupSchema(db, 1, bsddb3)
+        db.close()
         self.db = bsddb3.Database(config)
         setupSchema(self.db, 0, bsddb3)
-        self.db2 = bsddb3.Database(config, 'admin')
-        setupSchema(self.db2, 0, bsddb3)
 
 
 class gadflyDBTestCase(anydbmDBTestCase):
@@ -653,11 +707,6 @@ class gadflyDBTestCase(anydbmDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         self.db = gadfly.Database(config, 'admin')
         setupSchema(self.db, 1, gadfly)
-
-    def testIDGeneration(self):
-        id1 = self.db.issue.create(title="spam", status='1')
-        id2 = self.db.issue.create(title="eggs", status='2')
-        self.assertNotEqual(id1, id2)
 
     def testFilteringString(self):
         ae, filt = self.filteringSetup()
@@ -676,6 +725,7 @@ class gadflyReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = gadfly.Database(config, 'admin')
         setupSchema(db, 1, gadfly)
+        db.close()
         self.db = gadfly.Database(config)
         setupSchema(self.db, 0, gadfly)
 
@@ -702,6 +752,7 @@ class sqliteReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = sqlite.Database(config, 'admin')
         setupSchema(db, 1, sqlite)
+        db.close()
         self.db = sqlite.Database(config)
         setupSchema(self.db, 0, sqlite)
 
@@ -718,11 +769,6 @@ class metakitDBTestCase(anydbmDBTestCase):
         self.db = metakit.Database(config, 'admin')
         setupSchema(self.db, 1, metakit)
 
-    def testIDGeneration(self):
-        id1 = self.db.issue.create(title="spam", status='1')
-        id2 = self.db.issue.create(title="eggs", status='2')
-        self.assertNotEqual(id1, id2)
-
     def testTransactions(self):
         # remember the number of items we started
         num_issues = len(self.db.issue.list())
@@ -738,15 +784,21 @@ class metakitDBTestCase(anydbmDBTestCase):
         self.assertNotEqual(num_issues, len(self.db.issue.list()))
         self.db.file.create(name="test", type="text/plain", content="hi")
         self.db.rollback()
+        num_files = len(self.db.file.list())
         for i in range(10):
             self.db.file.create(name="test", type="text/plain", 
                     content="hi %d"%(i))
             self.db.commit()
         # TODO: would be good to be able to ensure the file is not on disk after
         # a rollback...
+        num_files2 = len(self.db.file.list())
         self.assertNotEqual(num_files, num_files2)
         self.db.file.create(name="test", type="text/plain", content="hi")
+        num_rfiles = len(os.listdir(self.db.config.DATABASE + '/files/file/0'))
         self.db.rollback()
+        num_rfiles2 = len(os.listdir(self.db.config.DATABASE + '/files/file/0'))
+        self.assertEqual(num_files2, len(self.db.file.list()))
+        self.assertEqual(num_rfiles2, num_rfiles-1)
 
 class metakitReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
     def setUp(self):
@@ -759,6 +811,7 @@ class metakitReadOnlyDBTestCase(anydbmReadOnlyDBTestCase):
         os.makedirs(config.DATABASE + '/files')
         db = metakit.Database(config, 'admin')
         setupSchema(db, 1, metakit)
+        db.close()
         self.db = metakit.Database(config)
         setupSchema(self.db, 0, metakit)
 
