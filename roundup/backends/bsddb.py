@@ -1,4 +1,4 @@
-#$Id: hyper_bsddb.py,v 1.2 2001/07/22 12:09:32 richard Exp $
+#$Id: bsddb.py,v 1.1 2001/07/23 06:23:41 richard Exp $
 
 import bsddb, os, cPickle
 import hyperdb, date
@@ -161,7 +161,10 @@ class Database(hyperdb.Database):
         '''
 
 #
-#$Log: hyper_bsddb.py,v $
+#$Log: bsddb.py,v $
+#Revision 1.1  2001/07/23 06:23:41  richard
+#moved hyper_bsddb.py to the new backends package as bsddb.py
+#
 #Revision 1.2  2001/07/22 12:09:32  richard
 #Final commit of Grande Splite
 #
