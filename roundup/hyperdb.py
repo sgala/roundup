@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.76 2002/07/18 11:17:30 gmcm Exp $
+# $Id: hyperdb.py,v 1.77 2002/07/18 11:27:47 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -479,9 +479,9 @@ class Class:
         """Get the ids of nodes in this class which link to the given nodes.
 
         'propspec' consists of keyword args propname={nodeid:1,}   
-          'propname' must be the name of a property in this class, or a
-            KeyError is raised.  That property must be a Link or Multilink
-            property, or a TypeError is raised.
+        'propname' must be the name of a property in this class, or a
+        KeyError is raised.  That property must be a Link or Multilink
+        property, or a TypeError is raised.
 
         Any node in this class whose 'propname' property links to any of the
         nodeids will be returned. Used by the full text indexing, which knows
@@ -591,6 +591,9 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.77  2002/07/18 11:27:47  richard
+# ws
+#
 # Revision 1.76  2002/07/18 11:17:30  gmcm
 # Add Number and Boolean types to hyperdb.
 # Add conversion cases to web, mail & admin interfaces.
