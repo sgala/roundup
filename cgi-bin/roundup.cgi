@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.13 2001/10/05 02:23:24 richard Exp $
+# $Id: roundup.cgi,v 1.14 2001/10/27 00:22:35 richard Exp $
 
 # python version check
 import sys
@@ -62,7 +62,7 @@ except:
 def main(out, err):
     import os, string
     import roundup.instance
-    path = string.split(os.environ['PATH_INFO'], '/')
+    path = string.split(os.environ.get('PATH_INFO', '/'), '/')
     instance = path[1]
     os.environ['INSTANCE_NAME'] = instance
     os.environ['PATH_INFO'] = string.join(path[2:], '/')
@@ -88,7 +88,8 @@ def main(out, err):
         w('<html><head><title>Roundup instances index</title><head>\n')
         w('<body><h1>Roundup instances index</h1><ol>\n')
         for instance in ROUNDUP_INSTANCE_HOMES.keys():
-            w('<li><a href="%s/index">%s</a>\n'%(urllib.quote(instance),
+            w('<li><a href="%s/%s/index">%s</a>\n'%(
+                os.environ['SCRIPT_NAME'], urllib.quote(instance),
                 instance))
         w('</ol></body></html>')
 
@@ -99,6 +100,8 @@ out, err = sys.stdout, sys.stderr
 try:
     sys.stdout = sys.stderr = LOG
     main(out, err)
+except SystemExit:
+    pass
 except:
     sys.stdout, sys.stderr = out, err
     out.write('Content-Type: text/html\n\n')
@@ -108,6 +111,9 @@ sys.stdout, sys.stderr = out, err
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.14  2001/10/27 00:22:35  richard
+# Fixed some URL issues in roundup.cgi, again thanks Juergen Hermann.
+#
 # Revision 1.13  2001/10/05 02:23:24  richard
 #  . roundup-admin create now prompts for property info if none is supplied
 #    on the command-line.
