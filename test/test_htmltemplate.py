@@ -8,7 +8,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Id: test_htmltemplate.py,v 1.12 2002/03/29 19:41:48 rochecompaan Exp $ 
+# $Id: test_htmltemplate.py,v 1.13 2002/04/03 05:54:31 richard Exp $ 
 
 import unittest, cgi, time
 
@@ -234,9 +234,17 @@ class NodeCase(unittest.TestCase):
         self.assertEqual(self.tf.do_link('link'),
             '<a href="other1">the key1</a>')
 
+    def testLink_link_id(self):
+        self.assertEqual(self.tf.do_link('link', showid=1),
+            '<a href="other1" title="the key1">1</a>')
+
     def testLink_multilink(self):
         self.assertEqual(self.tf.do_link('multilink'),
             '<a href="other1">the key1</a>, <a href="other2">the key2</a>')
+
+    def testLink_multilink_id(self):
+        self.assertEqual(self.tf.do_link('multilink', showid=1),
+            '<a href="other1" title="the key1">1</a>, <a href="other2" title="the key2">2</a>')
 
 #    def do_count(self, property, **args):
     def testCount_nonlinks(self):
@@ -344,6 +352,14 @@ def suite():
 
 #
 # $Log: test_htmltemplate.py,v $
+# Revision 1.13  2002/04/03 05:54:31  richard
+# Fixed serialisation problem by moving the serialisation step out of the
+# hyperdb.Class (get, set) into the hyperdb.Database.
+#
+# Also fixed htmltemplate after the showid changes I made yesterday.
+#
+# Unit tests for all of the above written.
+#
 # Revision 1.12  2002/03/29 19:41:48  rochecompaan
 #  . Fixed display of mutlilink properties when using the template
 #    functions, menu and plain.

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.85 2002/04/02 01:40:58 richard Exp $
+# $Id: htmltemplate.py,v 1.86 2002/04/03 05:54:31 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -357,10 +357,11 @@ class TemplateFunctions:
             linkvalue = cgi.escape(linkcl.get(value, k))
             if showid:
                 label = value
-		title = ' title="%s"'%linkvalue
-		# note ... this should be urllib.quote(linkcl.get(value, k))
+                title = ' title="%s"'%linkvalue
+                # note ... this should be urllib.quote(linkcl.get(value, k))
             else:
                 label = linkvalue
+                title = ''
             if is_download:
                 return '<a href="%s%s/%s"%s>%s</a>'%(linkname, value,
                     linkvalue, title, label)
@@ -376,9 +377,10 @@ class TemplateFunctions:
                 if showid:
                     label = value
                     title = ' title="%s"'%linkvalue
-		    # note ... this should be urllib.quote(linkcl.get(value, k))
+                    # note ... this should be urllib.quote(linkcl.get(value, k))
                 else:
                     label = linkvalue
+                    title = ''
                 if is_download:
                     l.append('<a href="%s%s/%s"%s>%s</a>'%(linkname, value,
                         linkvalue, title, label))
@@ -1126,6 +1128,14 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.86  2002/04/03 05:54:31  richard
+# Fixed serialisation problem by moving the serialisation step out of the
+# hyperdb.Class (get, set) into the hyperdb.Database.
+#
+# Also fixed htmltemplate after the showid changes I made yesterday.
+#
+# Unit tests for all of the above written.
+#
 # Revision 1.85  2002/04/02 01:40:58  richard
 #  . link() htmltemplate function now has a "showid" option for links and
 #    multilinks. When true, it only displays the linked node id as the anchor

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.16 2002/02/27 03:40:59 richard Exp $
+#$Id: back_bsddb.py,v 1.17 2002/04/03 05:54:31 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in BSDDB.
 '''
@@ -95,20 +95,38 @@ class Database(back_anydbm.Database):
         return res
 
     def _doSaveJournal(self, classname, nodeid, action, params):
+        # serialise first
+        if action in ('set', 'create'):
+            params = self.serialise(classname, params)
+
         entry = (nodeid, date.Date().get_tuple(), self.journaltag, action,
             params)
+
+        if hyperdb.DEBUG:
+            print '_doSaveJournal', entry
+
         db = bsddb.btopen(os.path.join(self.dir, 'journals.%s'%classname), 'c')
+
         if db.has_key(nodeid):
             s = db[nodeid]
             l = marshal.loads(s)
             l.append(entry)
         else:
             l = [entry]
+
         db[nodeid] = marshal.dumps(l)
         db.close()
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.17  2002/04/03 05:54:31  richard
+#Fixed serialisation problem by moving the serialisation step out of the
+#hyperdb.Class (get, set) into the hyperdb.Database.
+#
+#Also fixed htmltemplate after the showid changes I made yesterday.
+#
+#Unit tests for all of the above written.
+#
 #Revision 1.16  2002/02/27 03:40:59  richard
 #Ran it through pychecker, made fixes
 #
