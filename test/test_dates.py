@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_dates.py,v 1.9 2002/02/21 06:57:39 richard Exp $ 
+# $Id: test_dates.py,v 1.10 2002/02/21 23:11:45 richard Exp $ 
 
 import unittest, time
 
@@ -70,8 +70,37 @@ class DateTestCase(unittest.TestCase):
         ae(str(date), '%s-%02d-%02d.19:25:00'%(y, m, d))
         date = Date("8:47:11", -5)
         ae(str(date), '%s-%02d-%02d.13:47:11'%(y, m, d))
-        # TODO: assert something
-        Date() + Interval('- 2y 2m')
+
+        # now check calculations
+        date = Date('2000-01-01') + Interval('- 2y 2m')
+        ae(str(date), '1997-11-01.00:00:00')
+        date = Date('2000-01-01') + Interval('+ 2m')
+        ae(str(date), '2000-03-01.00:00:00')
+
+        date = Date('2000-01-01') + Interval('60d')
+        ae(str(date), '2000-03-01.00:00:00')
+        date = Date('2001-01-01') + Interval('60d')
+        ae(str(date), '2001-03-02.00:00:00')
+
+        date = Date('2000-02-28.23:59:59') + Interval('00:00:01')
+        ae(str(date), '2000-02-29.00:00:00')
+        date = Date('2001-02-28.23:59:59') + Interval('00:00:01')
+        ae(str(date), '2001-03-01.00:00:00')
+
+        date = Date('2000-02-28.23:58:59') + Interval('00:01:01')
+        ae(str(date), '2000-02-29.00:00:00')
+        date = Date('2001-02-28.23:58:59') + Interval('00:01:01')
+        ae(str(date), '2001-03-01.00:00:00')
+
+        date = Date('2000-02-28.22:58:59') + Interval('01:01:01')
+        ae(str(date), '2000-02-29.00:00:00')
+        date = Date('2001-02-28.22:58:59') + Interval('01:01:01')
+        ae(str(date), '2001-03-01.00:00:00')
+
+        date = Date('2000-02-28.22:58:59') + Interval('00:00:3661')
+        ae(str(date), '2000-02-29.00:00:00')
+        date = Date('2001-02-28.22:58:59') + Interval('00:00:3661')
+        ae(str(date), '2001-03-01.00:00:00')
 
     def testInterval(self):
         ae = self.assertEqual
@@ -89,6 +118,11 @@ def suite():
 
 #
 # $Log: test_dates.py,v $
+# Revision 1.10  2002/02/21 23:11:45  richard
+#  . fixed some problems in date calculations (calendar.py doesn't handle over-
+#    and under-flow). Also, hour/minute/second intervals may now be more than
+#    99 each.
+#
 # Revision 1.9  2002/02/21 06:57:39  richard
 #  . Added popup help for classes using the classhelp html template function.
 #    - add <display call="classhelp('priority', 'id,name,description')">
