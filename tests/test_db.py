@@ -1,3 +1,5 @@
+# $Id: test_db.py,v 1.4 2001/07/25 04:34:31 richard Exp $ 
+
 import unittest, os, shutil
 
 from roundup.backends import anydbm
@@ -55,3 +57,10 @@ class DBTestCase(unittest.TestCase):
 def suite():
    return unittest.makeSuite(DBTestCase, 'test')
 
+
+#
+# $Log: test_db.py,v $
+# Revision 1.4  2001/07/25 04:34:31  richard
+# Added id and log to tests files...
+#
+#

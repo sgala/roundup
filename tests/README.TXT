@@ -1,3 +1,5 @@
+$Id: README.TXT,v 1.2 2001/07/25 04:34:31 richard Exp $
+
 Structre of the tests:
 
    1   Test date classes
@@ -15,4 +17,10 @@ Structre of the tests:
    6.3 text/html
    6.4 multipart/alternative (with one text/plain)
    6.5 multipart/alternative (with no text/plain)
+
+
+------
+$Log: README.TXT,v $
+Revision 1.2  2001/07/25 04:34:31  richard
+Added id and log to tests files...
 

@@ -1,3 +1,5 @@
+# $Id: test_dates.py,v 1.2 2001/07/25 04:34:31 richard Exp $ 
+
 import unittest, time
 
 from roundup.date import Date, Interval
@@ -51,3 +53,10 @@ class DateTestCase(unittest.TestCase):
 def suite():
    return unittest.makeSuite(DateTestCase, 'test')
 
+
+#
+# $Log: test_dates.py,v $
+# Revision 1.2  2001/07/25 04:34:31  richard
+# Added id and log to tests files...
+#
+#
