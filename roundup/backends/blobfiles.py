@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: blobfiles.py,v 1.8 2002/07/19 03:36:34 richard Exp $
+#$Id: blobfiles.py,v 1.9 2002/09/10 00:11:50 richard Exp $
 '''
 This module exports file storage for roundup backends.
 Files are stored into a directory hierarchy.
@@ -125,49 +125,4 @@ class FileStorage:
         if os.path.exists(name+".tmp"):
             os.remove(name+".tmp")
 
-# $Log: blobfiles.py,v $
-# Revision 1.8  2002/07/19 03:36:34  richard
-# Implemented the destroy() method needed by the session database (and possibly
-# others). At the same time, I removed the leading underscores from the hyperdb
-# methods that Really Didn't Need Them.
-# The journal also raises IndexError now for all situations where there is a
-# request for the journal of a node that doesn't have one. It used to return
-# [] in _some_ situations, but not all. This _may_ break code, but the tests
-# pass...
-#
-# Revision 1.7  2002/07/14 06:14:40  richard
-# Some more TODOs
-#
-# Revision 1.6  2002/07/09 03:02:52  richard
-# More indexer work:
-# - all String properties may now be indexed too. Currently there's a bit of
-#   "issue" specific code in the actual searching which needs to be
-#   addressed. In a nutshell:
-#   + pass 'indexme="yes"' as a String() property initialisation arg, eg:
-#         file = FileClass(db, "file", name=String(), type=String(),
-#             comment=String(indexme="yes"))
-#   + the comment will then be indexed and be searchable, with the results
-#     related back to the issue that the file is linked to
-# - as a result of this work, the FileClass has a default MIME type that may
-#   be overridden in a subclass, or by the use of a "type" property as is
-#   done in the default templates.
-# - the regeneration of the indexes (if necessary) is done once the schema is
-#   set up in the dbinit.
-#
-# Revision 1.5  2002/07/08 06:58:15  richard
-# cleaned up the indexer code:
-#  - it splits more words out (much simpler, faster splitter)
-#  - removed code we'll never use (roundup.roundup_indexer has the full
-#    implementation, and replaces roundup.indexer)
-#  - only index text/plain and rfc822/message (ideas for other text formats to
-#    index are welcome)
-#  - added simple unit test for indexer. Needs more tests for regression.
-#
-# Revision 1.4  2002/06/19 03:07:19  richard
-# Moved the file storage commit into blobfiles where it belongs.
-#
-# Revision 1.3  2002/02/27 07:33:34  grubert
-#  . add, vim line and cvs log key.
-#
-#
 # vim: set filetype=python ts=4 sw=4 et si
