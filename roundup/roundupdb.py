@@ -1,4 +1,4 @@
-# $Id: roundupdb.py,v 1.5 2001/07/29 07:01:39 richard Exp $
+# $Id: roundupdb.py,v 1.6 2001/07/30 00:05:54 richard Exp $
 
 import re, os, smtplib, socket
 
@@ -178,7 +178,7 @@ class IssueClass(Class):
         if not properties.has_key('nosy'):
             properties['nosy'] = hyperdb.Multilink("user")
         if not properties.has_key('superseder'):
-            properties['superseder'] = hyperdb.Multilink("issue")
+            properties['superseder'] = hyperdb.Multilink(classname)
         if (properties.has_key('creation') or properties.has_key('activity')
                 or properties.has_key('creator')):
             raise ValueError, '"creation", "activity" and "creator" are reserved'
@@ -247,6 +247,10 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.6  2001/07/30 00:05:54  richard
+# Fixed IssueClass so that superseders links to its classname rather than
+# hard-coded to "issue".
+#
 # Revision 1.5  2001/07/29 07:01:39  richard
 # Added vim command to all source so that we don't get no steenkin' tabs :)
 #
