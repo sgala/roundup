@@ -1,4 +1,4 @@
-# $Id: hyperdb.py,v 1.8 2001/07/29 08:27:40 richard Exp $
+# $Id: hyperdb.py,v 1.9 2001/07/29 09:28:23 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -633,7 +633,6 @@ class Class:
             else:
                 m.append((entry[0], entry[1:]))
         group = m
-
         # now, sort the result
         def sortfun(a, b, sort=sort, group=group, properties=self.getprops(),
                 db = self.db, cl=self):
@@ -674,6 +673,9 @@ class Class:
                     # nodes; or finally on  the node ids.
                     elif propclass.isLinkType:
                         link = db.classes[propclass.classname]
+                        if av is None and bv is not None: return -1
+                        if av is not None and bv is None: return 1
+                        if av is None and bv is None: return 0
                         if link.getprops().has_key('order'):
                             if dir == '+':
                                 r = cmp(link.get(av, 'order'),
@@ -788,6 +790,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.9  2001/07/29 09:28:23  richard
+# Fixed sorting by clicking on column headings.
+#
 # Revision 1.8  2001/07/29 08:27:40  richard
 # Fixed handling of passed-in values in form elements (ie. during a
 # drill-down)
