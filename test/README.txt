@@ -1,4 +1,4 @@
-$Id: README.TXT,v 1.1 2001/07/27 06:55:07 richard Exp $
+$Id: README.txt,v 1.1 2001/07/27 07:16:21 richard Exp $
 
 Structre of the tests:
 
@@ -20,7 +20,10 @@ Structre of the tests:
 
 
 ------
-$Log: README.TXT,v $
+$Log: README.txt,v $
+Revision 1.1  2001/07/27 07:16:21  richard
+rename for consistency
+
 Revision 1.1  2001/07/27 06:55:07  richard
 moving tests -> test
 
