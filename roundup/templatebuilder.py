@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: templatebuilder.py,v 1.11 2001/08/07 00:24:42 richard Exp $
+# $Id: templatebuilder.py,v 1.12 2001/11/14 21:35:21 richard Exp $
 import errno, re
 
 preamble = """ 
@@ -81,10 +81,13 @@ if __name__ == "__main__":
     elif len(sys.argv) == 3:
         installHtmlBase(sys.argv[1], sys.argv[2])
     else:
-        raise "what you talkin about willis?"
+        print "Usage: %s <template directory>"%sys.argv[0]
 
 #
 # $Log: templatebuilder.py,v $
+# Revision 1.12  2001/11/14 21:35:21  richard
+#  . users may attach files to issues (and support in ext) through the web now
+#
 # Revision 1.11  2001/08/07 00:24:42  richard
 # stupid typo
 #
