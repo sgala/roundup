@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.64 2002/05/15 06:21:21 richard Exp $
+# $Id: hyperdb.py,v 1.65 2002/05/22 04:12:05 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -608,7 +608,8 @@ class Class:
                 for entry in value:
                     # if it isn't a number, it's a key
                     if type(entry) != type(''):
-                        raise ValueError, 'link value must be String'
+                        raise ValueError, 'new property "%s" link value ' \
+                            'must be a string'%key
                     if not num_re.match(entry):
                         try:
                             entry = self.db.classes[link_class].lookup(entry)
@@ -1145,6 +1146,12 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.65  2002/05/22 04:12:05  richard
+#  . applied patch #558876 ] cgi client customization
+#    ... with significant additions and modifications ;)
+#    - extended handling of ML assignedto to all places it's handled
+#    - added more NotFound info
+#
 # Revision 1.64  2002/05/15 06:21:21  richard
 #  . node caching now works, and gives a small boost in performance
 #
