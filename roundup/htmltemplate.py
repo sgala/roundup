@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.35 2001/10/24 00:04:41 richard Exp $
+# $Id: htmltemplate.py,v 1.36 2001/10/28 22:51:38 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -483,7 +483,7 @@ class IndexTemplate(TemplateFunctions):
                 self.classname+'.filter')).read()
             all_filters = self.col_re.findall(filter_template)
         except IOError, error:
-            if error.errno != errno.ENOENT: raise
+            if error.errno not in (errno.ENOENT, errno.ESRCH): raise
             filter_template = None
             all_filters = []
 
@@ -827,6 +827,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.36  2001/10/28 22:51:38  richard
+# Fixed ENOENT/WindowsError thing, thanks Juergen Hermann
+#
 # Revision 1.35  2001/10/24 00:04:41  richard
 # Removed the "infinite authentication loop", thanks Roch'e
 #
