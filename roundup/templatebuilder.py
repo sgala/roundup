@@ -1,5 +1,5 @@
-# $Id: templatebuilder.py,v 1.8 2001/07/30 08:12:17 richard Exp $
-import errno
+# $Id: templatebuilder.py,v 1.9 2001/08/01 05:06:10 richard Exp $
+import errno, re
 
 preamble = """ 
 # Do Not Edit (Unless You Want To)
@@ -22,7 +22,8 @@ def makeHtmlBase(templateDir):
         if file[-1] == '~': continue
         mangled_name = os.path.basename(re.sub(r'\.', 'DOT', file))
         fd.write('%s = """'%mangled_name)
-        fd.write(open(file).read())
+        fd.write(re.sub(r'\$((Id|File|Log).*?)\$', r'dollar\1dollar',
+            open(file).read(), re.I))
         fd.write('"""\n\n')
     fd.close()
 
@@ -67,6 +68,9 @@ if __name__ == "__main__":
 
 #
 # $Log: templatebuilder.py,v $
+# Revision 1.9  2001/08/01 05:06:10  richard
+# htmlbase doesn't have extraneous $Foo$ in it any more
+#
 # Revision 1.8  2001/07/30 08:12:17  richard
 # Added time logging and file uploading to the templates.
 #
