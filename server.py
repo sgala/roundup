@@ -3,6 +3,8 @@
 
 Stolen from CGIHTTPServer
 
+$Id: server.py,v 1.2 2001/07/19 05:52:22 anthonybaxter Exp $
+
 """
 import sys
 if int(sys.version[0]) < 2:
@@ -147,4 +149,11 @@ if __name__ == '__main__':
     httpd = BaseHTTPServer.HTTPServer(address, RoundupRequestHandler)
     print 'Roundup server started on', address
     httpd.serve_forever()
+
+#
+# $Log: server.py,v $
+# Revision 1.2  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#
 

@@ -1,3 +1,5 @@
+# $Id: hyperdb.py,v 1.3 2001/07/19 05:52:22 anthonybaxter Exp $
+
 import bsddb, os, cPickle, re, string
 
 import date
@@ -916,4 +918,11 @@ if __name__ == '__main__':
 # [(<Date 2000-06-28.19:11:04>, "ping", "link", ("issue", 5, "status"))]
 
     # TODO: set up some filter tests
+
+#
+# $Log: hyperdb.py,v $
+# Revision 1.3  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#
 

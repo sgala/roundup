@@ -1,5 +1,7 @@
 #! /usr/bin/python
 
+# $Id: roundup.py,v 1.2 2001/07/19 05:52:22 anthonybaxter Exp $ 
+
 import sys
 if int(sys.version[0]) < 2:
     print 'Roundup requires python 2.0 or later.'
@@ -201,4 +203,11 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
+#
+# $Log: roundup.py,v $
+# Revision 1.2  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#
 

@@ -1,3 +1,5 @@
+# $Id: cgitb.py,v 1.2 2001/07/19 05:52:22 anthonybaxter Exp $
+
 import sys, os, types, string, keyword, linecache, tokenize, inspect, pydoc
 
 def breaker():
@@ -111,3 +113,9 @@ def handler():
     print breaker()
     print html()
 
+#
+# $Log: cgitb.py,v $
+# Revision 1.2  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#

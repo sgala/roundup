@@ -1,3 +1,5 @@
+# $Id: roundup_cgi.py,v 1.3 2001/07/19 05:52:22 anthonybaxter Exp $
+
 import os, cgi, pprint, StringIO, urlparse, re, traceback
 
 import config, roundupdb, template, date
@@ -477,4 +479,11 @@ class Client:
 
     def __del__(self):
         self.db.close()
+
+#
+# $Log: roundup_cgi.py,v $
+# Revision 1.3  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#
 

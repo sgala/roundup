@@ -1,3 +1,5 @@
+# $Id: roundupdb.py,v 1.3 2001/07/19 05:52:22 anthonybaxter Exp $
+
 import re, os, smtplib, socket
 
 import config, hyperdb, date
@@ -369,4 +371,11 @@ def initDB(storagelocator, password):
     user.create(username="admin", password=password, address=config.ADMIN_EMAIL)
 
     db.close()
+
+#
+# $Log: roundupdb.py,v $
+# Revision 1.3  2001/07/19 05:52:22  anthonybaxter
+# Added CVS keywords $Id$ and $Log$ to all python files.
+#
+#
 
