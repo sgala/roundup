@@ -1,4 +1,4 @@
-# $Id: htmltemplate.py,v 1.14 2001/07/30 06:17:45 richard Exp $
+# $Id: htmltemplate.py,v 1.15 2001/07/30 08:12:17 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -710,7 +710,7 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
         s = open(os.path.join(templates, classname+'.newitem')).read()
     except:
         s = open(os.path.join(templates, classname+'.item')).read()
-    w('<form action="new%s">'%classname)
+    w('<form action="new%s" method="POST" enctype="multipart/form-data">'%classname)
     for key in form.keys():
         if key[0] == ':':
             value = form[key].value
@@ -723,6 +723,9 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.15  2001/07/30 08:12:17  richard
+# Added time logging and file uploading to the templates.
+#
 # Revision 1.14  2001/07/30 06:17:45  richard
 # Features:
 #  . Added ability for cgi newblah forms to indicate that the new node

@@ -1,4 +1,4 @@
-# $Id: interfaces.py,v 1.3 2001/07/30 01:26:59 richard Exp $
+# $Id: interfaces.py,v 1.4 2001/07/30 08:12:17 richard Exp $
 
 import instance_config, urlparse, os
 from roundup import cgi_client, mailgw 
@@ -8,8 +8,10 @@ class Client(cgi_client.Client):
         with any specific extensions 
     ''' 
     TEMPLATES = instance_config.TEMPLATES
-    showsupport = cgi_client.Client.showitem
-    newsupport = cgi_client.Client.newissue
+    showsupport = cgi_client.Client.shownode
+    showtimelog = cgi_client.Client.shownode
+    newsupport = cgi_client.Client.newnode
+    newtimelog = cgi_client.Client.newnode
 
     default_index_sort = ['-activity']
     default_index_group = ['priority']
@@ -65,6 +67,9 @@ class MailGW(mailgw.MailGW):
 
 #
 # $Log: interfaces.py,v $
+# Revision 1.4  2001/07/30 08:12:17  richard
+# Added time logging and file uploading to the templates.
+#
 # Revision 1.3  2001/07/30 01:26:59  richard
 # Big changes:
 #  . split off the support priority into its own class

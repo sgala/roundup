@@ -1,4 +1,4 @@
-# $Id: templatebuilder.py,v 1.7 2001/07/30 00:06:52 richard Exp $
+# $Id: templatebuilder.py,v 1.8 2001/07/30 08:12:17 richard Exp $
 import errno
 
 preamble = """ 
@@ -18,6 +18,8 @@ def makeHtmlBase(templateDir):
     fd = open(os.path.join(templateDir, 'htmlbase.py'), 'w')
     fd.write(preamble)
     for file in filelist:
+        # skip the backup files created by richard's vim
+        if file[-1] == '~': continue
         mangled_name = os.path.basename(re.sub(r'\.', 'DOT', file))
         fd.write('%s = """'%mangled_name)
         fd.write(open(file).read())
@@ -65,6 +67,9 @@ if __name__ == "__main__":
 
 #
 # $Log: templatebuilder.py,v $
+# Revision 1.8  2001/07/30 08:12:17  richard
+# Added time logging and file uploading to the templates.
+#
 # Revision 1.7  2001/07/30 00:06:52  richard
 # Hrm - had IOError instead of OSError. Not sure why there's two. Ho hum.
 #
