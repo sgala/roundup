@@ -16,7 +16,7 @@
 # 
 """ HTTP Server that serves roundup.
 
-$Id: roundup_server.py,v 1.12 2002/09/23 06:48:35 richard Exp $
+$Id: roundup_server.py,v 1.16.2.1 2003/01/13 02:45:09 richard Exp $
 """
 
 # python version check
@@ -96,18 +96,20 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     do_GET = do_POST = do_HEAD = send_head = run_cgi
 
     def index(self):
-        ''' Print up an index of the available instances
+        ''' Print up an index of the available trackers
         '''
         self.send_response(200)
         self.send_header('Content-Type', 'text/html')
         self.end_headers()
         w = self.wfile.write
-        w(_('<html><head><title>Roundup instances index</title></head>\n'))
-        w(_('<body><h1>Roundup instances index</h1><ol>\n'))
-        for instance in self.TRACKER_HOMES.keys():
-            w(_('<li><a href="%(instance_url)s/index">%(instance_name)s</a>\n')%{
-                'instance_url': urllib.quote(instance),
-                'instance_name': cgi.escape(instance)})
+        w(_('<html><head><title>Roundup trackers index</title></head>\n'))
+        w(_('<body><h1>Roundup trackers index</h1><ol>\n'))
+        keys = self.TRACKER_HOMES.keys()
+        keys.sort()
+        for tracker in keys:
+            w(_('<li><a href="%(tracker_url)s/index">%(tracker_name)s</a>\n')%{
+                'tracker_url': urllib.quote(tracker),
+                'tracker_name': cgi.escape(tracker)})
         w(_('</ol></body></html>'))
 
     def inner_run_cgi(self):
@@ -121,14 +123,14 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             query = ''
 
-        # figure the instance
+        # figure the tracker
         if rest == '/':
             return self.index()
         l_path = rest.split('/')
-        instance_name = urllib.unquote(l_path[1])
-        if self.TRACKER_HOMES.has_key(instance_name):
-            instance_home = self.TRACKER_HOMES[instance_name]
-            instance = roundup.instance.open(instance_home)
+        tracker_name = urllib.unquote(l_path[1])
+        if self.TRACKER_HOMES.has_key(tracker_name):
+            tracker_home = self.TRACKER_HOMES[tracker_name]
+            tracker = roundup.instance.open(tracker_home)
         else:
             raise client.NotFound
 
@@ -140,7 +142,7 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Set up the CGI environment
         env = {}
-        env['TRACKER_NAME'] = instance_name
+        env['TRACKER_NAME'] = tracker_name
         env['REQUEST_METHOD'] = self.command
         env['PATH_INFO'] = urllib.unquote(rest)
         if query:
@@ -156,6 +158,7 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         co = filter(None, self.headers.getheaders('cookie'))
         if co:
             env['HTTP_COOKIE'] = ', '.join(co)
+        env['HTTP_AUTHORIZATION'] = self.headers.getheader('authorization')
         env['SCRIPT_NAME'] = ''
         env['SERVER_NAME'] = self.server.server_name
         env['SERVER_PORT'] = str(self.server.server_port)
@@ -164,24 +167,24 @@ class RoundupRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         decoded_query = query.replace('+', ' ')
 
         # do the roundup thang
-        c = instance.Client(instance, self, env)
+        c = tracker.Client(tracker, self, env)
         c.main()
 
 def usage(message=''):
     if message:
         message = _('Error: %(error)s\n\n')%{'error': message}
     print _('''%(message)sUsage:
-roundup-server [-n hostname] [-p port] [-l file] [-d file] [name=instance home]*
+roundup-server [-n hostname] [-p port] [-l file] [-d file] [name=tracker home]*
 
  -n: sets the host name
  -p: sets the port to listen on
  -l: sets a filename to log to (instead of stdout)
  -d: daemonize, and write the server's PID to the nominated file
 
- name=instance home
-   Sets the instance home(s) to use. The name is how the instance is
+ name=tracker home
+   Sets the tracker home(s) to use. The name is how the tracker is
    identified in the URL (it's the first part of the URL path). The
-   instance home is the directory that was identified when you did
+   tracker home is the directory that was identified when you did
    "roundup-admin init". You may specify any number of these name=home
    pairs on the command-line. For convenience, you may edit the
    TRACKER_HOMES variable in the roundup-server file instead.
@@ -225,7 +228,18 @@ def daemonize(pidfile):
     os.dup2(devnull, 1)
     os.dup2(devnull, 2)
 
+def abspath(path):
+    ''' Make the given path an absolute path.
+
+        Code from Zope-Coders posting of 2002-10-06 by GvR.
+    '''
+    if not os.path.isabs(path):
+        path = os.path.join(os.getcwd(), path)
+    return os.path.normpath(path)
+
 def run():
+    ''' Script entry point - handle args and figure out what to to.
+    '''
     hostname = ''
     port = 8080
     pidfile = None
@@ -242,8 +256,8 @@ def run():
             if opt == '-n': hostname = arg
             elif opt == '-p': port = int(arg)
             elif opt == '-u': user = arg
-            elif opt == '-d': pidfile = arg
-            elif opt == '-l': logfile = arg
+            elif opt == '-d': pidfile = abspath(arg)
+            elif opt == '-l': logfile = abspath(arg)
             elif opt == '-h': usage()
 
         if hasattr(os, 'getuid'):
@@ -265,7 +279,7 @@ def run():
             if not os.getuid() and user is None:
                 raise ValueError, _("Can't run as root!")
 
-        # handle instance specs
+        # handle tracker specs
         if args:
             d = {}
             for arg in args:
@@ -291,11 +305,15 @@ def run():
 
     # redirect stdout/stderr to our logfile
     if logfile:
-        sys.stdout = sys.stderr = open(logfile, 'a')
+        # appending, unbuffered
+        sys.stdout = sys.stderr = open(logfile, 'a', 0)
 
     httpd = BaseHTTPServer.HTTPServer(address, RoundupRequestHandler)
     print _('Roundup server started on %(address)s')%locals()
-    httpd.serve_forever()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print 'Keyboard Interrupt: exiting'
 
 if __name__ == '__main__':
     run()
