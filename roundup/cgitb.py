@@ -1,7 +1,7 @@
 #
 # This module was written by Ka-Ping Yee, <ping@lfw.org>.
 # 
-# $Id: cgitb.py,v 1.8 2002/01/05 02:22:32 richard Exp $
+# $Id: cgitb.py,v 1.9 2002/01/08 11:56:24 richard Exp $
 
 __doc__ = """
 Extended CGI traceback handler by Ka-Ping Yee, <ping@lfw.org>.
@@ -9,7 +9,7 @@ Extended CGI traceback handler by Ka-Ping Yee, <ping@lfw.org>.
 
 import sys, os, types, string, keyword, linecache, tokenize, inspect, pydoc
 
-from roundup.i18n import _
+from i18n import _
 
 def breaker():
     return ('<body bgcolor="#f0f0ff">' +
@@ -124,6 +124,9 @@ def handler():
 
 #
 # $Log: cgitb.py,v $
+# Revision 1.9  2002/01/08 11:56:24  richard
+# missed an import _
+#
 # Revision 1.8  2002/01/05 02:22:32  richard
 # i18n'ification
 #

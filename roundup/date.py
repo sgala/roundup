@@ -15,13 +15,14 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: date.py,v 1.15 2002/01/05 02:27:00 richard Exp $
+# $Id: date.py,v 1.16 2002/01/08 11:56:24 richard Exp $
 
 __doc__ = """
 Date, time and time interval handling.
 """
 
 import time, re, calendar
+from i18n import _
 
 class Date:
     '''
@@ -378,6 +379,9 @@ if __name__ == '__main__':
 
 #
 # $Log: date.py,v $
+# Revision 1.16  2002/01/08 11:56:24  richard
+# missed an import _
+#
 # Revision 1.15  2002/01/05 02:27:00  richard
 # I18N'ification
 #
