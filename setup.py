@@ -1,17 +1,19 @@
 #! /usr/bin/env python
-# $Id: setup.py,v 1.7 2001/07/29 08:37:58 richard Exp $
+# $Id: setup.py,v 1.8 2001/07/29 09:43:46 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
 
 from glob import glob
 import os
+from roundup.templatebuilder import makeHtmlBase
 
 templates = 'classic', 'extended'
 packagelist = [ 'roundup', 'roundup.backends', 'roundup.templates' ]
 installdatafiles = []
 
 for t in templates:
+    makeHtmlBase(os.path.join('roundup', 'templates', t))
     packagelist.append('roundup.templates.%s'%t)
     packagelist.append('roundup.templates.%s.detectors'%t)
     tfiles = glob(os.path.join('roundup','templates', t, 'html', '*'))
@@ -30,6 +32,9 @@ setup ( name = "roundup",
 
 #
 # $Log: setup.py,v $
+# Revision 1.8  2001/07/29 09:43:46  richard
+# Make sure that the htmlbase is up-to-date when we build a source dist.
+#
 # Revision 1.7  2001/07/29 08:37:58  richard
 # changes
 #
