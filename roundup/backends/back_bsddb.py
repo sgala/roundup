@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.18 2002/05/15 06:21:21 richard Exp $
+#$Id: back_bsddb.py,v 1.19 2002/07/14 02:05:53 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in BSDDB.
 '''
@@ -24,12 +24,12 @@ import bsddb, os, marshal
 from roundup import hyperdb, date
 
 # these classes are so similar, we just use the anydbm methods
-import back_anydbm
+from back_anydbm import Database, Class, FileClass, IssueClass
 
 #
 # Now the database
 #
-class Database(back_anydbm.Database):
+class Database(Database):
     """A database for storing records containing flexible data types."""
     #
     # Class DBs
@@ -119,6 +119,9 @@ class Database(back_anydbm.Database):
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.19  2002/07/14 02:05:53  richard
+#. all storage-specific code (ie. backend) is now implemented by the backends
+#
 #Revision 1.18  2002/05/15 06:21:21  richard
 # . node caching now works, and gives a small boost in performance
 #

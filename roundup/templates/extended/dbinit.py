@@ -15,29 +15,13 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.22 2002/07/09 03:02:53 richard Exp $
+# $Id: dbinit.py,v 1.23 2002/07/14 02:05:54 richard Exp $
 
 import os
 
 import instance_config
-from roundup import roundupdb
-import select_db
+from select_db import Database, Class, FileClass, IssueClass
 
-from roundup.roundupdb import Class, FileClass
-
-class Database(roundupdb.Database, select_db.Database):
-    ''' Creates a hybrid database from: 
-         . the selected database back-end from select_db
-         . the roundup extensions from roundupdb 
-    ''' 
-    pass 
-
-class IssueClass(roundupdb.IssueClass):
-    ''' issues need the email information
-    '''
-    pass
-
- 
 def open(name=None):
     ''' as from the roundupdb method openDB 
  
@@ -195,6 +179,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.23  2002/07/14 02:05:54  richard
+# . all storage-specific code (ie. backend) is now implemented by the backends
+#
 # Revision 1.22  2002/07/09 03:02:53  richard
 # More indexer work:
 # - all String properties may now be indexed too. Currently there's a bit of

@@ -15,18 +15,18 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb3.py,v 1.13 2002/07/08 06:41:03 richard Exp $
+#$Id: back_bsddb3.py,v 1.14 2002/07/14 02:05:54 richard Exp $
 
 import bsddb3, os, marshal
 from roundup import hyperdb, date
 
 # these classes are so similar, we just use the anydbm methods
-import back_anydbm
+from back_anydbm import Database, Class, FileClass, IssueClass
 
 #
 # Now the database
 #
-class Database(back_anydbm.Database):
+class Database(Database):
     """A database for storing records containing flexible data types."""
     #
     # Class DBs
@@ -115,6 +115,9 @@ class Database(back_anydbm.Database):
 
 #
 #$Log: back_bsddb3.py,v $
+#Revision 1.14  2002/07/14 02:05:54  richard
+#. all storage-specific code (ie. backend) is now implemented by the backends
+#
 #Revision 1.13  2002/07/08 06:41:03  richard
 #Was reopening the database with 'n'.
 #

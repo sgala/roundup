@@ -15,13 +15,13 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_schema.py,v 1.7 2002/01/14 02:20:15 richard Exp $ 
+# $Id: test_schema.py,v 1.8 2002/07/14 02:05:54 richard Exp $ 
 
 import unittest, os, shutil
 
-from roundup.backends import anydbm
+from roundup.backends import back_anydbm
 from roundup.hyperdb import String, Password, Link, Multilink, Date, \
-    Interval, Class
+    Interval
 
 class config:
     DATABASE='_test_dir'
@@ -39,20 +39,18 @@ class config:
 
 class SchemaTestCase(unittest.TestCase):
     def setUp(self):
-        class Database(anydbm.Database):
-            pass
         # remove previous test, ignore errors
         if os.path.exists(config.DATABASE):
             shutil.rmtree(config.DATABASE)
         os.makedirs(config.DATABASE + '/files')
-        self.db = Database(config, 'test')
+        self.db = back_anydbm.Database(config, 'test')
         self.db.clear()
 
     def tearDown(self):
         shutil.rmtree('_test_dir')
 
     def testA_Status(self):
-        status = Class(self.db, "status", name=String())
+        status = back_anydbm.Class(self.db, "status", name=String())
         self.assert_(status, 'no class object generated')
         status.setkey("name")
         val = status.create(name="unread")
@@ -74,11 +72,13 @@ class SchemaTestCase(unittest.TestCase):
         self.assertEqual(val, ['1', '2', '4'], 'blah')
 
     def testB_Issue(self):
-        issue = Class(self.db, "issue", title=String(), status=Link("status"))
+        issue = back_anydbm.Class(self.db, "issue", title=String(),
+            status=Link("status"))
         self.assert_(issue, 'no class object returned')
 
     def testC_User(self):
-        user = Class(self.db, "user", username=String(), password=Password())
+        user = back_anydbm.Class(self.db, "user", username=String(),
+            password=Password())
         self.assert_(user, 'no class object returned')
         user.setkey("username")
 
@@ -89,6 +89,9 @@ def suite():
 
 #
 # $Log: test_schema.py,v $
+# Revision 1.8  2002/07/14 02:05:54  richard
+# . all storage-specific code (ie. backend) is now implemented by the backends
+#
 # Revision 1.7  2002/01/14 02:20:15  richard
 #  . changed all config accesses so they access either the instance or the
 #    config attriubute on the db. This means that all config is obtained from
