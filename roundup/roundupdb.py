@@ -15,16 +15,20 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.14 2001/10/21 07:26:35 richard Exp $
+# $Id: roundupdb.py,v 1.15 2001/10/23 01:00:18 richard Exp $
 
 import re, os, smtplib, socket
 
 import hyperdb, date
 
+class DesignatorError(ValueError):
+    pass
 def splitDesignator(designator, dre=re.compile(r'([^\d]+)(\d+)')):
     ''' Take a foo123 and return ('foo', 123)
     '''
     m = dre.match(designator)
+    if m is None:
+        raise DesignatorError, '"%s" not a node designator'%designator
     return m.group(1), m.group(2)
 
 class Database:
@@ -303,6 +307,13 @@ Roundup issue tracker
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.15  2001/10/23 01:00:18  richard
+# Re-enabled login and registration access after lopping them off via
+# disabling access for anonymous users.
+# Major re-org of the htmltemplate code, cleaning it up significantly. Fixed
+# a couple of bugs while I was there. Probably introduced a couple, but
+# things seem to work OK at the moment.
+#
 # Revision 1.14  2001/10/21 07:26:35  richard
 # feature #473127: Filenames. I modified the file.index and htmltemplate
 #  source so that the filename is used in the link and the creation

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.7 2001/10/22 03:25:01 richard Exp $
+# $Id: instance_config.py,v 1.8 2001/10/23 01:00:18 richard Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -62,6 +62,9 @@ ADMIN_EMAIL = 'roundup-admin@%s'%MAIL_DOMAIN
 # Somewhere for roundup to log stuff internally sent to stdout or stderr
 LOG = os.path.join(INSTANCE_HOME, 'roundup.log')
 
+# Where to place the web filtering HTML on the index page
+FILTER_POSITION = 'bottom'      # one of 'top', 'bottom', 'top and bottom'
+
 # Deny or allow anonymous access to the web interface
 ANONYMOUS_ACCESS = 'deny'
 
@@ -70,6 +73,13 @@ ANONYMOUS_REGISTER = 'deny'
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.8  2001/10/23 01:00:18  richard
+# Re-enabled login and registration access after lopping them off via
+# disabling access for anonymous users.
+# Major re-org of the htmltemplate code, cleaning it up significantly. Fixed
+# a couple of bugs while I was there. Probably introduced a couple, but
+# things seem to work OK at the moment.
+#
 # Revision 1.7  2001/10/22 03:25:01  richard
 # Added configuration for:
 #  . anonymous user access and registration (deny/allow)
