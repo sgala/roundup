@@ -15,13 +15,13 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: password.py,v 1.7 2002/09/26 13:38:35 gmcm Exp $
+# $Id: password.py,v 1.8.2.1 2003/04/24 07:49:33 richard Exp $
 
 __doc__ = """
 Password handling (encoding, decoding).
 """
 
-import sha, re, string
+import sha, re, string, random
 try:
     import crypt
 except:
@@ -31,6 +31,8 @@ except:
 def encodePassword(plaintext, scheme, other=None):
     '''Encrypt the plaintext password.
     '''
+    if plaintext is None:
+        plaintext = ""
     if scheme == 'SHA':
         s = sha.sha(plaintext).hexdigest()
     elif scheme == 'crypt' and crypt is not None:
@@ -45,6 +47,10 @@ def encodePassword(plaintext, scheme, other=None):
     else:
         raise ValueError, 'Unknown encryption scheme "%s"'%scheme
     return s
+
+def generatePassword(length=8):
+    chars = string.letters+string.digits
+    return ''.join([random.choice(chars) for x in range(length)])
 
 class Password:
     '''The class encapsulates a Password property type value in the database. 
