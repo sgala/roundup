@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.1 2002/09/26 04:15:07 richard Exp $
+# $Id: __init__.py,v 1.1 2003/04/17 03:26:03 richard Exp $
 
 import config
 from dbinit import open, init
