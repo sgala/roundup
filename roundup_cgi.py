@@ -1,4 +1,4 @@
-# $Id: roundup_cgi.py,v 1.4 2001/07/19 06:27:07 anthonybaxter Exp $
+# $Id: roundup_cgi.py,v 1.5 2001/07/20 00:17:16 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback
 
@@ -386,12 +386,8 @@ class Client:
                             summary = note
                         m.append('\n%s\n'%note)
                     else:
-                        if len(changed) > 1:
-                            plural = 's were'
-                        else:
-                            plural = ' was'
-                        summary = 'This %s has been created through the web.'%cn
-                        m.append('\n%s\n'%summary)
+                        m.append('\nThis %s has been created through '
+                            'the web.\n'%cn)
 
                     # now create the message
                     content = '\n'.join(m)
@@ -482,6 +478,9 @@ class Client:
 
 #
 # $Log: roundup_cgi.py,v $
+# Revision 1.5  2001/07/20 00:17:16  richard
+# Fixed adding a new issue when there is no __note
+#
 # Revision 1.4  2001/07/19 06:27:07  anthonybaxter
 # fixing (manually) the (dollarsign)Log(dollarsign) entries caused by
 # my using the magic (dollarsign)Id(dollarsign) and (dollarsign)Log(dollarsign)
