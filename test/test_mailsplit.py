@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_mailsplit.py,v 1.8 2001/10/28 23:22:28 richard Exp $
+# $Id: test_mailsplit.py,v 1.9 2002/01/10 06:19:20 richard Exp $
 
 import unittest, cStringIO
 
@@ -89,6 +89,18 @@ userfoo@foo.com
         self.assertEqual(summary, 'testing')
         self.assertEqual(content, 'testing\n\ntesting\n\ntesting')
 
+    def testSimpleFollowup(self):
+        s = '''>hello\ntesting'''
+        summary, content = parseContent(s)
+        self.assertEqual(summary, 'testing')
+        self.assertEqual(content, 'testing')
+
+    def testSimpleFollowupParas(self):
+        s = '''>hello\ntesting\n\ntesting\n\ntesting'''
+        summary, content = parseContent(s)
+        self.assertEqual(summary, 'testing')
+        self.assertEqual(content, 'testing\n\ntesting\n\ntesting')
+
     def testEmpty(self):
         s = ''
         summary, content = parseContent(s)
@@ -111,6 +123,9 @@ def suite():
 
 #
 # $Log: test_mailsplit.py,v $
+# Revision 1.9  2002/01/10 06:19:20  richard
+# followup lines directly after a quoted section were being eaten.
+#
 # Revision 1.8  2001/10/28 23:22:28  richard
 # fixed bug #474749 ] Indentations lost
 #
