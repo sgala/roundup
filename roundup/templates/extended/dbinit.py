@@ -1,16 +1,15 @@
-# $Id: dbinit.py,v 1.2 2001/07/23 06:25:50 richard Exp $
+# $Id: dbinit.py,v 1.3 2001/07/23 07:14:41 richard Exp $
 
-import instance_config
-from roundup import hyperdb, backends.bsddb, roundupdb, cgi_client, mailgw 
-
-from roundup.roundupdb import Class, FileClass
 import os
 
+import instance_config
+from roundup import roundupdb, cgi_client, mailgw 
+from roundup.backends import bsddb
+from roundup.roundupdb import Class, FileClass
 
-class Database(roundupdb.Database, backends.bsddb.Database):
+class Database(roundupdb.Database, bsddb.Database):
     ''' Creates a hybrid database from: 
-         . the base Database class given in hyperdb (basic functionlity) 
-         . the BSDDB implementation in hyperdb_bsddb 
+         . the BSDDB implementation in backends.bsddb 
          . the roundup extensions from roundupdb 
     ''' 
     pass 
@@ -172,6 +171,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.3  2001/07/23 07:14:41  richard
+# Moved the database backends off into backends.
+#
 # Revision 1.2  2001/07/23 06:25:50  richard
 # relfected the move to roundup/backends
 #
