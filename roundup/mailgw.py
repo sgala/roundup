@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.43 2001/12/15 19:39:01 rochecompaan Exp $
+$Id: mailgw.py,v 1.44 2001/12/18 15:30:34 rochecompaan Exp $
 '''
 
 
@@ -488,9 +488,9 @@ not find a text/plain part to use.
                 except KeyError:
                     pass
                 else:
-                    if (not props.has_key('status') or
-                            props['status'] == unread_id or
-                            props['status'] == resolved_id):
+                    if (not props.has_key('status') and
+                            properties['status'] == unread_id or
+                            properties['status'] == resolved_id):
                         props['status'] = chatting_id
 
             # add nosy in arguments to issue's nosy list
@@ -638,6 +638,15 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.44  2001/12/18 15:30:34  rochecompaan
+# Fixed bugs:
+#  .  Fixed file creation and retrieval in same transaction in anydbm
+#     backend
+#  .  Cgi interface now renders new issue after issue creation
+#  .  Could not set issue status to resolved through cgi interface
+#  .  Mail gateway was changing status back to 'chatting' if status was
+#     omitted as an argument
+#
 # Revision 1.43  2001/12/15 19:39:01  rochecompaan
 # Oops.
 #

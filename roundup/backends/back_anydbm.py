@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.19 2001/12/17 03:52:48 richard Exp $
+#$Id: back_anydbm.py,v 1.20 2001/12/18 15:30:34 rochecompaan Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -272,7 +272,11 @@ class Database(hyperdb.Database):
     def getfile(self, classname, nodeid, property):
         '''Store the content of the file in the database.
         '''
-        return open(self.filename(classname, nodeid, property), 'rb').read()
+        filename = self.filename(classname, nodeid, property)
+        try:
+            return open(filename, 'rb').read()
+        except:
+            return open(filename+'.tmp', 'rb').read()
 
 
     #
@@ -398,6 +402,15 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.20  2001/12/18 15:30:34  rochecompaan
+#Fixed bugs:
+# .  Fixed file creation and retrieval in same transaction in anydbm
+#    backend
+# .  Cgi interface now renders new issue after issue creation
+# .  Could not set issue status to resolved through cgi interface
+# .  Mail gateway was changing status back to 'chatting' if status was
+#    omitted as an argument
+#
 #Revision 1.19  2001/12/17 03:52:48  richard
 #Implemented file store rollback. As a bonus, the hyperdb is now capable of
 #storing more than one file per node - if a property name is supplied,
