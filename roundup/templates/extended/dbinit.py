@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.14 2001/11/21 02:34:18 richard Exp $
+# $Id: dbinit.py,v 1.15 2001/11/26 22:55:56 richard Exp $
 
 import os
 
@@ -35,11 +35,13 @@ class Database(roundupdb.Database, select_db.Database):
 class IssueClass(roundupdb.IssueClass):
     ''' issues need the email information
     '''
+    INSTANCE_NAME = instance_config.INSTANCE_NAME
     ISSUE_TRACKER_WEB = instance_config.ISSUE_TRACKER_WEB
     ISSUE_TRACKER_EMAIL = instance_config.ISSUE_TRACKER_EMAIL
     ADMIN_EMAIL = instance_config.ADMIN_EMAIL
     MAILHOST = instance_config.MAILHOST
     MESSAGES_TO_AUTHOR = instance_config.MESSAGES_TO_AUTHOR
+    EMAIL_SIGNATURE_POSITION = instance_config.EMAIL_SIGNATURE_POSITION
 
  
 def open(name=None):
@@ -176,6 +178,18 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.15  2001/11/26 22:55:56  richard
+# Feature:
+#  . Added INSTANCE_NAME to configuration - used in web and email to identify
+#    the instance.
+#  . Added EMAIL_SIGNATURE_POSITION to indicate where to place the roundup
+#    signature info in e-mails.
+#  . Some more flexibility in the mail gateway and more error handling.
+#  . Login now takes you to the page you back to the were denied access to.
+#
+# Fixed:
+#  . Lots of bugs, thanks Roché and others on the devel mailing list!
+#
 # Revision 1.14  2001/11/21 02:34:18  richard
 # Added a target version field to the extended issue schema
 #
