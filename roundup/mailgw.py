@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.70 2002/05/06 23:40:07 richard Exp $
+$Id: mailgw.py,v 1.71 2002/05/08 02:40:55 richard Exp $
 '''
 
 
@@ -768,7 +768,7 @@ def parseContent(content, keep_citations, keep_body,
         blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
         eol=re.compile(r'[\r\n]+'), 
         signature=re.compile(r'^[>|\s]*[-_]+\s*$'),
-        original_message=re.compile(r'^-----Original Message-----$')):
+        original_message=re.compile(r'^[>|\s]*-----Original Message-----$')):
     ''' The message body is divided into sections by blank lines.
     Sections where the second and all subsequent lines begin with a ">" or "|"
     character are considered "quoting sections". The first line of the first
@@ -834,6 +834,9 @@ def parseContent(content, keep_citations, keep_body,
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.71  2002/05/08 02:40:55  richard
+# grr
+#
 # Revision 1.70  2002/05/06 23:40:07  richard
 # hrm
 #
