@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# $Id: roundup-mailgw,v 1.2 2001/07/29 07:01:39 richard Exp $
+# $Id: roundup-mailgw,v 1.3 2001/08/03 00:59:34 richard Exp $
 
 import sys
 if int(sys.version[0]) < 2:
@@ -17,10 +17,8 @@ if not instance_home:
     sys.exit(1)
 
 # get the instance
-path, instance = os.path.split(instance_home)
-sys.path.insert(0, path)
-instance = __import__(instance)
-sys.path[0]
+import imp
+instance = imp.load_module('instance', None, instance_home, ('', '', 5))
 
 # invokde the mail handler
 db = instance.open('admin')
@@ -29,6 +27,11 @@ handler.main(sys.stdin)
 
 #
 # $Log: roundup-mailgw,v $
+# Revision 1.3  2001/08/03 00:59:34  richard
+# Instance import now imports the instance using imp.load_module so that
+# we can have instance homes of "roundup" or other existing python package
+# names.
+#
 # Revision 1.2  2001/07/29 07:01:39  richard
 # Added vim command to all source so that we don't get no steenkin' tabs :)
 #
