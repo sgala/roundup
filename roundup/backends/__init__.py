@@ -15,11 +15,16 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.6 2001/08/07 00:24:42 richard Exp $
+# $Id: __init__.py,v 1.7 2001/12/10 00:57:38 richard Exp $
 
 __all__ = []
 
 try:
+    import anydbm, dumbdbm
+    # dumbdbm in python 2,2b2, 2.1.1 and earlier is seriously broken
+    assert anydbm._defaultmod != dumbdbm
+    del anydbm
+    del dumbdbm
     import back_anydbm
     anydbm = back_anydbm
     del back_anydbm
@@ -46,6 +51,16 @@ except:
 
 #
 # $Log: __init__.py,v $
+# Revision 1.7  2001/12/10 00:57:38  richard
+# From CHANGES:
+#  . Added the "display" command to the admin tool - displays a node's values
+#  . #489760 ] [issue] only subject
+#  . fixed the doc/index.html to include the quoting in the mail alias.
+#
+# Also:
+#  . fixed roundup-admin so it works with transactions
+#  . disabled the back_anydbm module if anydbm tries to use dumbdbm
+#
 # Revision 1.6  2001/08/07 00:24:42  richard
 # stupid typo
 #
