@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.65 2001/11/26 23:00:53 richard Exp $
+# $Id: cgi_client.py,v 1.66 2001/11/27 03:00:50 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -496,7 +496,8 @@ class Client:
                     summary = note
                 m = [edit_msg + '%s\n'%note]
             else:
-                m = [edit_msg]
+                summary = edit_msg
+                m = [summary]
 
             first = 1
             for name, prop in props.items():
@@ -1040,6 +1041,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.66  2001/11/27 03:00:50  richard
+# couple of bugfixes from latest patch integration
+#
 # Revision 1.65  2001/11/26 23:00:53  richard
 # This config stuff is getting to be a real mess...
 #
