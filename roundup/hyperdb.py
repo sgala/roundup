@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.32 2001/11/21 03:11:28 richard Exp $
+# $Id: hyperdb.py,v 1.33 2001/11/21 03:40:54 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -305,6 +305,8 @@ class Class:
                     raise ValueError, 'node with key "%s" exists'%value
 
             # this will raise the KeyError if the property isn't valid
+            # ... we don't use getprops() here because we only care about
+            # the writeable properties.
             prop = self.properties[key]
 
             if isinstance(prop, Link):
@@ -847,6 +849,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.33  2001/11/21 03:40:54  richard
+# more new property handling
+#
 # Revision 1.32  2001/11/21 03:11:28  richard
 # Better handling of new properties.
 #
