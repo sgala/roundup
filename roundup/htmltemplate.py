@@ -15,13 +15,14 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.94 2002/06/27 15:38:53 gmcm Exp $
+# $Id: htmltemplate.py,v 1.92.2.1 2002/07/10 07:21:18 richard Exp $
 
 __doc__ = """
 Template engine.
 """
 
 import os, re, StringIO, urllib, cgi, errno, types, urllib
+
 import hyperdb, date
 from i18n import _
 
@@ -58,11 +59,6 @@ class TemplateFunctions:
         self.db = None
         self.cl = None
         self.properties = None
-
-    def clear(self):
-        for key in TemplateFunctions.__dict__.keys():
-            if key[:3] == 'do_':
-                del self.globals[key[3:]]
 
     def do_plain(self, property, escape=0, lookup=1):
         ''' display a String property directly;
@@ -110,14 +106,14 @@ class TemplateFunctions:
             if value:
                 if lookup:
                     linkcl = self.db.classes[propclass.classname]
-                    k = linkcl.labelprop(1)
+                    k = linkcl.labelprop()
                     value = linkcl.get(value, k)
             else:
                 value = _('[unselected]')
         elif isinstance(propclass, hyperdb.Multilink):
             if lookup:
                 linkcl = self.db.classes[propclass.classname]
-                k = linkcl.labelprop(1)
+                k = linkcl.labelprop()
                 labels = []
                 for v in value:
                     labels.append(linkcl.get(v, k))
@@ -150,10 +146,18 @@ class TemplateFunctions:
                 return []
             return value
         elif self.filterspec is not None:
+            print self.filterspec
             if isinstance(propclass, hyperdb.Multilink):
                 return self.filterspec.get(property, [])
             else:
-                return self.filterspec.get(property, '')
+                if not self.filterspec.has_key(property):
+                    return ''
+                value = self.filterspec[property]
+                if hasattr(value, 'value'):
+                    value = value.value
+                if isinstance(value, type([])):
+                    value = value[0]
+                return value
         # TODO: pull the value from the form
         if isinstance(propclass, hyperdb.Multilink):
             return []
@@ -203,15 +207,13 @@ class TemplateFunctions:
         elif isinstance(propclass, hyperdb.Password):
             s = '<input type="password" name="%s" size="%s">'%(property, size)
         elif isinstance(propclass, hyperdb.Link):
+            sortfunc = self.make_sort_function(propclass.classname)
             linkcl = self.db.classes[propclass.classname]
-            if linkcl.getprops().has_key('order'):  
-                sort_on = 'order'  
-            else:  
-                sort_on = linkcl.labelprop()  
-            options = linkcl.filter(None, {}, [sort_on], []) 
+            options = linkcl.list()
+            options.sort(sortfunc)
             # TODO: make this a field display, not a menu one!
             l = ['<select name="%s">'%property]
-            k = linkcl.labelprop(1)
+            k = linkcl.labelprop()
             if value is None:
                 s = 'selected '
             else:
@@ -239,7 +241,7 @@ class TemplateFunctions:
                 value.sort(sortfunc)
             # map the id to the label property
             if not showid:
-                k = linkcl.labelprop(1)
+                k = linkcl.labelprop()
                 value = [linkcl.get(v, k) for v in value]
             value = cgi.escape(','.join(value))
             s = '<input name="%s" size="%s" value="%s">'%(property, size, value)
@@ -295,14 +297,11 @@ class TemplateFunctions:
         # display
         if isinstance(propclass, hyperdb.Multilink):
             linkcl = self.db.classes[propclass.classname]
-            if linkcl.getprops().has_key('order'):  
-                sort_on = 'order'  
-            else:  
-                sort_on = linkcl.labelprop()  
-            options = linkcl.filter(None, {}, [sort_on], []) 
+            options = linkcl.list()
+            options.sort(sortfunc)
             height = height or min(len(options), 7)
             l = ['<select multiple name="%s" size="%s">'%(property, height)]
-            k = linkcl.labelprop(1)
+            k = linkcl.labelprop()
             for optionid in options:
                 option = linkcl.get(optionid, k)
                 s = ''
@@ -330,16 +329,13 @@ class TemplateFunctions:
                 value = value[0]
             linkcl = self.db.classes[propclass.classname]
             l = ['<select name="%s">'%property]
-            k = linkcl.labelprop(1)
+            k = linkcl.labelprop()
             s = ''
             if value is None:
                 s = 'selected '
             l.append(_('<option %svalue="-1">- no selection -</option>')%s)
-            if linkcl.getprops().has_key('order'):  
-                sort_on = 'order'  
-            else:  
-                sort_on = linkcl.labelprop()  
-            options = linkcl.filter(None, {}, [sort_on], []) 
+            options = linkcl.list()
+            options.sort(sortfunc)
             for optionid in options:
                 option = linkcl.get(optionid, k)
                 s = ''
@@ -385,7 +381,7 @@ class TemplateFunctions:
         if isinstance(propclass, hyperdb.Link):
             linkname = propclass.classname
             linkcl = self.db.classes[linkname]
-            k = linkcl.labelprop(1)
+            k = linkcl.labelprop()
             linkvalue = cgi.escape(str(linkcl.get(value, k)))
             if showid:
                 label = value
@@ -402,7 +398,7 @@ class TemplateFunctions:
         if isinstance(propclass, hyperdb.Multilink):
             linkname = propclass.classname
             linkcl = self.db.classes[linkname]
-            k = linkcl.labelprop(1)
+            k = linkcl.labelprop()
             l = []
             for value in value:
                 linkvalue = cgi.escape(str(linkcl.get(value, k)))
@@ -505,7 +501,7 @@ class TemplateFunctions:
         # so we can map to the linked node's "lable" property
         linkcl = self.db.classes[propclass.classname]
         l = []
-        k = linkcl.labelprop(1)
+        k = linkcl.labelprop()
         for optionid in linkcl.list():
             option = cgi.escape(str(linkcl.get(optionid, k)))
             if optionid in value or option in value:
@@ -628,9 +624,7 @@ class TemplateFunctions:
                                 labelprop = None
                                 comments[classname] = _('''The linked class
                                     %(classname)s no longer exists''')%locals()
-                            labelprop = linkcl.labelprop(1)
-                            hrefable = os.path.exists(
-                                os.path.join(self.templates, classname+'.item'))
+                            labelprop = linkcl.labelprop()
 
                         if isinstance(prop, hyperdb.Multilink) and \
                                 len(args[k]) > 0:
@@ -649,11 +643,8 @@ class TemplateFunctions:
                                         exists</strike>''')
                                     ml.append('<strike>%s</strike>'%label)
                                 else:
-                                    if hrefable:
-                                        ml.append('<a href="%s%s">%s</a>'%(
-                                            classname, linkid, label))
-                                    else:
-                                        ml.append(label)
+                                    ml.append('<a href="%s%s">%s</a>'%(
+                                        classname, linkid, label))
                             cell.append('%s:\n  %s'%(k, ',\n  '.join(ml)))
                         elif isinstance(prop, hyperdb.Link) and args[k]:
                             label = classname + args[k]
@@ -671,11 +662,8 @@ class TemplateFunctions:
                                     # "flag" this is done .... euwww
                                     label = None
                             if label is not None:
-                                if hrefable:
-                                    cell.append('%s: <a href="%s%s">%s</a>\n'%(k,
-                                        classname, args[k], label))
-                                else:
-                                    cell.append('%s: %s' % (k,label))
+                                cell.append('%s: <a href="%s%s">%s</a>\n'%(k,
+                                    classname, args[k], label))
 
                         elif isinstance(prop, hyperdb.Date) and args[k]:
                             d = date.Date(args[k])
@@ -684,9 +672,6 @@ class TemplateFunctions:
                         elif isinstance(prop, hyperdb.Interval) and args[k]:
                             d = date.Interval(args[k])
                             cell.append('%s: %s'%(k, str(d)))
-
-                        elif isinstance(prop, hyperdb.String) and args[k]:
-                            cell.append('%s: %s'%(k, cgi.escape(args[k])))
 
                         elif not args[k]:
                             cell.append('%s: (no value)\n'%k)
@@ -756,22 +741,20 @@ class IndexTemplateReplace:
         r'((<property\s+name="(?P<name>[^>]+)">(?P<text>.+?)</property>)|'
         r'(?P<display><display\s+call="(?P<command>[^"]+)">))', re.I|re.S)
     def go(self, text):
-        newtext = self.replace.sub(self, text)
-        self.locals = self.globals = None
-        return newtext
+        return self.replace.sub(self, text)
 
     def __call__(self, m, search_text=None, filter=None, columns=None,
             sort=None, group=None):
         if m.group('name'):
             if m.group('name') in self.props:
                 text = m.group('text')
-                replace = self.__class__(self.globals, {}, self.props)
+                replace = IndexTemplateReplace(self.globals, {}, self.props)
                 return replace.go(text)
             else:
                 return ''
         if m.group('display'):
             command = m.group('command')
-            return eval(command, self.globals, self.locals) 
+            return eval(command, self.globals, self.locals)
         return '*** unhandled match: %s'%str(m.groupdict())
 
 class IndexTemplate(TemplateFunctions):
@@ -793,10 +776,10 @@ class IndexTemplate(TemplateFunctions):
     def render(self, filterspec={}, search_text='', filter=[], columns=[], 
             sort=[], group=[], show_display_form=1, nodeids=None,
             show_customization=1, show_nodes=1):
-        
         self.filterspec = filterspec
 
         w = self.client.write
+
         # get the filter template
         try:
             filter_template = open(os.path.join(self.templates,
@@ -932,9 +915,6 @@ class IndexTemplate(TemplateFunctions):
                     ','.join(sort))
             w('</form>\n')
 
-        self.db = self.cl = self.properties = None
-        self.clear()
-
     def node_matches(self, match, colspan):
         ''' display the files and messages for a node that matched a
             full text search
@@ -945,7 +925,7 @@ class IndexTemplate(TemplateFunctions):
         file_links = []
         if match.has_key('messages'):
             for msgid in match['messages']:
-                k = self.db.msg.labelprop(1)
+                k = self.db.msg.labelprop()
                 lab = self.db.msg.get(msgid, k)
                 msgpath = 'msg%s'%msgid
                 message_links.append('<a href="%(msgpath)s">%(lab)s</a>'
@@ -967,6 +947,7 @@ class IndexTemplate(TemplateFunctions):
 
     def filter_section(self, template, search_text, filter, columns, group, 
             all_filters, all_columns, show_customization):
+
         w = self.client.write
 
         # wrap the template in a single table to ensure the whole widget
@@ -1132,9 +1113,7 @@ class ItemTemplateReplace:
         r'((<property\s+name="(?P<name>[^>]+)">(?P<text>.+?)</property>)|'
         r'(?P<display><display\s+call="(?P<command>[^"]+)">))', re.I|re.S)
     def go(self, text):
-        newtext = self.replace.sub(self, text)
-        self.globals = self.locals = self.cl = None
-        return newtext
+        return self.replace.sub(self, text)
 
     def __call__(self, m, filter=None, columns=None, sort=None, group=None):
         if m.group('name'):
@@ -1182,8 +1161,6 @@ class ItemTemplate(TemplateFunctions):
         replace = ItemTemplateReplace(self.globals, locals(), self.cl, nodeid)
         w(replace.go(s))
         w('</form>')
-        self.cl = self.db = self.properties = None
-        self.clear()
 
 
 class NewItemTemplate(TemplateFunctions):
@@ -1219,24 +1196,11 @@ class NewItemTemplate(TemplateFunctions):
         replace = ItemTemplateReplace(self.globals, locals(), None, None)
         w(replace.go(s))
         w('</form>')
-        self.cl = self.db = None
-        self.clear()
 
 #
 # $Log: htmltemplate.py,v $
-# Revision 1.94  2002/06/27 15:38:53  gmcm
-# Fix the cycles (a clear method, called after render, that removes
-# the bound methods from the globals dict).
-# Use cl.filter instead of cl.list followed by sortfunc. For some
-# backends (Metakit), filter can sort at C speeds, cutting >10 secs
-# off of filling in the <select...> box for assigned_to when you
-# have 600+ users.
-#
-# Revision 1.93  2002/06/27 12:05:25  gmcm
-# Default labelprops to id.
-# In history, make sure there's a .item before making a link / multilink into an href.
-# Also in history, cgi.escape String properties.
-# Clean up some of the reference cycles.
+# Revision 1.92.2.1  2002/07/10 07:21:18  richard
+#  . #516854 ] "My Issues" and redisplay (no, really, this time for sure)
 #
 # Revision 1.92  2002/06/11 04:57:04  richard
 # Added optional additional property to display in a Multilink form menu.
