@@ -1,6 +1,5 @@
 #! /usr/bin/python
-
-# $ID: $
+# $Id: roundup-mailgw,v 1.2 2001/07/29 07:01:39 richard Exp $
 
 import sys
 if int(sys.version[0]) < 2:
@@ -30,6 +29,9 @@ handler.main(sys.stdin)
 
 #
 # $Log: roundup-mailgw,v $
+# Revision 1.2  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.1  2001/07/23 03:46:48  richard
 # moving the bin files to facilitate out-of-the-boxness
 #
@@ -37,4 +39,4 @@ handler.main(sys.stdin)
 # More Grande Splite stuff
 #
 #
-
+# vim: set filetype=python ts=4 sw=4 et si

@@ -1,4 +1,4 @@
-# $Id: test_multipart.py,v 1.1 2001/07/28 06:43:02 richard Exp $ 
+# $Id: test_multipart.py,v 1.2 2001/07/29 07:01:39 richard Exp $ 
 
 import unittest, cStringIO
 
@@ -97,7 +97,11 @@ def suite():
 
 #
 # $Log: test_multipart.py,v $
+# Revision 1.2  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.1  2001/07/28 06:43:02  richard
 # Multipart message class has the getPart method now. Added some tests for it.
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

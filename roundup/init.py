@@ -1,4 +1,4 @@
-# $Id: init.py,v 1.7 2001/07/28 07:59:53 richard Exp $
+# $Id: init.py,v 1.8 2001/07/29 07:01:39 richard Exp $
 
 import os, shutil, sys, errno
 
@@ -57,6 +57,9 @@ from roundup.backends.back_%s import Database'''%backend
 
 #
 # $Log: init.py,v $
+# Revision 1.8  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.7  2001/07/28 07:59:53  richard
 # Replaced errno integers with their module values.
 # De-tabbed templatebuilder.py
@@ -84,3 +87,4 @@ from roundup.backends.back_%s import Database'''%backend
 # Final commit of Grande Splite
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

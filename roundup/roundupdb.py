@@ -1,4 +1,4 @@
-# $Id: roundupdb.py,v 1.4 2001/07/29 04:05:37 richard Exp $
+# $Id: roundupdb.py,v 1.5 2001/07/29 07:01:39 richard Exp $
 
 import re, os, smtplib, socket
 
@@ -247,6 +247,9 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.5  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.4  2001/07/29 04:05:37  richard
 # Added the fabricated property "id".
 #
@@ -259,3 +262,5 @@ class IssueClass(Class):
 # Revision 1.1  2001/07/22 11:58:35  richard
 # More Grande Splite
 #
+#
+# vim: set filetype=python ts=4 sw=4 et si

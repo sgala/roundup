@@ -1,4 +1,4 @@
-# $Id: __init__.py,v 1.3 2001/07/28 01:39:02 richard Exp $
+# $Id: __init__.py,v 1.4 2001/07/29 07:01:39 richard Exp $
 
 __doc__ = '''
 This is a simple-to-use and -install issue-tracking system with
@@ -50,6 +50,9 @@ much prettier cake :)
 
 #
 # $Log: __init__.py,v $
+# Revision 1.4  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.3  2001/07/28 01:39:02  richard
 # Added some documentation to the roundup package.
 #
@@ -57,3 +60,4 @@ much prettier cake :)
 # Final commit of Grande Splite
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

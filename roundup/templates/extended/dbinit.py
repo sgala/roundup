@@ -1,4 +1,4 @@
-# $Id: dbinit.py,v 1.6 2001/07/25 01:23:07 richard Exp $
+# $Id: dbinit.py,v 1.7 2001/07/29 07:01:39 richard Exp $
 
 import os
 
@@ -151,6 +151,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.7  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.6  2001/07/25 01:23:07  richard
 # Added the Roundup spec to the new documentation directory.
 #
@@ -178,5 +181,5 @@ def init(adminpw):
 # Final commit of Grande Splite
 #
 #
-
+# vim: set filetype=python ts=4 sw=4 et si
 

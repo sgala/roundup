@@ -1,4 +1,4 @@
-# $Id: test_schema.py,v 1.1 2001/07/27 06:55:07 richard Exp $ 
+# $Id: test_schema.py,v 1.2 2001/07/29 07:01:39 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -58,6 +58,9 @@ def suite():
 
 #
 # $Log: test_schema.py,v $
+# Revision 1.2  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.1  2001/07/27 06:55:07  richard
 # moving tests -> test
 #
@@ -65,3 +68,4 @@ def suite():
 # Added id and log to tests files...
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

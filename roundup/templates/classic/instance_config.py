@@ -1,4 +1,4 @@
-# $Id: instance_config.py,v 1.1 2001/07/23 23:28:43 richard Exp $
+# $Id: instance_config.py,v 1.2 2001/07/29 07:01:39 richard Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -44,6 +44,9 @@ LOG = os.path.join(INSTANCE_HOME, 'roundup.log')
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.2  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.1  2001/07/23 23:28:43  richard
 # Adding the classic template
 #
@@ -51,3 +54,4 @@ LOG = os.path.join(INSTANCE_HOME, 'roundup.log')
 # split __init__.py into 2. dbinit and instance_config.
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

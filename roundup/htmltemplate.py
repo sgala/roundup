@@ -1,4 +1,4 @@
-# $Id: htmltemplate.py,v 1.7 2001/07/29 05:36:14 richard Exp $
+# $Id: htmltemplate.py,v 1.8 2001/07/29 07:01:39 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -707,6 +707,9 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.8  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.7  2001/07/29 05:36:14  richard
 # Cleanup of the link label generation.
 #
@@ -732,3 +735,5 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
 # Revision 1.1  2001/07/22 11:58:35  richard
 # More Grande Splite
 #
+#
+# vim: set filetype=python ts=4 sw=4 et si

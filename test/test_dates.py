@@ -1,4 +1,4 @@
-# $Id: test_dates.py,v 1.2 2001/07/29 06:42:20 richard Exp $ 
+# $Id: test_dates.py,v 1.3 2001/07/29 07:01:39 richard Exp $ 
 
 import unittest, time
 
@@ -66,6 +66,9 @@ def suite():
 
 #
 # $Log: test_dates.py,v $
+# Revision 1.3  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.2  2001/07/29 06:42:20  richard
 # Added Interval tests.
 #
@@ -76,3 +79,4 @@ def suite():
 # Added id and log to tests files...
 #
 #
+# vim: set filetype=python ts=4 sw=4 et si

@@ -1,4 +1,4 @@
-# $Id: date.py,v 1.4 2001/07/25 04:09:34 richard Exp $
+# $Id: date.py,v 1.5 2001/07/29 07:01:39 richard Exp $
 
 import time, re, calendar
 
@@ -355,6 +355,9 @@ if __name__ == '__main__':
 
 #
 # $Log: date.py,v $
+# Revision 1.5  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
 # Revision 1.4  2001/07/25 04:09:34  richard
 # Fixed offset handling (shoulda read the spec a little better)
 #
@@ -367,3 +370,5 @@ if __name__ == '__main__':
 # Revision 1.1  2001/07/22 11:58:35  richard
 # More Grande Splite
 #
+#
+# vim: set filetype=python ts=4 sw=4 et si

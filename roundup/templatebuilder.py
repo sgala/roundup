@@ -1,3 +1,4 @@
+# $Id: templatebuilder.py,v 1.6 2001/07/29 07:01:39 richard Exp $
 import errno
 
 preamble = """ 
@@ -62,3 +63,11 @@ if __name__ == "__main__":
     else:
         raise "what you talkin about willis?"
 
+#
+# $Log: templatebuilder.py,v $
+# Revision 1.6  2001/07/29 07:01:39  richard
+# Added vim command to all source so that we don't get no steenkin' tabs :)
+#
+#
+#
+# vim: set filetype=python ts=4 sw=4 et si
