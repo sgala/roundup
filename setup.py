@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: setup.py,v 1.34 2002/05/29 01:16:16 richard Exp $
+# $Id: setup.py,v 1.35 2002/06/17 23:14:44 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -167,9 +167,10 @@ if __name__ == '__main__':
         )
 
     # perform the setup action
+    from roundup import __version__
     setup(
         name = "roundup", 
-        version = "0.4.1",
+        version = __version__,
         description = "Roundup issue tracking system.",
         author = "Richard Jones",
         author_email = "richard@users.sourceforge.net",
@@ -188,6 +189,9 @@ if __name__ == '__main__':
 
 #
 # $Log: setup.py,v $
+# Revision 1.35  2002/06/17 23:14:44  richard
+# . #569415 ] {version}
+#
 # Revision 1.34  2002/05/29 01:16:16  richard
 # Sorry about this huge checkin! It's fixing a lot of related stuff in one go
 # though.
