@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.69 2002/09/20 01:20:31 richard Exp $
+# $Id: roundupdb.py,v 1.75.2.1 2003/04/27 02:29:07 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -26,9 +26,19 @@ import MimeWriter, cStringIO
 import base64, quopri, mimetypes
 # if available, use the 'email' module, otherwise fallback to 'rfc822'
 try :
-    from email.Utils import dump_address_pair as straddr
+    from email.Utils import formataddr as straddr
 except ImportError :
-    from rfc822 import dump_address_pair as straddr
+    # code taken from the email package 2.4.3
+    def straddr(pair, specialsre = re.compile(r'[][\()<>@,:;".]'),
+            escapesre = re.compile(r'[][\()"]')):
+        name, address = pair
+        if name:
+            quotes = ''
+            if specialsre.search(name):
+                quotes = '"'
+            name = escapesre.sub(r'\\\g<0>', name)
+            return '%s%s%s <%s>' % (quotes, name, quotes, address)
+        return address
 
 import hyperdb
 
@@ -100,9 +110,16 @@ class IssueClass:
 
         # possibly send the message to the author, as long as they aren't
         # anonymous
-        if (self.db.config.MESSAGES_TO_AUTHOR == 'yes' and
-                users.get(authid, 'username') != 'anonymous'):
-            sendto.append(authid)
+        if (users.get(authid, 'username') != 'anonymous' and
+                not r.has_key(authid)):
+            if self.db.config.MESSAGES_TO_AUTHOR == 'yes':
+                # make sure they have an address
+                add = users.get(authid, 'address')
+                if add:
+                    # send it to them
+                    sendto.append(add)
+                    recipients.append(authid)
+
         r[authid] = 1
 
         # now figure the nosy people who weren't recipients
@@ -115,9 +132,12 @@ class IssueClass:
                 continue
             # make sure they haven't seen the message already
             if not r.has_key(nosyid):
-                # send it to them
-                sendto.append(nosyid)
-                recipients.append(nosyid)
+                # make sure they have an address
+                add = users.get(nosyid, 'address')
+                if add:
+                    # send it to them
+                    sendto.append(add)
+                    recipients.append(nosyid)
 
         # generate a change note
         if oldvalues:
@@ -127,9 +147,6 @@ class IssueClass:
 
         # we have new recipients
         if sendto:
-            # map userids to addresses
-            sendto = [users.get(i, 'address') for i in sendto]
-
             # update the message's recipients list
             messages.set(msgid, recipients=recipients)
 
@@ -220,6 +237,8 @@ class IssueClass:
         writer.addheader('Reply-To', straddr( 
                                         (self.db.config.TRACKER_NAME,
                                          self.db.config.TRACKER_EMAIL) ) )
+        writer.addheader('Date', time.strftime("%a, %d %b %Y %H:%M:%S +0000",
+            time.gmtime()))
         writer.addheader('MIME-Version', '1.0')
         if messageid:
             writer.addheader('Message-Id', messageid)
@@ -228,6 +247,9 @@ class IssueClass:
 
         # add a uniquely Roundup header to help filtering
         writer.addheader('X-Roundup-Name', self.db.config.TRACKER_NAME)
+
+        # avoid email loops
+        writer.addheader('X-Roundup-Loop', 'hello')
 
         # attach files
         if message_files:
@@ -290,7 +312,8 @@ class IssueClass:
         # simplistic check to see if the url is valid,
         # then append a trailing slash if it is missing
         base = self.db.config.TRACKER_WEB 
-        if not isinstance(base , type('')) or not base.startswith('http://'):
+        if (not isinstance(base , type('')) or
+            not (base.startswith('http://') or base.startswith('https://'))):
             base = "Configuration Error: TRACKER_WEB isn't a " \
                 "fully-qualified URL"
         elif base[-1] != '/' :
