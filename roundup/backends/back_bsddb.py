@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_bsddb.py,v 1.19 2002/07/14 02:05:53 richard Exp $
+#$Id: back_bsddb.py,v 1.20 2002/07/19 03:36:34 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in BSDDB.
 '''
@@ -51,22 +51,22 @@ class Database(Database):
         else:
             return bsddb.btopen(path, 'n')
 
-    def _opendb(self, name, mode):
+    def opendb(self, name, mode):
         '''Low-level database opener that gets around anydbm/dbm
            eccentricities.
         '''
         if __debug__:
-            print >>hyperdb.DEBUG, self, '_opendb', (self, name, mode)
+            print >>hyperdb.DEBUG, self, 'opendb', (self, name, mode)
         # determine which DB wrote the class file
         path = os.path.join(os.getcwd(), self.dir, name)
         if not os.path.exists(path):
             if __debug__:
-                print >>hyperdb.DEBUG, "_opendb bsddb.open(%r, 'n')"%path
+                print >>hyperdb.DEBUG, "opendb bsddb.open(%r, 'n')"%path
             return bsddb.btopen(path, 'n')
 
         # open the database with the correct module
         if __debug__:
-            print >>hyperdb.DEBUG, "_opendb bsddb.open(%r, %r)"%(path, mode)
+            print >>hyperdb.DEBUG, "opendb bsddb.open(%r, %r)"%(path, mode)
         return bsddb.btopen(path, mode)
 
     #
@@ -82,9 +82,10 @@ class Database(Database):
                 'r')
         except bsddb.error, error:
             if error.args[0] != 2: raise
-            return []
-        # mor handling of bad journals
-        if not db.has_key(nodeid): return []
+            raise IndexError, 'no such %s %s'%(classname, nodeid)
+        # more handling of bad journals
+        if not db.has_key(nodeid):
+            raise IndexError, 'no such %s %s'%(classname, nodeid)
         journal = marshal.loads(db[nodeid])
         res = []
         for entry in journal:
@@ -94,7 +95,19 @@ class Database(Database):
         db.close()
         return res
 
-    def _doSaveJournal(self, classname, nodeid, action, params):
+    def getCachedJournalDB(self, classname):
+        ''' get the journal db, looking in our cache of databases for commit
+        '''
+        # get the database handle
+        db_name = 'journals.%s'%classname
+        if self.databases.has_key(db_name):
+            return self.databases[db_name]
+        else:
+            db = bsddb.btopen(os.path.join(self.dir, db_name), 'c')
+            self.databases[db_name] = db
+            return db
+
+    def doSaveJournal(self, classname, nodeid, action, params):
         # serialise first
         if action in ('set', 'create'):
             params = self.serialise(classname, params)
@@ -103,9 +116,9 @@ class Database(Database):
             params)
 
         if __debug__:
-            print >>hyperdb.DEBUG, '_doSaveJournal', entry
+            print >>hyperdb.DEBUG, 'doSaveJournal', entry
 
-        db = bsddb.btopen(os.path.join(self.dir, 'journals.%s'%classname), 'c')
+        db = self.getCachedJournalDB(classname)
 
         if db.has_key(nodeid):
             s = db[nodeid]
@@ -115,10 +128,18 @@ class Database(Database):
             l = [entry]
 
         db[nodeid] = marshal.dumps(l)
-        db.close()
 
 #
 #$Log: back_bsddb.py,v $
+#Revision 1.20  2002/07/19 03:36:34  richard
+#Implemented the destroy() method needed by the session database (and possibly
+#others). At the same time, I removed the leading underscores from the hyperdb
+#methods that Really Didn't Need Them.
+#The journal also raises IndexError now for all situations where there is a
+#request for the journal of a node that doesn't have one. It used to return
+#[] in _some_ situations, but not all. This _may_ break code, but the tests
+#pass...
+#
 #Revision 1.19  2002/07/14 02:05:53  richard
 #. all storage-specific code (ie. backend) is now implemented by the backends
 #

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.35 2002/07/18 23:07:08 richard Exp $ 
+# $Id: test_db.py,v 1.36 2002/07/19 03:36:34 richard Exp $ 
 
 import unittest, os, shutil, time
 
@@ -34,6 +34,8 @@ def setupSchema(db, create, module):
     issue = module.IssueClass(db, "issue", title=String(indexme="yes"),
         status=Link("status"), nosy=Multilink("user"), deadline=Date(),
         foo=Interval(), files=Multilink("file"))
+    session = module.Class(db, 'session', title=String())
+    session.disableJournalling()
     db.post_init()
     if create:
         status.create(name="unread")
@@ -189,6 +191,51 @@ class anydbmDBTestCase(MyTestCase):
         self.db.rollback()
         self.assertNotEqual(num_files, self.db.numfiles())
         self.assertEqual(num_files2, self.db.numfiles())
+
+    def testDestroyNoJournalling(self):
+        ' test destroy on a class with no journalling '
+        self.innerTestDestroy(klass=self.db.session)
+
+    def testDestroyJournalling(self):
+        ' test destroy on a class with journalling '
+        self.innerTestDestroy(klass=self.db.issue)
+
+    def innerTestDestroy(self, klass):
+        newid = klass.create(title='Mr Friendly')
+        n = len(klass.list())
+        self.assertEqual(klass.get(newid, 'title'), 'Mr Friendly')
+        klass.destroy(newid)
+        self.assertRaises(IndexError, klass.get, newid, 'title')
+        self.assertNotEqual(len(klass.list()), n)
+        if klass.do_journal:
+            self.assertRaises(IndexError, klass.history, newid)
+
+        # now with a commit
+        newid = klass.create(title='Mr Friendly')
+        n = len(klass.list())
+        self.assertEqual(klass.get(newid, 'title'), 'Mr Friendly')
+        self.db.commit()
+        klass.destroy(newid)
+        self.assertRaises(IndexError, klass.get, newid, 'title')
+        self.db.commit()
+        self.assertRaises(IndexError, klass.get, newid, 'title')
+        self.assertNotEqual(len(klass.list()), n)
+        if klass.do_journal:
+            self.assertRaises(IndexError, klass.history, newid)
+
+        # now with a rollback
+        newid = klass.create(title='Mr Friendly')
+        n = len(klass.list())
+        self.assertEqual(klass.get(newid, 'title'), 'Mr Friendly')
+        self.db.commit()
+        klass.destroy(newid)
+        self.assertNotEqual(len(klass.list()), n)
+        self.assertRaises(IndexError, klass.get, newid, 'title')
+        self.db.rollback()
+        self.assertEqual(klass.get(newid, 'title'), 'Mr Friendly')
+        self.assertEqual(len(klass.list()), n)
+        if klass.do_journal:
+            self.assertNotEqual(klass.history(newid), [])
 
     def testExceptions(self):
         # this tests the exceptions that should be raised
@@ -559,6 +606,15 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.36  2002/07/19 03:36:34  richard
+# Implemented the destroy() method needed by the session database (and possibly
+# others). At the same time, I removed the leading underscores from the hyperdb
+# methods that Really Didn't Need Them.
+# The journal also raises IndexError now for all situations where there is a
+# request for the journal of a node that doesn't have one. It used to return
+# [] in _some_ situations, but not all. This _may_ break code, but the tests
+# pass...
+#
 # Revision 1.35  2002/07/18 23:07:08  richard
 # Unit tests and a few fixes.
 #
