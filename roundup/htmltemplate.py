@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.37 2001/10/31 06:24:35 richard Exp $
+# $Id: htmltemplate.py,v 1.38 2001/10/31 06:58:51 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -27,7 +27,6 @@ try:
     from StructuredText.StructuredText import HTML as StructuredText
 except ImportError:
     StructuredText = None
-
 
 class TemplateFunctions:
     def __init__(self):
@@ -79,7 +78,7 @@ class TemplateFunctions:
         else:
             s = 'Plain: bad propclass "%s"'%propclass
         if escape:
-            return cgi.escape(value)
+            value = cgi.escape(value)
         return value
 
     def do_stext(self, property, escape=0):
@@ -387,8 +386,8 @@ class TemplateFunctions:
             go along with a change. 
         '''
         # TODO: pull the value from the form
-        return '<textarea name="__note" rows=%s cols=%s></textarea>'%(rows,
-            cols)
+        return '<textarea name="__note" wrap="hard" rows=%s cols=%s>'\
+            '</textarea>'%(rows, cols)
 
     # XXX new function
     def do_list(self, property, reverse=0):
@@ -844,6 +843,10 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.38  2001/10/31 06:58:51  richard
+# Added the wrap="hard" attribute to the textarea of the note field so the
+# messages wrap sanely.
+#
 # Revision 1.37  2001/10/31 06:24:35  richard
 # Added do_stext to htmltemplate, thanks Brad Clements.
 #
