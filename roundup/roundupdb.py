@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.40 2002/01/14 22:21:38 richard Exp $
+# $Id: roundupdb.py,v 1.41 2002/01/15 00:12:40 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -461,8 +461,13 @@ class IssueClass(Class):
 
         # list the values
         m = []
-        for propname, prop in props.items():
+	l = props.items()
+	l.sort()
+        for propname, prop in l:
             value = cl.get(nodeid, propname, None)
+	    # skip boring entries
+	    if not value:
+		continue
             if isinstance(prop, hyperdb.Link):
                 link = self.db.classes[prop.classname]
                 if value:
@@ -561,6 +566,9 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.41  2002/01/15 00:12:40  richard
+# #503340 ] creating issue with [asignedto=p.ohly]
+#
 # Revision 1.40  2002/01/14 22:21:38  richard
 # #503353 ] setting properties in initial email
 #
