@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.77 2002/07/18 11:17:31 gmcm Exp $
+$Id: mailgw.py,v 1.78 2002/07/25 07:14:06 richard Exp $
 '''
 
 
@@ -95,6 +95,16 @@ class MailUsageHelp(Exception):
 
 class UnAuthorized(Exception):
     """ Access denied """
+
+def initialiseSecurity(security):
+    ''' Create some Permissions and Roles on the security object
+
+        This function is directly invoked by security.Security.__init__()
+        as a part of the Security object instantiation.
+    '''
+    newid = security.addPermission(name="Email Registration",
+        description="Anonymous may register through e-mail")
+    security.addPermissionToRole('Anonymous', newid)
 
 class Message(mimetools.Message):
     ''' subclass mimetools.Message so we can retrieve the parts of the
@@ -790,6 +800,14 @@ def parseContent(content, keep_citations, keep_body,
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.78  2002/07/25 07:14:06  richard
+# Bugger it. Here's the current shape of the new security implementation.
+# Still to do:
+#  . call the security funcs from cgi and mailgw
+#  . change shipped templates to include correct initialisation and remove
+#    the old config vars
+# ... that seems like a lot. The bulk of the work has been done though. Honest :)
+#
 # Revision 1.77  2002/07/18 11:17:31  gmcm
 # Add Number and Boolean types to hyperdb.
 # Add conversion cases to web, mail & admin interfaces.

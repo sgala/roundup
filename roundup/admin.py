@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: admin.py,v 1.18 2002/07/18 11:17:30 gmcm Exp $
+# $Id: admin.py,v 1.19 2002/07/25 07:14:05 richard Exp $
 
 import sys, os, getpass, getopt, re, UserDict, shlex, shutil
 try:
@@ -371,8 +371,8 @@ Command help:
         for designator in designators:
             # decode the node designator
             try:
-                classname, nodeid = roundupdb.splitDesignator(designator)
-            except roundupdb.DesignatorError, message:
+                classname, nodeid = hyperdb.splitDesignator(designator)
+            except hyperdb.DesignatorError, message:
                 raise UsageError, message
 
             # get the class
@@ -411,8 +411,8 @@ Command help:
         for designator in designators:
             # decode the node designator
             try:
-                classname, nodeid = roundupdb.splitDesignator(designator)
-            except roundupdb.DesignatorError, message:
+                classname, nodeid = hyperdb.splitDesignator(designator)
+            except hyperdb.DesignatorError, message:
                 raise UsageError, message
 
             # get the class
@@ -537,8 +537,8 @@ Command help:
 
         # decode the node designator
         try:
-            classname, nodeid = roundupdb.splitDesignator(args[0])
-        except roundupdb.DesignatorError, message:
+            classname, nodeid = hyperdb.splitDesignator(args[0])
+        except hyperdb.DesignatorError, message:
             raise UsageError, message
 
         # get the class
@@ -747,8 +747,8 @@ Command help:
         if len(args) < 1:
             raise UsageError, _('Not enough arguments supplied')
         try:
-            classname, nodeid = roundupdb.splitDesignator(args[0])
-        except roundupdb.DesignatorError, message:
+            classname, nodeid = hyperdb.splitDesignator(args[0])
+        except hyperdb.DesignatorError, message:
             raise UsageError, message
 
         try:
@@ -797,8 +797,8 @@ Command help:
         designators = args[0].split(',')
         for designator in designators:
             try:
-                classname, nodeid = roundupdb.splitDesignator(designator)
-            except roundupdb.DesignatorError, message:
+                classname, nodeid = hyperdb.splitDesignator(designator)
+            except hyperdb.DesignatorError, message:
                 raise UsageError, message
             try:
                 self.db.getclass(classname).retire(nodeid)
@@ -1131,6 +1131,14 @@ if __name__ == '__main__':
 
 #
 # $Log: admin.py,v $
+# Revision 1.19  2002/07/25 07:14:05  richard
+# Bugger it. Here's the current shape of the new security implementation.
+# Still to do:
+#  . call the security funcs from cgi and mailgw
+#  . change shipped templates to include correct initialisation and remove
+#    the old config vars
+# ... that seems like a lot. The bulk of the work has been done though. Honest :)
+#
 # Revision 1.18  2002/07/18 11:17:30  gmcm
 # Add Number and Boolean types to hyperdb.
 # Add conversion cases to web, mail & admin interfaces.

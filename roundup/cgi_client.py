@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.143 2002/07/20 19:29:10 gmcm Exp $
+# $Id: cgi_client.py,v 1.144 2002/07/25 07:14:05 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -32,6 +32,16 @@ class Unauthorised(ValueError):
 
 class NotFound(ValueError):
     pass
+
+def initialiseSecurity(security):
+    ''' Create some Permissions and Roles on the security object
+
+        This function is directly invoked by security.Security.__init__()
+        as a part of the Security object instantiation.
+    '''
+    newid = security.addPermission(name="Web Registration",
+        description="User may register through the web")
+    security.addPermissionToRole('Anonymous', newid)
 
 class Client:
     '''
@@ -1613,6 +1623,14 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.144  2002/07/25 07:14:05  richard
+# Bugger it. Here's the current shape of the new security implementation.
+# Still to do:
+#  . call the security funcs from cgi and mailgw
+#  . change shipped templates to include correct initialisation and remove
+#    the old config vars
+# ... that seems like a lot. The bulk of the work has been done though. Honest :)
+#
 # Revision 1.143  2002/07/20 19:29:10  gmcm
 # Fixes/improvements to the search form & saved queries.
 #
