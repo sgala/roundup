@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.10 2001/11/26 22:55:56 richard Exp $
+# $Id: dbinit.py,v 1.11 2001/12/01 07:17:50 richard Exp $
 
 import os
 
@@ -123,11 +123,20 @@ def init(adminpw):
     user = db.getclass('user')
     user.create(username="admin", password=adminpw, 
                                   address=instance_config.ADMIN_EMAIL)
-
+    db.commit()
     db.close()
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.11  2001/12/01 07:17:50  richard
+# . We now have basic transaction support! Information is only written to
+#   the database when the commit() method is called. Only the anydbm
+#   backend is modified in this way - neither of the bsddb backends have been.
+#   The mail, admin and cgi interfaces all use commit (except the admin tool
+#   doesn't have a commit command, so interactive users can't commit...)
+# . Fixed login/registration forwarding the user to the right page (or not,
+#   on a failure)
+#
 # Revision 1.10  2001/11/26 22:55:56  richard
 # Feature:
 #  . Added INSTANCE_NAME to configuration - used in web and email to identify

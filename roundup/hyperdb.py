@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.37 2001/11/28 21:55:35 richard Exp $
+# $Id: hyperdb.py,v 1.38 2001/12/01 07:17:50 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -244,23 +244,27 @@ class Class:
         IndexError is raised.  'propname' must be the name of a property
         of this class or a KeyError is raised.
         """
-        d = self.db.getnode(self.classname, nodeid)
-
-        # convert the marshalled data to instances
-        for key, prop in self.properties.items():
-            if isinstance(prop, Date):
-                d[key] = date.Date(d[key])
-            elif isinstance(prop, Interval):
-                d[key] = date.Interval(d[key])
-            elif isinstance(prop, Password):
-                p = password.Password()
-                p.unpack(d[key])
-                d[key] = p
-
         if propname == 'id':
             return nodeid
+
+        # get the node's dict
+        d = self.db.getnode(self.classname, nodeid)
         if not d.has_key(propname) and default is not _marker:
             return default
+
+        # get the value
+        prop = self.properties[propname]
+
+        # possibly convert the marshalled data to instances
+        if isinstance(prop, Date):
+            return date.Date(d[propname])
+        elif isinstance(prop, Interval):
+            return date.Interval(d[propname])
+        elif isinstance(prop, Password):
+            p = password.Password()
+            p.unpack(d[propname])
+            return p
+
         return d[propname]
 
     # XXX not in spec
@@ -869,6 +873,15 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.38  2001/12/01 07:17:50  richard
+# . We now have basic transaction support! Information is only written to
+#   the database when the commit() method is called. Only the anydbm
+#   backend is modified in this way - neither of the bsddb backends have been.
+#   The mail, admin and cgi interfaces all use commit (except the admin tool
+#   doesn't have a commit command, so interactive users can't commit...)
+# . Fixed login/registration forwarding the user to the right page (or not,
+#   on a failure)
+#
 # Revision 1.37  2001/11/28 21:55:35  richard
 #  . login_action and newuser_action return values were being ignored
 #  . Woohoo! Found that bloody re-login bug that was killing the mail

@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup-admin,v 1.48 2001/11/27 22:32:03 richard Exp $
+# $Id: roundup-admin,v 1.49 2001/12/01 07:17:50 richard Exp $
 
 import sys
 if int(sys.version[0]) < 2:
@@ -882,8 +882,8 @@ Command help:
             self.interactive()
         else:
             ret = self.run_command(args)
-        if self.db:
-            self.db.close()
+            if self.db: self.db.commit()
+        if self.db: self.db.close()
         return ret
 
 
@@ -893,6 +893,15 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup-admin,v $
+# Revision 1.49  2001/12/01 07:17:50  richard
+# . We now have basic transaction support! Information is only written to
+#   the database when the commit() method is called. Only the anydbm
+#   backend is modified in this way - neither of the bsddb backends have been.
+#   The mail, admin and cgi interfaces all use commit (except the admin tool
+#   doesn't have a commit command, so interactive users can't commit...)
+# . Fixed login/registration forwarding the user to the right page (or not,
+#   on a failure)
+#
 # Revision 1.48  2001/11/27 22:32:03  richard
 # typo
 #
