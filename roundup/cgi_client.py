@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.123 2002/05/22 05:04:13 richard Exp $
+# $Id: cgi_client.py,v 1.124 2002/05/24 02:09:24 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -128,6 +128,8 @@ function help_window(helpurl, width, height) {
             # fix up the CURRENT USER if needed (handle None too since that's
             # the old flag value)
             if l in (None, 'CURRENT USER'):
+                if not self.user:
+                    continue
                 l = [self.db.user.lookup(self.user)]
 
             # add
@@ -1397,6 +1399,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.124  2002/05/24 02:09:24  richard
+# Nothing like a live demo to show up the bugs ;)
+#
 # Revision 1.123  2002/05/22 05:04:13  richard
 # Oops
 #
