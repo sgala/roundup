@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.88 2002/04/24 08:34:35 rochecompaan Exp $
+# $Id: htmltemplate.py,v 1.89 2002/05/15 06:34:47 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -434,10 +434,7 @@ class TemplateFunctions:
         if pretty:
             if not self.nodeid:
                 return _('now')
-            pretty = interval.pretty()
-            if pretty is None:
-                pretty = value.pretty()
-            return pretty
+            return interval.pretty()
         return str(interval)
 
     def do_download(self, property, **args):
@@ -1127,6 +1124,9 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.89  2002/05/15 06:34:47  richard
+# forgot to fix the templating for last change
+#
 # Revision 1.88  2002/04/24 08:34:35  rochecompaan
 # Sorting was applied to all nodes of the MultiLink class instead of
 # the nodes that are actually linked to in the "field" template
