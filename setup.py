@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# $Id: setup.py,v 1.4 2001/07/27 07:20:17 richard Exp $
+# $Id: setup.py,v 1.5 2001/07/28 00:39:18 richard Exp $
 
 from distutils.core import setup, Extension
 from distutils.util import get_platform
@@ -20,8 +20,8 @@ for t in templates:
 
 
 setup ( name = "roundup", 
-	version = "0.2.0",
-	description = "roundup tracking system",
+	version = "0.2.1",
+	description = "Roundup issue tracking system.",
 	author = "Richard Jones",
 	author_email = "richard@sourceforge.net",
 	url = 'http://sourceforge.net/projects/roundup/',
@@ -29,11 +29,11 @@ setup ( name = "roundup",
     scripts = ['roundup-admin', 'roundup-mailgw', 'roundup-server']
 )
 
-# now install the bin programs, and the cgi-bin programs
-# not sure how, yet.
-
 #
 # $Log: setup.py,v $
+# Revision 1.5  2001/07/28 00:39:18  richard
+# changes for the 0.2.1 distribution build.
+#
 # Revision 1.4  2001/07/27 07:20:17  richard
 # Makefile is now obsolete - setup does what it used to do.
 #
