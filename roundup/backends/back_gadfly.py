@@ -1,5 +1,6 @@
-# $Id: back_gadfly.py,v 1.27 2002/09/26 03:04:24 richard Exp $
-__doc__ = '''
+# $Id: back_gadfly.py,v 1.31.2.1 2003/01/12 23:57:15 richard Exp $
+''' Gadlfy relational database hypderb backend.
+
 About Gadfly
 ============
 
@@ -7,25 +8,6 @@ Gadfly  is  a  collection  of  python modules that provides relational
 database  functionality  entirely implemented in Python. It supports a
 subset  of  the intergalactic standard RDBMS Structured Query Language
 SQL.
-
-
-Basic Structure
-===============
-
-We map roundup classes to relational tables. Automatically detect schema
-changes and modify the gadfly table schemas appropriately. Multilinks
-(which represent a many-to-many relationship) are handled through
-intermediate tables.
-
-Journals are stored adjunct to the per-class tables.
-
-Table names and columns have "_" prepended so the names can't
-clash with restricted names (like "order"). Retirement is determined by the
-__retired__ column being true.
-
-All columns are defined as VARCHAR, since it really doesn't matter what
-type they're defined as. We stuff all kinds of data in there ;) [as long as
-it's marshallable, gadfly doesn't care]
 
 
 Additional Instance Requirements
@@ -54,6 +36,7 @@ import sys, os, time, re, errno, weakref, copy
 from roundup import hyperdb, date, password, roundupdb, security
 from roundup.hyperdb import String, Password, Date, Interval, Link, \
     Multilink, DatabaseError, Boolean, Number
+from roundup.backends import locking
 
 # basic RDBMS backen implementation
 from roundup.backends import rdbms_common
@@ -69,6 +52,13 @@ class Database(rdbms_common.Database):
 
     def open_connection(self):
         db = getattr(self.config, 'GADFLY_DATABASE', ('database', self.dir))
+
+        # lock it
+        lockfilenm = os.path.join(db[1], db[0]) + '.lck'
+        self.lockfile = locking.acquire_lock(lockfilenm)
+        self.lockfile.write(str(os.getpid()))
+        self.lockfile.flush()
+
         if len(db) == 2:
             # ensure files are group readable and writable
             os.umask(0002)
@@ -155,7 +145,8 @@ class Database(rdbms_common.Database):
         return res
 
 class GadflyClass:
-    def filter(self, search_matches, filterspec, sort, group):
+    def filter(self, search_matches, filterspec, sort=(None,None),
+            group=(None,None)):
         ''' Gadfly doesn't have a LIKE predicate :(
         '''
         cn = self.classname
@@ -177,6 +168,30 @@ class GadflyClass:
                     args = args + v
                 else:
                     where.append('id=%s.nodeid and %s.linkid = %s'%(tn, tn, a))
+                    args.append(v)
+            elif isinstance(propclass, Date):
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('_%s in (%s)'%(k, s))
+                    args = args + [date.Date(x).serialise() for x in v]
+                else:
+                    where.append('_%s=%s'%(k, a))
+                    args.append(date.Date(v).serialise())
+            elif isinstance(propclass, Interval):
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('_%s in (%s)'%(k, s))
+                    args = args + [date.Interval(x).serialise() for x in v]
+                else:
+                    where.append('_%s=%s'%(k, a))
+                    args.append(date.Interval(v).serialise())
+            elif k == 'id':
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('%s in (%s)'%(k, s))
+                    args = args + v
+                else:
+                    where.append('%s=%s'%(k, a))
                     args.append(v)
             else:
                 if isinstance(v, type([])):

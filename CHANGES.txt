@@ -1,6 +1,119 @@
 This file contains the changes to the Roundup system over time. The entries
 are given with the most recent entry first.
 
+
+2003-??-?? 0.5.5
+- fixed rdbms searching by ID (sf bug 666615)
+- detect corrupted index and raise semi-useful exception (sf bug 666767)
+
+
+2003-01-10 0.5.4
+- key the templates cache off full path, not filename
+- implemented whole-database locking
+- hyperlinking of special text (url, email, item designator) in messages
+- fixed time default in date.py
+- fixed error in cgi/templates.py (sf bug 652089)
+- fixed handling of missing password (sf bug 655632)
+- applied patches for handling Outlook quirks (thanks Andrey Lebedev)
+  (multipart/alternative, "fw" and content-type "name")
+- fire auditors and reactors in rdbms retire (thanks Sheila King)
+- better match for mailgw help "command" text
+- handle :add: better in cgi form parsing (sf bug 663235)
+- handle all-whitespace multilink values in forms (sf bug 663855)
+- fixed searching on date / interval fields (sf bug 658157)
+- fixed form elements names in search form to allow grouping and sorting 
+  on "creation" field
+- display of saved queries is now performed correctly
+
+
+2002-12-11 0.5.3
+- added mention of how to give users multiple Roles
+- mention needed trailing "/" in TRACKER_WEB
+- fixed upgrading doc to have CGI changes in the correct order
+- fixed double-close of anydbm backend (sf bug 639030)
+- removed use of string/strop from TAL/TALInterpreter
+- handle KeyboardInterrupt nicely
+- fixed Date and Interval form value handling
+- fixed Date.local()
+- email quoted text stripping is controllable again (sf bug 650742)
+- extract attachment name from content-disposition if name is missing (sf
+  bug 637278)
+- removed FILTER_POSITION from bundled configs
+- reverse message listing in issue display (reversion of recent change)
+- bad entries for multilink editing in cgi don't traceback now (sf bug 640310)
+- detect and break email loops (sf bug 640854)
+- finished of handling of retired flag in filter() (sf bug 635260)
+- allow StringHTMLProperty in MultilinkHTMLProperty test to work
+- don't set explicit None Link properties in web create
+- fixed nasty sorting bug that was lowercasing properties
+- allow multiple :remove and :add elements per property being edited
+- added date header to emails (sf bug 651358)
+
+
+2002-11-07 0.5.2
+- added quotes around python interpreter in windows bat (sf bug 623963)
+- fixed link at end of installation doc (sf bug 623957)
+- handle "classname" URL path errors cleaner (generate a 404)
+- added CGI :remove:<propname> and :add:<propname> which specify item ids to
+  remove / add in <propname> multilink.
+- bugfix in boolean templating
+- remember the change note on bad submissions (sf bug 625989)
+- highlight required form fields (sf bug 625989)
+- force non-word boundary to match re: in subject (sf bug 626303)
+- handle sqlite bug (<2.7.2) (sf bug 630828)
+- handle missing props in anydbm stringFind
+- updated email package address formatting (deprecation)
+- copied email address quoting from email v2.4.3 so we're consistent with 2.2
+- email summary extraction now takes the first whole sentence or line -
+  whichever is longer
+- documented dependency on Active State (sf bug 623959)
+- ensured there's no zero-length files in source (sf bug 633622)
+- added ID to the search page (sf bug 631601)
+- fixed filtering by id in anydbm
+- show issue ID in the headings (sf bug 631598)
+- show entire messages by default in issues (sf bug 625995)
+- fixed journalling to save old values instead of new (sorry it took so long GM)
+- handle missing REQUEST_URI for cgi-bin users (sf bug 620163)
+
+
+2002-10-16 0.5.1
+- highlight rows in groups of three
+- metakit cleanups
+- nicer "navigation" style in index views
+- handle missing Link values in anydbm backend set() operation
+- fixed filter() with no sort/group (sf bug 618614)
+- fixed register with no session (sf bug 618611)
+- fixed log / pid file path handling in roundup-server (sf bug 617981)
+- fixed old gadfly compatibiltiy problem, for sure this time (sf bug 612873)
+- https URLs from config now recognised as valid (sf bug 619829)
+- nicer display of tracker list in roundup-server (sf bug 619769)
+- fixed some missed renaming instance -> tracker (sf bug 619769)
+- allow blank passwords again (sf bug 619714)
+- expose the tracker config as a variable for templating
+- homogenise newlines in CGI text submissions (sf bug 614072)
+- merged Zope Collector #372 fix from ZPT CVS trunk
+- fixed history to display username instead of userid
+- shipped templates didn't import all hyperdb types in dbinit.py
+- fixed bug in Interval serialisation
+- handle "unset" status in status auditor (sf bug 621250)
+- issues in 'done-cbb' are now also moved to 'chatting' on new messages
+- implemented the missing Interval.__add__
+- added ability to implement new templating utility methods
+- expose the Date.pretty method to templating
+- made form table cell alignment consistent (sf bug 621887)
+- include stylesheet in docs (sf bug 623183)
+- store PIPE messages so we can re-send them on errors (sf bug 623082)
+- implemented "retire" cgi action, added to user index (sf bug 618612)
+- included doc ideas from Bernhard Reiter (sf feature 621941)
+
+
+2002-10-02 0.5.0
+- fixed style for alternating rows in user lists
+- fixed query edit form so it doesn't barf
+- #617133 ] 0.5.0pr1 uses nonexistent renderTemplate
+- merged Zope Collector #539 fix from ZPT CVS trunk
+
+
 2002-09-27 0.5.0 pr1
 - handling of None for Date/Interval/Password values in export/import
 - handling of journal values in export/import
@@ -47,6 +160,7 @@ are given with the most recent entry first.
 - add hook to allow external password verification, overridable in the
   tracker interfaces module
 - fixed login attempt by user that doesn't exist
+
 
 2002-09-13 0.5.0 beta2
 -  all backends now have a .close() method, and it's used everywhere

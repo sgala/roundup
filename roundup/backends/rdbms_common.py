@@ -1,4 +1,25 @@
-# $Id: rdbms_common.py,v 1.19 2002/09/26 03:04:24 richard Exp $
+# $Id: rdbms_common.py,v 1.27.2.1 2003/01/12 23:57:16 richard Exp $
+''' Relational database (SQL) backend common code.
+
+Basics:
+
+- map roundup classes to relational tables
+- automatically detect schema changes and modify the table schemas
+  appropriately (we store the "database version" of the schema in the
+  database itself as the only row of the "schema" table)
+- multilinks (which represent a many-to-many relationship) are handled through
+  intermediate tables
+- journals are stored adjunct to the per-class tables
+- table names and columns have "_" prepended so the names can't clash with
+  restricted names (like "order")
+- retirement is determined by the __retired__ column being true
+
+Database-specific changes may generally be pushed out to the overridable
+sql_* methods, since everything else should be fairly generic. There's
+probably a bit of work to be done if a database is used that actually
+honors column typing, since the initial databases don't (sqlite stores
+everything as a string, and gadfly stores anything that's marsallable).
+'''
 
 # standard python modules
 import sys, os, time, re, errno, weakref, copy
@@ -7,6 +28,7 @@ import sys, os, time, re, errno, weakref, copy
 from roundup import hyperdb, date, password, roundupdb, security
 from roundup.hyperdb import String, Password, Date, Interval, Link, \
     Multilink, DatabaseError, Boolean, Number
+from roundup.backends import locking
 
 # support
 from blobfiles import FileStorage
@@ -40,6 +62,9 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         # (classname, nodeid) = row
         self.cache = {}
         self.cache_lru = []
+
+        # database lock
+        self.lockfile = None
 
         # open a connection to the database, creating the "conn" attribute
         self.open_connection()
@@ -678,7 +703,7 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
             # get the property spec
             prop = properties[k]
 
-            if isinstance(prop, Password):
+            if isinstance(prop, Password) and v is not None:
                 d[k] = str(v)
             elif isinstance(prop, Date) and v is not None:
                 d[k] = v.serialise()
@@ -709,7 +734,7 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
                 d[k] = date.Date(v)
             elif isinstance(prop, Interval) and v is not None:
                 d[k] = date.Interval(v)
-            elif isinstance(prop, Password):
+            elif isinstance(prop, Password) and v is not None:
                 p = password.Password()
                 p.unpack(v)
                 d[k] = p
@@ -882,6 +907,11 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         ''' Close off the connection.
         '''
         self.conn.close()
+        if self.lockfile is not None:
+            locking.release_lock(self.lockfile)
+        if self.lockfile is not None:
+            self.lockfile.close()
+            self.lockfile = None
 
 #
 # The base Class class
@@ -1081,7 +1111,7 @@ class Class(hyperdb.Class):
         # done
         self.db.addnode(self.classname, newid, propvalues)
         if self.do_journal:
-            self.db.addjournal(self.classname, newid, 'create', propvalues)
+            self.db.addjournal(self.classname, newid, 'create', {})
 
         self.fireReactors('create', newid, None)
 
@@ -1163,7 +1193,7 @@ class Class(hyperdb.Class):
             creation = None
         if d.has_key('activity'):
             del d['activity']
-        self.db.addjournal(self.classname, newid, 'create', d, creator,
+        self.db.addjournal(self.classname, newid, 'create', {}, creator,
             creation)
         return newid
 
@@ -1302,9 +1332,11 @@ class Class(hyperdb.Class):
 
             # if the value's the same as the existing value, no sense in
             # doing anything
-            if node.has_key(propname) and value == node[propname]:
+            current = node.get(propname, None)
+            if value == current:
                 del propvalues[propname]
                 continue
+            journalvalues[propname] = current
 
             # do stuff based on the prop type
             if isinstance(prop, Link):
@@ -1439,8 +1471,7 @@ class Class(hyperdb.Class):
         self.db.setnode(self.classname, nodeid, propvalues, multilink_changes)
 
         if self.do_journal:
-            propvalues.update(journalvalues)
-            self.db.addjournal(self.classname, nodeid, 'set', propvalues)
+            self.db.addjournal(self.classname, nodeid, 'set', journalvalues)
 
         self.fireReactors('set', nodeid, oldvalues)
 
@@ -1458,6 +1489,8 @@ class Class(hyperdb.Class):
         if self.db.journaltag is None:
             raise DatabaseError, 'Database open read-only'
 
+        self.fireAuditors('retire', nodeid, None)
+
         # use the arg for __retired__ to cope with any odd database type
         # conversion (hello, sqlite)
         sql = 'update _%s set __retired__=%s where id=%s'%(self.classname,
@@ -1465,6 +1498,8 @@ class Class(hyperdb.Class):
         if __debug__:
             print >>hyperdb.DEBUG, 'retire', (self, sql, nodeid)
         self.db.cursor.execute(sql, (1, nodeid))
+
+        self.fireReactors('retire', nodeid, None)
 
     def is_retired(self, nodeid):
         '''Return true if the node is rerired
@@ -1687,7 +1722,8 @@ class Class(hyperdb.Class):
         '''
         return self.db.getnodeids(self.classname, retired=0)
 
-    def filter(self, search_matches, filterspec, sort, group):
+    def filter(self, search_matches, filterspec, sort=(None,None),
+            group=(None,None)):
         ''' Return a list of the ids of the active nodes in this class that
             match the 'filter' spec, sorted by the group spec and then the
             sort spec
@@ -1726,6 +1762,14 @@ class Class(hyperdb.Class):
                 else:
                     where.append('id=%s.nodeid and %s.linkid = %s'%(tn, tn, a))
                     args.append(v)
+            elif k == 'id':
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('%s in (%s)'%(k, s))
+                    args = args + v
+                else:
+                    where.append('%s=%s'%(k, a))
+                    args.append(v)
             elif isinstance(propclass, String):
                 if not isinstance(v, type([])):
                     v = [v]
@@ -1745,9 +1789,12 @@ class Class(hyperdb.Class):
                         xtra = ' or _%s is NULL'%k
                     else:
                         xtra = ''
-                    s = ','.join([a for x in v])
-                    where.append('(_%s in (%s)%s)'%(k, s, xtra))
-                    args = args + v
+                    if v:
+                        s = ','.join([a for x in v])
+                        where.append('(_%s in (%s)%s)'%(k, s, xtra))
+                        args = args + v
+                    else:
+                        where.append('_%s is NULL'%k)
                 else:
                     if v == '-1':
                         v = None
@@ -1755,6 +1802,22 @@ class Class(hyperdb.Class):
                     else:
                         where.append('_%s=%s'%(k, a))
                         args.append(v)
+            elif isinstance(propclass, Date):
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('_%s in (%s)'%(k, s))
+                    args = args + [date.Date(x).serialise() for x in v]
+                else:
+                    where.append('_%s=%s'%(k, a))
+                    args.append(date.Date(v).serialise())
+            elif isinstance(propclass, Interval):
+                if isinstance(v, type([])):
+                    s = ','.join([a for x in v])
+                    where.append('_%s in (%s)'%(k, s))
+                    args = args + [date.Interval(x).serialise() for x in v]
+                else:
+                    where.append('_%s=%s'%(k, a))
+                    args.append(date.Interval(v).serialise())
             else:
                 if isinstance(v, type([])):
                     s = ','.join([a for x in v])
