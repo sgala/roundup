@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-# $Id: roundup.py,v 1.3 2001/07/19 06:08:24 anthonybaxter Exp $ 
+# $Id: roundup.py,v 1.4 2001/07/19 06:27:07 anthonybaxter Exp $ 
 
 import sys
 if int(sys.version[0]) < 2:
@@ -34,15 +34,32 @@ def usage():
     print '''Usage:
 
  roundup init
+   -- initialise the database
  roundup spec classname
+   -- show the properties for a classname
  roundup create [-user login] classname propname=value ...
+   -- create a new entry of a given class
  roundup list [-list] classname
+   -- list the instances of a class
  roundup history [-list] designator
+   -- show the history entries of a designator
  roundup get [-list] designator[,designator,...] propname
+   -- get the given property of one or more designator(s)
  roundup set [-user login] designator[,designator,...] propname=value ...
+   -- set the given property of one or more designator(s)
  roundup find [-list] classname propname=value ...
+   -- find the class instances with a given property
  roundup retire designator[,designator,...]
+   -- "retire" a designator
+ roundup help    
+   -- this help
+ roundup morehelp
+   -- even more detailed help
+'''
 
+def moreusage():
+    usage()
+    print '''
 A designator is a classname and a nodeid concatenated, eg. bug1, user10, ...
 
 Property values are represented as strings in command arguments and in the
@@ -194,7 +211,16 @@ def main():
             classname, nodeid = roundupdb.splitDesignator(designator)
             db.getclass(classname).retire(nodeid)
 
+    elif command == 'help':
+	usage()
+	return 0
+
+    elif command == 'morehelp':
+	moreusage()
+	return 0
+
     else:
+	print "Unknown command '%s'"%command
         usage()
         return 1
 
@@ -206,14 +232,17 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup.py,v $
+# Revision 1.4  2001/07/19 06:27:07  anthonybaxter
+# fixing (manually) the (dollarsign)Log(dollarsign) entries caused by
+# my using the magic (dollarsign)Id(dollarsign) and (dollarsign)Log(dollarsign)
+# strings in a commit message. I'm a twonk.
+#
+# Also broke the help string in two.
+#
 # Revision 1.3  2001/07/19 06:08:24  anthonybaxter
 # fixed typo in usage string because it was bugging me each time I saw it.
 #
 # Revision 1.2  2001/07/19 05:52:22  anthonybaxter
-# Added CVS keywords $Id: roundup.py,v 1.3 2001/07/19 06:08:24 anthonybaxter Exp $ and $Log: roundup.py,v $
-# Added CVS keywords $Id$ and Revision 1.3  2001/07/19 06:08:24  anthonybaxter
-# Added CVS keywords $Id$ and fixed typo in usage string because it was bugging me each time I saw it.
-# Added CVS keywords $Id$ and to all python files.
-#
+# Added CVS keywords Id and Log
 #
 

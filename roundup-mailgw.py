@@ -45,7 +45,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: roundup-mailgw.py,v 1.2 2001/07/19 05:52:22 anthonybaxter Exp $
+$Id: roundup-mailgw.py,v 1.3 2001/07/19 06:27:07 anthonybaxter Exp $
 '''
 
 import sys
@@ -275,8 +275,15 @@ if __name__ == '__main__':
 
 #
 # $Log: roundup-mailgw.py,v $
+# Revision 1.3  2001/07/19 06:27:07  anthonybaxter
+# fixing (manually) the (dollarsign)Log(dollarsign) entries caused by
+# my using the magic (dollarsign)Id(dollarsign) and (dollarsign)Log(dollarsign)
+# strings in a commit message. I'm a twonk.
+#
+# Also broke the help string in two.
+#
 # Revision 1.2  2001/07/19 05:52:22  anthonybaxter
-# Added CVS keywords $Id$ and $Log$ to all python files.
+# Added CVS keywords Id and Log to all python files.
 #
 #
 

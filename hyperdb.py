@@ -1,4 +1,4 @@
-# $Id: hyperdb.py,v 1.3 2001/07/19 05:52:22 anthonybaxter Exp $
+# $Id: hyperdb.py,v 1.4 2001/07/19 06:27:07 anthonybaxter Exp $
 
 import bsddb, os, cPickle, re, string
 
@@ -921,8 +921,15 @@ if __name__ == '__main__':
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.4  2001/07/19 06:27:07  anthonybaxter
+# fixing (manually) the (dollarsign)Log(dollarsign) entries caused by
+# my using the magic (dollarsign)Id(dollarsign) and (dollarsign)Log(dollarsign)
+# strings in a commit message. I'm a twonk.
+#
+# Also broke the help string in two.
+#
 # Revision 1.3  2001/07/19 05:52:22  anthonybaxter
-# Added CVS keywords $Id$ and $Log$ to all python files.
+# Added CVS keywords Id and Log to all python files.
 #
 #
 
