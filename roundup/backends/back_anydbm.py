@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.39 2002/07/09 03:02:52 richard Exp $
+#$Id: back_anydbm.py,v 1.40 2002/07/09 04:19:09 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -69,8 +69,10 @@ class Database(FileStorage, hyperdb.Database):
     def post_init(self):
         """Called once the schema initialisation has finished."""
         # reindex the db if necessary
-        if not self.indexer.should_reindex():
-            return
+        if self.indexer.should_reindex():
+            self.reindex()
+
+    def reindex(self):
         for klass in self.classes.values():
             for nodeid in klass.list():
                 klass.index(nodeid)
@@ -507,6 +509,11 @@ class Database(FileStorage, hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.40  2002/07/09 04:19:09  richard
+#Added reindex command to roundup-admin.
+#Fixed reindex on first access.
+#Also fixed reindexing of entries that change.
+#
 #Revision 1.39  2002/07/09 03:02:52  richard
 #More indexer work:
 #- all String properties may now be indexed too. Currently there's a bit of

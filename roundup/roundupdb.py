@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.60 2002/07/09 03:02:52 richard Exp $
+# $Id: roundupdb.py,v 1.61 2002/07/09 04:19:09 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -313,7 +313,7 @@ class IssueClass(Class):
         dictionary attempts to specify any of these properties or a
         "creation" or "activity" property, a ValueError is raised."""
         if not properties.has_key('title'):
-            properties['title'] = hyperdb.String()
+            properties['title'] = hyperdb.String(indexme='yes')
         if not properties.has_key('messages'):
             properties['messages'] = hyperdb.Multilink("msg")
         if not properties.has_key('files'):
@@ -691,6 +691,11 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.61  2002/07/09 04:19:09  richard
+# Added reindex command to roundup-admin.
+# Fixed reindex on first access.
+# Also fixed reindexing of entries that change.
+#
 # Revision 1.60  2002/07/09 03:02:52  richard
 # More indexer work:
 # - all String properties may now be indexed too. Currently there's a bit of
