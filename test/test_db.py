@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.8 2001/10/09 07:25:59 richard Exp $ 
+# $Id: test_db.py,v 1.9 2001/12/02 05:06:16 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -50,7 +50,6 @@ class MyTestCase(unittest.TestCase):
 #        return MyTestResult()
     def tearDown(self):
         if self.db is not None:
-            self.db.close()
             shutil.rmtree('_test_dir')
     
 class DBTestCase(MyTestCase):
@@ -158,7 +157,6 @@ class ReadOnlyDBTestCase(MyTestCase):
         os.mkdir('_test_dir')
         db = anydbm.Database('_test_dir', 'test')
         setupSchema(db, 1)
-        db.close()
         self.db = anydbm.Database('_test_dir')
         setupSchema(self.db, 0)
 
@@ -191,7 +189,6 @@ class bsddbReadOnlyDBTestCase(ReadOnlyDBTestCase):
         os.mkdir('_test_dir')
         db = bsddb.Database('_test_dir', 'test')
         setupSchema(db, 1)
-        db.close()
         self.db = bsddb.Database('_test_dir')
         setupSchema(self.db, 0)
 
@@ -215,7 +212,6 @@ class bsddb3ReadOnlyDBTestCase(ReadOnlyDBTestCase):
         os.mkdir('_test_dir')
         db = bsddb3.Database('_test_dir', 'test')
         setupSchema(db, 1)
-        db.close()
         self.db = bsddb3.Database('_test_dir')
         setupSchema(self.db, 0)
 
@@ -242,6 +238,20 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.9  2001/12/02 05:06:16  richard
+# . We now use weakrefs in the Classes to keep the database reference, so
+#   the close() method on the database is no longer needed.
+#   I bumped the minimum python requirement up to 2.1 accordingly.
+# . #487480 ] roundup-server
+# . #487476 ] INSTALL.txt
+#
+# I also cleaned up the change message / post-edit stuff in the cgi client.
+# There's now a clearly marked "TODO: append the change note" where I believe
+# the change note should be added there. The "changes" list will obviously
+# have to be modified to be a dict of the changes, or somesuch.
+#
+# More testing needed.
+#
 # Revision 1.8  2001/10/09 07:25:59  richard
 # Added the Password property type. See "pydoc roundup.password" for
 # implementation details. Have updated some of the documentation too.

@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.38 2001/12/01 07:17:50 richard Exp $
+$Id: mailgw.py,v 1.39 2001/12/02 05:06:16 richard Exp $
 '''
 
 
@@ -352,10 +352,7 @@ Subject was: "%s"
         author = self.db.uidFromAddress(message.getaddrlist('from')[0])
         # reopen the database as the author
         username = self.db.user.get(author, 'username')
-        self.db.close()
         self.db = self.instance.open(username)
-
-        self.handle_message(author, username, 
 
         # re-get the class with the new database connection
         cl = self.db.getclass(classname)
@@ -601,6 +598,20 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.39  2001/12/02 05:06:16  richard
+# . We now use weakrefs in the Classes to keep the database reference, so
+#   the close() method on the database is no longer needed.
+#   I bumped the minimum python requirement up to 2.1 accordingly.
+# . #487480 ] roundup-server
+# . #487476 ] INSTALL.txt
+#
+# I also cleaned up the change message / post-edit stuff in the cgi client.
+# There's now a clearly marked "TODO: append the change note" where I believe
+# the change note should be added there. The "changes" list will obviously
+# have to be modified to be a dict of the changes, or somesuch.
+#
+# More testing needed.
+#
 # Revision 1.38  2001/12/01 07:17:50  richard
 # . We now have basic transaction support! Information is only written to
 #   the database when the commit() method is called. Only the anydbm

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.12 2001/12/01 07:17:50 richard Exp $
+#$Id: back_anydbm.py,v 1.13 2001/12/02 05:06:16 richard Exp $
 
 import anydbm, os, marshal
 from roundup import hyperdb, date, password
@@ -134,7 +134,6 @@ class Database(hyperdb.Database):
         if not db.has_key(nodeid):
             raise IndexError, nodeid
         res = marshal.loads(db[nodeid])
-        if not cldb: db.close()
         cache[nodeid] = res
         return res
 
@@ -149,7 +148,6 @@ class Database(hyperdb.Database):
         # not in the cache - check the database
         db = cldb or self.getclassdb(classname)
         res = db.has_key(nodeid)
-        if not cldb: db.close()
         return res
 
     def countnodes(self, classname, cldb=None):
@@ -159,7 +157,6 @@ class Database(hyperdb.Database):
         # and count those in the DB
         db = cldb or self.getclassdb(classname)
         count = count + len(db.keys())
-        if not cldb: db.close()
         return count
 
     def getnodeids(self, classname, cldb=None):
@@ -168,7 +165,6 @@ class Database(hyperdb.Database):
 
         db = cldb or self.getclassdb(classname)
         res = res + db.keys()
-        if not cldb: db.close()
         return res
 
     #
@@ -202,16 +198,7 @@ class Database(hyperdb.Database):
             (nodeid, date_stamp, self.journaltag, action, params) = entry
             date_obj = date.Date(date_stamp)
             res.append((nodeid, date_obj, self.journaltag, action, params))
-        db.close()
         return res
-
-    def close(self):
-        ''' Close the Database.
-        
-            Commit all data to the database and release circular refs so
-            the database is closed cleanly.
-        '''
-        self.classes = {}
 
 
     #
@@ -222,7 +209,6 @@ class Database(hyperdb.Database):
         '''
         # lock the DB
         for method, args in self.transactions:
-            print method.__name__, args
             # TODO: optimise this, duh!
             method(*args)
         # unlock the DB
@@ -262,6 +248,20 @@ class Database(hyperdb.Database):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.13  2001/12/02 05:06:16  richard
+#. We now use weakrefs in the Classes to keep the database reference, so
+#  the close() method on the database is no longer needed.
+#  I bumped the minimum python requirement up to 2.1 accordingly.
+#. #487480 ] roundup-server
+#. #487476 ] INSTALL.txt
+#
+#I also cleaned up the change message / post-edit stuff in the cgi client.
+#There's now a clearly marked "TODO: append the change note" where I believe
+#the change note should be added there. The "changes" list will obviously
+#have to be modified to be a dict of the changes, or somesuch.
+#
+#More testing needed.
+#
 #Revision 1.12  2001/12/01 07:17:50  richard
 #. We now have basic transaction support! Information is only written to
 #  the database when the commit() method is called. Only the anydbm

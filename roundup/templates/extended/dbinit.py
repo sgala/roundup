@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: dbinit.py,v 1.16 2001/12/01 07:17:50 richard Exp $
+# $Id: dbinit.py,v 1.17 2001/12/02 05:06:16 richard Exp $
 
 import os
 
@@ -175,10 +175,23 @@ def init(adminpw):
                                   address=instance_config.ADMIN_EMAIL)
 
     db.commit()
-    db.close()
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.17  2001/12/02 05:06:16  richard
+# . We now use weakrefs in the Classes to keep the database reference, so
+#   the close() method on the database is no longer needed.
+#   I bumped the minimum python requirement up to 2.1 accordingly.
+# . #487480 ] roundup-server
+# . #487476 ] INSTALL.txt
+#
+# I also cleaned up the change message / post-edit stuff in the cgi client.
+# There's now a clearly marked "TODO: append the change note" where I believe
+# the change note should be added there. The "changes" list will obviously
+# have to be modified to be a dict of the changes, or somesuch.
+#
+# More testing needed.
+#
 # Revision 1.16  2001/12/01 07:17:50  richard
 # . We now have basic transaction support! Information is only written to
 #   the database when the commit() method is called. Only the anydbm
