@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.54 2002/02/15 07:08:44 richard Exp $
+# $Id: hyperdb.py,v 1.55 2002/02/15 07:27:12 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -846,7 +846,7 @@ class Class:
                     else:
                         continue
                     break
-                elif t == 2 and node[k] is None or not v.search(node[k]):
+                elif t == 2 and (node[k] is None or not v.search(node[k])):
                     # RE search
                     break
                 elif t == 6 and node[k] != v:
@@ -1066,6 +1066,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.55  2002/02/15 07:27:12  richard
+# Oops, precedences around the way w0rng.
+#
 # Revision 1.54  2002/02/15 07:08:44  richard
 #  . Alternate email addresses are now available for users. See the MIGRATION
 #    file for info on how to activate the feature.
