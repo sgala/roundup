@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.130 2002/06/27 12:01:53 gmcm Exp $
+# $Id: cgi_client.py,v 1.131 2002/07/08 06:53:57 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -26,7 +26,6 @@ import binascii, Cookie, time, random
 
 import roundupdb, htmltemplate, date, hyperdb, password
 from roundup.i18n import _
-from roundup_indexer import RoundupIndexer
 
 class Unauthorised(ValueError):
     pass
@@ -72,7 +71,6 @@ class Client:
         except ValueError:
             # someone gave us a non-int debug level, turn it off
             self.debug = 0
-        self.indexer = RoundupIndexer('%s/db'%instance.INSTANCE_HOME)
 
     def getuid(self):
         try:
@@ -1392,6 +1390,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0, num_re=re.compile('^\d+$')):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.131  2002/07/08 06:53:57  richard
+# Not sure why the cgi_client had an indexer argument.
+#
 # Revision 1.130  2002/06/27 12:01:53  gmcm
 # If the form has a :multilink, put a back href in the pageheader (back to the linked-to node).
 # Some minor optimizations (only compile regexes once).
