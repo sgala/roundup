@@ -1,4 +1,4 @@
-# $Id: back_gadfly.py,v 1.2 2002/08/23 04:48:10 richard Exp $
+# $Id: back_gadfly.py,v 1.3 2002/08/23 04:58:00 richard Exp $
 __doc__ = '''
 About Gadfly
 ============
@@ -710,8 +710,7 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         return res
 
     def pack(self, pack_before):
-        ''' Pack the database, removing all journal entries before the
-            "pack_before" date.
+        ''' Delete all journal entries except "create" before 'pack_before'.
         '''
         # get a 'yyyymmddhhmmss' version of the date
         date_stamp = pack_before.serialise()
@@ -719,7 +718,8 @@ class Database(FileStorage, hyperdb.Database, roundupdb.Database):
         # do the delete
         cursor = self.conn.cursor()
         for classname in self.classes.keys():
-            sql = 'delete from %s__journal where date<?'%classname
+            sql = "delete from %s__journal where date<? and "\
+                "action<>'create'"%classname
             if __debug__:
                 print >>hyperdb.DEBUG, 'pack', (self, sql, date_stamp)
             cursor.execute(sql, (date_stamp,))
@@ -1645,6 +1645,9 @@ class IssueClass(Class, roundupdb.IssueClass):
 
 #
 # $Log: back_gadfly.py,v $
+# Revision 1.3  2002/08/23 04:58:00  richard
+# ahhh, I understand now
+#
 # Revision 1.2  2002/08/23 04:48:10  richard
 # That's gadfly done, mostly. Things left:
 # - Class.filter (I'm a wuss ;)
