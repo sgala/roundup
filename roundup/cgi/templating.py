@@ -2072,18 +2072,17 @@ env: %(env)s
             l.append(sc+'startwith=%s'%self.startwith)
 
         # finally, the remainder of the filter args in the request
-        if self.classname and self.filterspec:
-            props = self.client.db.getclass(self.classname).getprops()
-            q = urllib.quote
-            for k,v in self.filterspec.items():
-                if not args.has_key(k):
-                    if type(v) == type([]):
-                        if isinstance(props[k], hyperdb.String):
-                            l.append('%s=%s'%(k, '%20'.join([q(i) for i in v])))
-                        else:
-                            l.append('%s=%s'%(k, ','.join([q(i) for i in v])))
+        props = self.client.db.getclass(self.classname).getprops()
+        q = urllib.quote
+        for k,v in self.filterspec.items():
+            if not args.has_key(k):
+                if type(v) == type([]):
+                    if isinstance(props[k], hyperdb.String):
+                        l.append('%s=%s'%(k, '%20'.join([q(i) for i in v])))
                     else:
-                        l.append('%s=%s'%(k, q(v)))
+                        l.append('%s=%s'%(k, ','.join([q(i) for i in v])))
+                else:
+                    l.append('%s=%s'%(k, q(v)))
         return '%s?%s'%(url, '&'.join(l))
     indexargs_href = indexargs_url
 
