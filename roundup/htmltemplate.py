@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.50 2002/01/05 02:35:10 richard Exp $
+# $Id: htmltemplate.py,v 1.51 2002/01/10 10:02:15 grubert Exp $
 
 __doc__ = """
 Template engine.
@@ -457,8 +457,9 @@ class TemplateFunctions:
             _('<td><span class="list-item"><strong>Args</strong></span></td>')]
 
         for id, date, user, action, args in self.cl.history(self.nodeid):
+            date_s = str(date).replace("."," ")
             l.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(
-               date, user, action, args))
+               date_s, user, action, args))
         l.append('</table>')
         return '\n'.join(l)
 
@@ -885,6 +886,10 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.51  2002/01/10 10:02:15  grubert
+# In do_history: replace "." in date by " " so html wraps more sensible.
+# Should this be done in date's string converter ?
+#
 # Revision 1.50  2002/01/05 02:35:10  richard
 # I18N'ification
 #
