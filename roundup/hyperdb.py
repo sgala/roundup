@@ -15,18 +15,19 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.52 2002/01/21 16:33:19 rochecompaan Exp $
+# $Id: hyperdb.py,v 1.53 2002/01/22 07:21:13 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
 """
 
 # standard python modules
-import cPickle, re, string, weakref
+import cPickle, re, string, weakref, os
 
 # roundup modules
 import date, password
 
+DEBUG = os.environ.get('HYPERDBDEBUG', '')
 
 #
 # Types
@@ -1065,6 +1066,14 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.53  2002/01/22 07:21:13  richard
+# . fixed back_bsddb so it passed the journal tests
+#
+# ... it didn't seem happy using the back_anydbm _open method, which is odd.
+# Yet another occurrance of whichdb not being able to recognise older bsddb
+# databases. Yadda yadda. Made the HYPERDBDEBUG stuff more sane in the
+# process.
+#
 # Revision 1.52  2002/01/21 16:33:19  rochecompaan
 # You can now use the roundup-admin tool to pack the database
 #

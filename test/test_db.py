@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_db.py,v 1.17 2002/01/22 05:06:09 rochecompaan Exp $ 
+# $Id: test_db.py,v 1.18 2002/01/22 07:21:13 richard Exp $ 
 
 import unittest, os, shutil
 
@@ -246,7 +246,6 @@ class anydbmDBTestCase(MyTestCase):
         self.db.commit()
         self.db.issue.set('1', status='3')
         self.db.commit()
-
         pack_before = date.Date(". + 1d")
         self.db.pack(pack_before)
         journal = self.db.getjournal('issue', '1')
@@ -347,6 +346,14 @@ def suite():
 
 #
 # $Log: test_db.py,v $
+# Revision 1.18  2002/01/22 07:21:13  richard
+# . fixed back_bsddb so it passed the journal tests
+#
+# ... it didn't seem happy using the back_anydbm _open method, which is odd.
+# Yet another occurrance of whichdb not being able to recognise older bsddb
+# databases. Yadda yadda. Made the HYPERDBDEBUG stuff more sane in the
+# process.
+#
 # Revision 1.17  2002/01/22 05:06:09  rochecompaan
 # We need to keep the last 'set' entry in the journal to preserve
 # information on 'activity' for nodes.
