@@ -1,4 +1,4 @@
-# $Id: dbinit.py,v 1.5 2001/07/23 23:20:35 richard Exp $
+# $Id: dbinit.py,v 1.6 2001/07/25 01:23:07 richard Exp $
 
 import os
 
@@ -25,8 +25,6 @@ class IssueClass(roundupdb.IssueClass):
 def open(name=None):
     ''' as from the roundupdb method openDB 
  
-     storagelocator must be the directory the __init__.py file is in 
-     - os.path.split(__file__)[0] gives us that I think 
     ''' 
     from roundup.hyperdb import String, Date, Link, Multilink
 
@@ -96,9 +94,6 @@ def open(name=None):
 def init(adminpw): 
     ''' as from the roundupdb method initDB 
  
-     storagelocator must be the directory the __init__.py file is in 
-     - os.path.split(__file__)[0] gives us that I think 
-
     Open the new database, and set up a bunch of attributes.
 
     ''' 
@@ -156,6 +151,9 @@ def init(adminpw):
 
 #
 # $Log: dbinit.py,v $
+# Revision 1.6  2001/07/25 01:23:07  richard
+# Added the Roundup spec to the new documentation directory.
+#
 # Revision 1.5  2001/07/23 23:20:35  richard
 # forgot to remove the interfaces from the dbinit module ;)
 #
