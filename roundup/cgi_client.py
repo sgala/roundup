@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.27 2001/10/05 02:23:24 richard Exp $
+# $Id: cgi_client.py,v 1.28 2001/10/08 00:34:31 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback, mimetypes
 import base64, Cookie, time
@@ -340,7 +340,7 @@ class Client:
                     key = link.labelprop(default_to_id=1)
                     for entry in value:
                         if key:
-                            l.append(link.get(entry, link.getkey()))
+                            l.append(link.get(entry, key))
                         else:
                             l.append(entry)
                     value = ', '.join(l)
@@ -701,6 +701,9 @@ def parsePropsFromForm(cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.28  2001/10/08 00:34:31  richard
+# Change message was stuffing up for multilinks with no key property.
+#
 # Revision 1.27  2001/10/05 02:23:24  richard
 #  . roundup-admin create now prompts for property info if none is supplied
 #    on the command-line.
