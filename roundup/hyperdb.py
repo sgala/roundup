@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.41 2001/12/15 23:47:47 richard Exp $
+# $Id: hyperdb.py,v 1.42 2001/12/16 10:53:37 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -844,7 +844,11 @@ class Node:
         try:
             return self.cl.get(self.nodeid, name)
         except KeyError, value:
-            raise AttributeError, str(value)
+            # we trap this but re-raise it as AttributeError - all other
+            # exceptions should pass through untrapped
+            pass
+        # nope, no such attribute
+        raise AttributeError, str(value)
     def __getitem__(self, name):
         return self.cl.get(self.nodeid, name)
     def __setattr__(self, name, value):
@@ -868,6 +872,10 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.42  2001/12/16 10:53:37  richard
+# take a copy of the node dict so that the subsequent set
+# operation doesn't modify the oldvalues structure
+#
 # Revision 1.41  2001/12/15 23:47:47  richard
 # Cleaned up some bare except statements
 #
