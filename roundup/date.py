@@ -1,4 +1,4 @@
-# $Id: date.py,v 1.5 2001/07/29 07:01:39 richard Exp $
+# $Id: date.py,v 1.6 2001/07/31 09:54:18 richard Exp $
 
 import time, re, calendar
 
@@ -163,7 +163,7 @@ class Date:
         info = m.groupdict()
 
         # get the current date/time using the offset
-        y,m,d,H,M,S,x,x,x = time.gmtime()
+        y,m,d,H,M,S,x,x,x = time.gmtime(time.time())
 
         # override year, month, day parts
         if info['m'] is not None and info['d'] is not None:
@@ -355,6 +355,9 @@ if __name__ == '__main__':
 
 #
 # $Log: date.py,v $
+# Revision 1.6  2001/07/31 09:54:18  richard
+# Fixed the 2.1-specific gmtime() (no arg) call in roundup.date. (Paul Wright)
+#
 # Revision 1.5  2001/07/29 07:01:39  richard
 # Added vim command to all source so that we don't get no steenkin' tabs :)
 #
