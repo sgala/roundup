@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-#$Id: statusauditor.py,v 1.1 2002/05/29 01:16:17 richard Exp $
+#$Id: statusauditor.py,v 1.2 2002/09/10 01:07:06 richard Exp $
 
 def chatty(db, cl, nodeid, newvalues):
     ''' If the issue is currently 'unread' or 'resolved', then set
@@ -63,18 +63,4 @@ def init(db):
     db.issue.audit('set', chatty)
     db.issue.audit('create', presetunread)
 
-#
-#$Log: statusauditor.py,v $
-#Revision 1.1  2002/05/29 01:16:17  richard
-#Sorry about this huge checkin! It's fixing a lot of related stuff in one go
-#though.
-#
-#. #541941 ] changing multilink properties by mail
-#. #526730 ] search for messages capability
-#. #505180 ] split MailGW.handle_Message
-#  - also changed cgi client since it was duplicating the functionality
-#. build htmlbase if tests are run using CVS checkout (removed note from
-#  installation.txt)
-#. don't create an empty message on email issue creation if the email is empty
-#
-#
+# vim: set filetype=python ts=4 sw=4 et si

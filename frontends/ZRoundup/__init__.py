@@ -14,7 +14,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: __init__.py,v 1.1 2001/12/12 23:27:14 richard Exp $
+# $Id: __init__.py,v 1.2 2002/09/10 01:07:05 richard Exp $
 #
 __version__='1.0'
 
@@ -53,11 +53,4 @@ misc_ = {
 }
 
 
-#
-# $Log: __init__.py,v $
-# Revision 1.1  2001/12/12 23:27:14  richard
-# Added a Zope frontend for roundup.
-#
-#
-#
 # vim: set filetype=python ts=4 sw=4 et si
