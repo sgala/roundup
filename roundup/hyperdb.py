@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.24 2001/10/10 03:54:57 richard Exp $
+# $Id: hyperdb.py,v 1.25 2001/10/11 00:17:51 richard Exp $
 
 # standard python modules
 import cPickle, re, string
@@ -215,7 +215,7 @@ class Class:
             if isinstance(prop, Multilink):
                 propvalues[key] = []
             else:
-                propvalues[key] = ''
+                propvalues[key] = None
 
         # convert all data to strings
         for key, prop in self.properties.items():
@@ -849,6 +849,12 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.25  2001/10/11 00:17:51  richard
+# Reverted a change in hyperdb so the default value for missing property
+# values in a create() is None and not '' (the empty string.) This obviously
+# breaks CSV import/export - the string 'None' will be created in an
+# export/import operation.
+#
 # Revision 1.24  2001/10/10 03:54:57  richard
 # Added database importing and exporting through CSV files.
 # Uses the csv module from object-craft for exporting if it's available.
