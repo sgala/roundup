@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.93 2002/01/08 11:57:12 richard Exp $
+# $Id: cgi_client.py,v 1.94 2002/01/09 13:54:21 grubert Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -356,10 +356,10 @@ class Client:
         if not props.has_key('assignedto'):
             return
         assignedto_id = props['assignedto']
-        if props.has_key('nosy') and assignedto_id not in props['nosy']:
-            props['nosy'].append(assignedto_id)
-        else:
+        if not props.has_key('nosy'):
             props['nosy'] = [assignedto_id]
+        elif assignedto_id not in props['nosy']:
+            props['nosy'].append(assignedto_id)
 
     def _changenode(self, props):
         ''' change the node based on the contents of the form
@@ -1180,6 +1180,9 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.94  2002/01/09 13:54:21  grubert
+# _add_assignedto_to_nosy did set nosy to assignedto only, no adding.
+#
 # Revision 1.93  2002/01/08 11:57:12  richard
 # crying out for real configuration handling... :(
 #
