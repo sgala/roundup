@@ -73,7 +73,7 @@ are calling the create() method to create a new node). If an auditor raises
 an exception, the original message is bounced back to the sender with the
 explanatory message given in the exception. 
 
-$Id: mailgw.py,v 1.63 2002/02/12 08:08:55 grubert Exp $
+$Id: mailgw.py,v 1.64 2002/02/14 23:46:02 richard Exp $
 '''
 
 
@@ -444,11 +444,15 @@ Subject was: "%s"
         # handle the users
         #
 
-        # Don't create users if ANONYMOUS_REGISTER is denied
-        if self.instance.ANONYMOUS_REGISTER == 'deny':
+        # Don't create users if ANONYMOUS_REGISTER_MAIL is denied
+        # ... fall back on ANONYMOUS_REGISTER if the other doesn't exist
+        create = 1
+        if hasattr(self.instance, 'ANONYMOUS_REGISTER_MAIL'):
+            if self.instance.ANONYMOUS_REGISTER_MAIL == 'deny':
+                create = 0
+        elif self.instance.ANONYMOUS_REGISTER == 'deny':
             create = 0
-        else:
-            create = 1
+
         author = self.db.uidFromAddress(message.getaddrlist('from')[0],
             create=create)
         if not author:
@@ -786,6 +790,9 @@ def parseContent(content, blank_line=re.compile(r'[\r\n]+\s*[\r\n]+'),
 
 #
 # $Log: mailgw.py,v $
+# Revision 1.64  2002/02/14 23:46:02  richard
+# . #516883 ] mail interface + ANONYMOUS_REGISTER
+#
 # Revision 1.63  2002/02/12 08:08:55  grubert
 #  . Clean up mail handling, multipart handling.
 #

@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: instance_config.py,v 1.10 2001/11/26 22:55:56 richard Exp $
+# $Id: instance_config.py,v 1.11 2002/02/14 23:46:02 richard Exp $
 
 MAIL_DOMAIN=MAILHOST=HTTP_HOST=None
 HTTP_PORT=0
@@ -74,6 +74,9 @@ ANONYMOUS_ACCESS = 'deny'       # either 'deny' or 'allow'
 # Deny or allow anonymous users to register through the web interface
 ANONYMOUS_REGISTER = 'deny'     # either 'deny' or 'allow'
 
+# Deny or allow anonymous users to register through the mail interface
+ANONYMOUS_REGISTER_MAIL = 'deny'     # either 'deny' or 'allow'
+
 # Send nosy messages to the author of the message
 MESSAGES_TO_AUTHOR = 'no'       # either 'yes' or 'no'
 
@@ -82,6 +85,9 @@ EMAIL_SIGNATURE_POSITION = 'bottom'
 
 #
 # $Log: instance_config.py,v $
+# Revision 1.11  2002/02/14 23:46:02  richard
+# . #516883 ] mail interface + ANONYMOUS_REGISTER
+#
 # Revision 1.10  2001/11/26 22:55:56  richard
 # Feature:
 #  . Added INSTANCE_NAME to configuration - used in web and email to identify
