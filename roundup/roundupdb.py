@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.37 2002/01/08 04:12:05 richard Exp $
+# $Id: roundupdb.py,v 1.38 2002/01/10 05:57:45 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -378,7 +378,7 @@ class IssueClass(Class):
             m.append(self.email_signature(nodeid, msgid))
 
         # get the files for this message
-        files = messages.get(msgid, 'files')
+        message_files = messages.get(msgid, 'files')
 
         # create the message
         message = cStringIO.StringIO()
@@ -395,12 +395,12 @@ class IssueClass(Class):
             writer.addheader('In-Reply-To', inreplyto)
 
         # attach files
-        if files:
+        if message_files:
             part = writer.startmultipartbody('mixed')
             part = writer.nextpart()
             body = part.startbody('text/plain')
             body.write('\n'.join(m))
-            for fileid in files:
+            for fileid in message_files:
                 name = files.get(fileid, 'name')
                 mime_type = files.get(fileid, 'type')
                 content = files.get(fileid, 'content')
@@ -530,6 +530,9 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.38  2002/01/10 05:57:45  richard
+# namespace clobberation
+#
 # Revision 1.37  2002/01/08 04:12:05  richard
 # Changed message-id format to "<%s.%s.%s%s@%s>" so it complies with RFC822
 #
