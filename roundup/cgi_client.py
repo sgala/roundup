@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.106 2002/02/21 06:23:00 richard Exp $
+# $Id: cgi_client.py,v 1.107 2002/02/21 06:57:38 richard Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -52,11 +52,12 @@ class Client:
         self.env = env
         self.path = env['PATH_INFO']
         self.split_path = self.path.split('/')
+        self.instance_path_name = env['INSTANCE_NAME']
         url = self.env['SCRIPT_NAME'] + '/'
         machine = self.env['SERVER_NAME']
         port = self.env['SERVER_PORT']
         if port != '80': machine = machine + ':' + port
-        self.base = urlparse.urlunparse(('http', machine, url, None,None,None))
+        self.base = urlparse.urlunparse(('http', env['HOST'], url, None,None,None))
 
         if form is None:
             self.form = cgi.FieldStorage(environ=env)
@@ -96,10 +97,11 @@ function submit_once() {
     submitted = true;
     return 1;
 }
+
 function help_window(helpurl) {
-    helpwin = window.open(%(base)s + helpurl, 'HelpWindow',
-       'scrollbars=yes,resizable=yes,toolbar=no,height=400,width=400');
+    HelpWin = window.open('%(base)s%(instance_path_name)s/' + helpurl, 'HelpWindow', 'scrollbars=yes,resizable=yes,toolbar=no,height=400,width=400');
 }
+
 </script>
 '''
 
@@ -395,6 +397,27 @@ function help_window(helpurl) {
             w(p.join(l) + '\n')
 
         w(_('</textarea><br><input type="submit" value="Save Changes"></form>'))
+
+    def classhelp(self):
+        '''Display a table of class info
+        '''
+        w = self.write
+        cn = self.form['classname'].value
+        cl = self.db.classes[cn]
+        props = self.form['columns'].value.split(',')
+
+        w('<table border=1 cellspacing=0 cellpaddin=2>')
+        w('<tr>')
+        for name in props:
+            w('<th align=left>%s</th>'%name)
+        w('</tr>')
+        for nodeid in cl.list():
+            w('<tr>')
+            for name in props:
+                value = cgi.escape(str(cl.get(nodeid, name)))
+                w('<td align="left" valign="top">%s</td>'%value)
+            w('</tr>')
+        w('</table>')
 
     def shownode(self, message=None):
         ''' display an item
@@ -1101,6 +1124,9 @@ function help_window(helpurl) {
         if action == 'list_classes':
             self.classes()
             return
+        if action == 'classhelp':
+            self.classhelp()
+            return
         if action == 'login':
             self.login()
             return
@@ -1298,6 +1324,14 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.107  2002/02/21 06:57:38  richard
+#  . Added popup help for classes using the classhelp html template function.
+#    - add <display call="classhelp('priority', 'id,name,description')">
+#      to an item page, and it generates a link to a popup window which displays
+#      the id, name and description for the priority class. The description
+#      field won't exist in most installations, but it will be added to the
+#      default templates.
+#
 # Revision 1.106  2002/02/21 06:23:00  richard
 # *** empty log message ***
 #

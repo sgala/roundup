@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: test_dates.py,v 1.8 2002/01/16 07:02:57 richard Exp $ 
+# $Id: test_dates.py,v 1.9 2002/02/21 06:57:39 richard Exp $ 
 
 import unittest, time
 
@@ -70,6 +70,8 @@ class DateTestCase(unittest.TestCase):
         ae(str(date), '%s-%02d-%02d.19:25:00'%(y, m, d))
         date = Date("8:47:11", -5)
         ae(str(date), '%s-%02d-%02d.13:47:11'%(y, m, d))
+        # TODO: assert something
+        Date() + Interval('- 2y 2m')
 
     def testInterval(self):
         ae = self.assertEqual
@@ -87,6 +89,14 @@ def suite():
 
 #
 # $Log: test_dates.py,v $
+# Revision 1.9  2002/02/21 06:57:39  richard
+#  . Added popup help for classes using the classhelp html template function.
+#    - add <display call="classhelp('priority', 'id,name,description')">
+#      to an item page, and it generates a link to a popup window which displays
+#      the id, name and description for the priority class. The description
+#      field won't exist in most installations, but it will be added to the
+#      default templates.
+#
 # Revision 1.8  2002/01/16 07:02:57  richard
 #  . lots of date/interval related changes:
 #    - more relaxed date format for input

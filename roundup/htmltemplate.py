@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.78 2002/02/21 06:23:00 richard Exp $
+# $Id: htmltemplate.py,v 1.79 2002/02/21 06:57:38 richard Exp $
 
 __doc__ = """
 Template engine.
@@ -655,11 +655,11 @@ class TemplateFunctions:
         else:
             return _('[Submit: not called from item]')
 
-    def do_classhelp(self, classname, colums):
+    def do_classhelp(self, classname, properties):
         '''pop up a javascript window with class help
         '''
         return '<a href="javascript:help_window(\'classhelp?classname=%s&' \
-            'columns=%s\')"><b>(?)</b></a>'%(classname, columns)
+            'properties=%s\')"><b>(?)</b></a>'%(classname, properties)
 #
 #   INDEX TEMPLATES
 #
@@ -1081,6 +1081,14 @@ class NewItemTemplate(TemplateFunctions):
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.79  2002/02/21 06:57:38  richard
+#  . Added popup help for classes using the classhelp html template function.
+#    - add <display call="classhelp('priority', 'id,name,description')">
+#      to an item page, and it generates a link to a popup window which displays
+#      the id, name and description for the priority class. The description
+#      field won't exist in most installations, but it will be added to the
+#      default templates.
+#
 # Revision 1.78  2002/02/21 06:23:00  richard
 # *** empty log message ***
 #
