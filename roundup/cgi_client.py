@@ -1,4 +1,4 @@
-# $Id: cgi_client.py,v 1.4 2001/07/28 00:34:34 richard Exp $
+# $Id: cgi_client.py,v 1.5 2001/07/28 08:16:52 richard Exp $
 
 import os, cgi, pprint, StringIO, urlparse, re, traceback
 
@@ -389,8 +389,9 @@ class Client:
                         m.append('%s: %s'%(name, value))
 
                     # handle the note
-                    if self.form.has_key('__note'):
-                        note = self.form['__note'].value
+                    note = self.form.get('__note', None)
+                    if note and note.value:
+                        note = note.value
                         if '\n' in note:
                             summary = re.split(r'\n\r?', note)[0]
                         else:
@@ -489,6 +490,9 @@ class Client:
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.5  2001/07/28 08:16:52  richard
+# New issue form handles lack of note better now.
+#
 # Revision 1.4  2001/07/28 00:34:34  richard
 # Fixed some non-string node ids.
 #
