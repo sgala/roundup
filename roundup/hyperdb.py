@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.42 2001/12/16 10:53:37 richard Exp $
+# $Id: hyperdb.py,v 1.43 2001/12/20 06:13:24 rochecompaan Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -723,8 +723,11 @@ class Class:
                     if (isinstance(propclass, String) or
                             isinstance(propclass, Date)):
                         # it might be a string that's really an integer
-                        av = int(av)
-                        bv = int(bv)
+                        try:
+                            av = int(av)
+                            bv = int(bv)
+                        except:
+                            pass
                         if dir == '+':
                             r = cmp(av, bv)
                             if r != 0: return r
@@ -740,7 +743,7 @@ class Class:
                         link = db.classes[propclass.classname]
                         if av is None and bv is not None: return -1
                         if av is not None and bv is None: return 1
-                        if av is None and bv is None: return 0
+                        if av is None and bv is None: continue
                         if link.getprops().has_key('order'):
                             if dir == '+':
                                 r = cmp(link.get(av, 'order'),
@@ -872,6 +875,16 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.43  2001/12/20 06:13:24  rochecompaan
+# Bugs fixed:
+#   . Exception handling in hyperdb for strings-that-look-like numbers got
+#     lost somewhere
+#   . Internet Explorer submits full path for filename - we now strip away
+#     the path
+# Features added:
+#   . Link and multilink properties are now displayed sorted in the cgi
+#     interface
+#
 # Revision 1.42  2001/12/16 10:53:37  richard
 # take a copy of the node dict so that the subsequent set
 # operation doesn't modify the oldvalues structure

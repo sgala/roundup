@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: cgi_client.py,v 1.84 2001/12/18 15:30:30 rochecompaan Exp $
+# $Id: cgi_client.py,v 1.85 2001/12/20 06:13:24 rochecompaan Exp $
 
 __doc__ = """
 WWW request handler (also used in the stand-alone server).
@@ -419,12 +419,13 @@ class Client:
         if self.form.has_key('__file'):
             file = self.form['__file']
             if file.filename:
-                mime_type = mimetypes.guess_type(file.filename)[0]
+                filename = file.filename.split('\\')[-1]
+                mime_type = mimetypes.guess_type(filename)[0]
                 if not mime_type:
                     mime_type = "application/octet-stream"
                 # create the new file entry
                 files.append(self.db.file.create(type=mime_type,
-                    name=file.filename, content=file.file.read()))
+                    name=filename, content=file.file.read()))
 
         # we don't want to do a message if none of the following is true...
         cn = self.classname
@@ -538,8 +539,8 @@ class Client:
                 # and some nice feedback for the user
                 message = _('%(classname)s created ok')%{'classname': cn}
 
-                self.db.commit()
                 # render the newly created issue
+                self.db.commit()
                 self.nodeid = nid
                 self.pagehead('%s: %s'%(self.classname.capitalize(), nid),
                     message)
@@ -547,21 +548,21 @@ class Client:
                     self.classname)
                 item.render(nid)
                 self.pagefoot()
+                return
             except:
                 self.db.rollback()
                 s = StringIO.StringIO()
                 traceback.print_exc(None, s)
                 message = '<pre>%s</pre>'%cgi.escape(s.getvalue())
-        else:
-            self.pagehead(_('New %(classname)s')%{'classname':
-                self.classname.capitalize()}, message)
+        self.pagehead(_('New %(classname)s')%{'classname':
+            self.classname.capitalize()}, message)
 
-            # call the template
-            newitem = htmltemplate.NewItemTemplate(self, self.TEMPLATES,
-                self.classname)
-            newitem.render(self.form)
+        # call the template
+        newitem = htmltemplate.NewItemTemplate(self, self.TEMPLATES,
+            self.classname)
+        newitem.render(self.form)
 
-            self.pagefoot()
+        self.pagefoot()
     newissue = newnode
 
     def newuser(self, message=None):
@@ -1162,6 +1163,16 @@ def parsePropsFromForm(db, cl, form, nodeid=0):
 
 #
 # $Log: cgi_client.py,v $
+# Revision 1.85  2001/12/20 06:13:24  rochecompaan
+# Bugs fixed:
+#   . Exception handling in hyperdb for strings-that-look-like numbers got
+#     lost somewhere
+#   . Internet Explorer submits full path for filename - we now strip away
+#     the path
+# Features added:
+#   . Link and multilink properties are now displayed sorted in the cgi
+#     interface
+#
 # Revision 1.84  2001/12/18 15:30:30  rochecompaan
 # Fixed bugs:
 #  .  Fixed file creation and retrieval in same transaction in anydbm
