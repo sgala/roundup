@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: nosyreaction.py,v 1.12 2002/05/29 01:16:17 richard Exp $
+#$Id: nosyreaction.py,v 1.12.2.1 2002/09/02 21:51:39 richard Exp $
 
 from roundup import roundupdb, hyperdb
 
@@ -88,7 +88,7 @@ def updatenosy(db, cl, nodeid, newvalues):
                 current[value] = 1
 
     # add assignedto(s) to the nosy list
-    if newvalues.has_key('assignedto'):
+    if newvalues.has_key('assignedto') and newvalues['assignedto'] is not None:
         propdef = cl.getprops()
         if isinstance(propdef['assignedto'], hyperdb.Link):
             assignedto_ids = [newvalues['assignedto']]
@@ -141,6 +141,9 @@ def init(db):
 
 #
 #$Log: nosyreaction.py,v $
+#Revision 1.12.2.1  2002/09/02 21:51:39  richard
+#backport of nosy assignedto bugfix
+#
 #Revision 1.12  2002/05/29 01:16:17  richard
 #Sorry about this huge checkin! It's fixing a lot of related stuff in one go
 #though.
