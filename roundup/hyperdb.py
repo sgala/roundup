@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.69.2.1 2002/07/10 06:30:47 richard Exp $
+# $Id: hyperdb.py,v 1.69.2.2 2002/09/03 02:55:26 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -512,6 +512,10 @@ class Class:
                     return None
             else:
                 return default
+
+        # dupe the return list so it can be modified safely
+        if isinstance(prop, Multilink):
+            return d[propname]
 
         return d[propname]
 
@@ -1184,6 +1188,9 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.69.2.2  2002/09/03 02:55:26  richard
+# bug in multilink meant changes might not be detected correctly
+#
 # Revision 1.69.2.1  2002/07/10 06:30:47  richard
 #  . #571170 ] gdbm deadlock
 #
