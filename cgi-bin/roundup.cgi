@@ -16,7 +16,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundup.cgi,v 1.10 2001/08/07 00:24:42 richard Exp $
+# $Id: roundup.cgi,v 1.11 2001/09/29 13:27:00 richard Exp $
 
 # python version check
 import sys
@@ -97,6 +97,18 @@ def main(instance, out):
         out.write('Status: 403\n\n')
         out.write('Unauthorised')
 
+def index(out):
+    ''' Print up an index of the available instances
+    '''
+    w = out.write
+    w("Content-Type: text/html\n\n")
+    w('<html><head><title>Roundup instances index</title><head>\n')
+    w('<body><h1>Roundup instances index</h1><ol>\n')
+    for instance in ROUNDUP_INSTANCE_HOMES.keys():
+        w('<li><a href="%s/index">%s</a>\n'%(urllib.quote(instance),
+            instance))
+    w('</ol></body></html>')
+
 #
 # Now do the actual CGI handling
 # 
@@ -111,9 +123,9 @@ try:
     if ROUNDUP_INSTANCE_HOMES.has_key(instance):
         instance_home = ROUNDUP_INSTANCE_HOMES[instance]
         instance = roundup.instance.open(instance_home)
+        main(instance, out)
     else:
-        raise ValueError, 'No such instance "%s"'%instance
-    main(instance, out)
+        index()
 except:
     sys.stdout, sys.stderr = out, err
     out.write('Content-Type: text/html\n\n')
@@ -123,6 +135,10 @@ sys.stdout, sys.stderr = out, err
 
 #
 # $Log: roundup.cgi,v $
+# Revision 1.11  2001/09/29 13:27:00  richard
+# CGI interfaces now spit up a top-level index of all the instances they can
+# serve.
+#
 # Revision 1.10  2001/08/07 00:24:42  richard
 # stupid typo
 #

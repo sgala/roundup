@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.7 2001/08/12 06:32:36 richard Exp $
+#$Id: back_anydbm.py,v 1.8 2001/09/29 13:27:00 richard Exp $
 
 import anydbm, os, marshal
 from roundup import hyperdb, date
@@ -41,6 +41,7 @@ class Database(hyperdb.Database):
         """
         self.dir, self.journaltag = storagelocator, journaltag
         self.classes = {}
+        self.transactions = []
 
     #
     # Classes
@@ -203,21 +204,26 @@ class Database(hyperdb.Database):
     #
     # Basic transaction support
     #
-    # TODO: well, write these methods (and then use them in other code)
-    def register_action(self):
-        ''' Register an action to the transaction undo log
-        '''
-
     def commit(self):
-        ''' Commit the current transaction, start a new one
+        ''' Commit the current transactions.
         '''
+        # lock the DB
+        for action, classname, entry in self.transactions:
+            # write the node, figure what's changed for the journal.
+            pass
+        # unlock the DB
 
     def rollback(self):
-        ''' Reverse all actions from the current transaction
+        ''' Reverse all actions from the current transaction.
         '''
+        self.transactions = []
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.8  2001/09/29 13:27:00  richard
+#CGI interfaces now spit up a top-level index of all the instances they can
+#serve.
+#
 #Revision 1.7  2001/08/12 06:32:36  richard
 #using isinstance(blah, Foo) now instead of isFooType
 #
