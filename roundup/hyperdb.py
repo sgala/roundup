@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.70 2002/06/27 12:06:20 gmcm Exp $
+# $Id: hyperdb.py,v 1.71 2002/07/09 03:02:52 richard Exp $
 
 __doc__ = """
 Hyperdatabase implementation, especially field types.
@@ -56,6 +56,8 @@ del Sink
 #
 class String:
     """An object designating a String property."""
+    def __init__(self, indexme='no'):
+        self.indexme = indexme == 'yes'
     def __repr__(self):
         ' more useful for dumps '
         return '<%s>'%self.__class__
@@ -155,6 +157,10 @@ transaction.
         None, the database is opened in read-only mode: the Class.create(),
         Class.set(), and Class.retire() methods are disabled.
         """
+        raise NotImplementedError
+
+    def post_init(self):
+        """Called once the schema initialisation has finished."""
         raise NotImplementedError
 
     def __getattr__(self, classname):
@@ -1111,6 +1117,16 @@ class Class:
                 raise ValueError, key
         self.properties.update(properties)
 
+    def index(self, nodeid):
+        '''Add (or refresh) the node to search indexes
+        '''
+        # find all the String properties that have indexme
+        for prop, propclass in self.getprops().items():
+            if isinstance(propclass, String) and propclass.indexme:
+                # and index them under (classname, nodeid, property)
+                self.db.indexer.add_text((self.classname, nodeid, prop),
+                    str(self.get(nodeid, prop)))
+
 # XXX not in spec
 class Node:
     ''' A convenience wrapper for the given node
@@ -1169,6 +1185,22 @@ def Choice(name, db, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.71  2002/07/09 03:02:52  richard
+# More indexer work:
+# - all String properties may now be indexed too. Currently there's a bit of
+#   "issue" specific code in the actual searching which needs to be
+#   addressed. In a nutshell:
+#   + pass 'indexme="yes"' as a String() property initialisation arg, eg:
+#         file = FileClass(db, "file", name=String(), type=String(),
+#             comment=String(indexme="yes"))
+#   + the comment will then be indexed and be searchable, with the results
+#     related back to the issue that the file is linked to
+# - as a result of this work, the FileClass has a default MIME type that may
+#   be overridden in a subclass, or by the use of a "type" property as is
+#   done in the default templates.
+# - the regeneration of the indexes (if necessary) is done once the schema is
+#   set up in the dbinit.
+#
 # Revision 1.70  2002/06/27 12:06:20  gmcm
 # Improve an error message.
 #

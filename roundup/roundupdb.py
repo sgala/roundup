@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: roundupdb.py,v 1.59 2002/06/18 03:55:25 dman13 Exp $
+# $Id: roundupdb.py,v 1.60 2002/07/09 03:02:52 richard Exp $
 
 __doc__ = """
 Extending hyperdb with types specific to issue-tracking.
@@ -227,6 +227,16 @@ class Class(hyperdb.Class):
             react(self.db, self, nodeid, oldvalues)
 
 class FileClass(Class):
+    '''This class defines a large chunk of data. To support this, it has a
+       mandatory String property "content" which is typically saved off
+       externally to the hyperdb.
+
+       The default MIME type of this data is defined by the
+       "default_mime_type" class attribute, which may be overridden by each
+       node if the class defines a "type" String property.
+    '''
+    default_mime_type = 'text/plain'
+
     def create(self, **propvalues):
         ''' snaffle the file propvalue and store in a file
         '''
@@ -263,6 +273,28 @@ class FileClass(Class):
         if protected:
             d['content'] = hyperdb.String()
         return d
+
+    def index(self, nodeid):
+        ''' Index the node in the search index.
+
+            We want to index the content in addition to the normal String
+            property indexing.
+        '''
+        # perform normal indexing
+        Class.index(self, nodeid)
+
+        # get the content to index
+        content = self.get(nodeid, 'content')
+
+        # figure the mime type
+        if self.properties.has_key('type'):
+            mime_type = self.get(nodeid, 'type')
+        else:
+            mime_type = self.default_mime_type
+
+        # and index!
+        self.db.indexer.add_text((self.classname, nodeid, 'content'), content,
+            mime_type)
 
 class MessageSendError(RuntimeError):
     pass
@@ -659,6 +691,22 @@ class IssueClass(Class):
 
 #
 # $Log: roundupdb.py,v $
+# Revision 1.60  2002/07/09 03:02:52  richard
+# More indexer work:
+# - all String properties may now be indexed too. Currently there's a bit of
+#   "issue" specific code in the actual searching which needs to be
+#   addressed. In a nutshell:
+#   + pass 'indexme="yes"' as a String() property initialisation arg, eg:
+#         file = FileClass(db, "file", name=String(), type=String(),
+#             comment=String(indexme="yes"))
+#   + the comment will then be indexed and be searchable, with the results
+#     related back to the issue that the file is linked to
+# - as a result of this work, the FileClass has a default MIME type that may
+#   be overridden in a subclass, or by the use of a "type" property as is
+#   done in the default templates.
+# - the regeneration of the indexes (if necessary) is done once the schema is
+#   set up in the dbinit.
+#
 # Revision 1.59  2002/06/18 03:55:25  dman13
 # Fixed name/address display problem introduced by an earlier change.
 # (instead of "name<addr>" display "name <addr>")

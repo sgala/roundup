@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: blobfiles.py,v 1.5 2002/07/08 06:58:15 richard Exp $
+#$Id: blobfiles.py,v 1.6 2002/07/09 03:02:52 richard Exp $
 '''
 This module exports file storage for roundup backends.
 Files are stored into a directory hierarchy.
@@ -74,12 +74,19 @@ class FileStorage:
            None, in which case the filename does not indicate which property
            is being saved.
         '''
+        # determine the name of the file to write to
         name = self.filename(classname, nodeid, property)
+
+        # make sure the file storage dir exists
         if not os.path.exists(os.path.dirname(name)):
             os.makedirs(os.path.dirname(name))
-        open(name + '.tmp', 'wb').write(content)
-        self.transactions.append((self._doStoreFile, (name, )))
 
+        # open the temp file for writing
+        open(name + '.tmp', 'wb').write(content)
+
+        # save off the commit action
+        self.transactions.append((self._doStoreFile, (classname, nodeid,
+            property)))
 
     def getfile(self, classname, nodeid, property):
         '''Get the content of the file in the database.
@@ -88,6 +95,7 @@ class FileStorage:
         try:
             return open(filename, 'rb').read()
         except:
+            # now try the temp pre-commit filename
             try:
                 return open(filename+'.tmp', 'rb').read()
             except:
@@ -101,15 +109,43 @@ class FileStorage:
         files_dir = os.path.join(self.dir, 'files')
         return files_in_dir(files_dir)
 
-    def _doStoreFile(self, name, **databases):
+    def _doStoreFile(self, classname, nodeid, property, **databases):
         '''Store the file as part of a transaction commit.
         '''
+        # determine the name of the file to write to
+        name = self.filename(classname, nodeid, property)
+
         # the file is currently ".tmp" - move it to its real name to commit
         os.rename(name+".tmp", name)
-        self.indexer.add_file(name)
-        self.indexer.save_index()
+
+        # return the classname, nodeid so we reindex this content
+        return (classname, nodeid)
+
+    def _rollbackStoreFile(self, classname, nodeid, property, **databases):
+        '''Remove the temp file as a part of a rollback
+        '''
+        # determine the name of the file to delete
+        name = self.filename(classname, nodeid, property)
+        if os.path.exists(name+".tmp"):
+            os.remove(name+".tmp")
 
 # $Log: blobfiles.py,v $
+# Revision 1.6  2002/07/09 03:02:52  richard
+# More indexer work:
+# - all String properties may now be indexed too. Currently there's a bit of
+#   "issue" specific code in the actual searching which needs to be
+#   addressed. In a nutshell:
+#   + pass 'indexme="yes"' as a String() property initialisation arg, eg:
+#         file = FileClass(db, "file", name=String(), type=String(),
+#             comment=String(indexme="yes"))
+#   + the comment will then be indexed and be searchable, with the results
+#     related back to the issue that the file is linked to
+# - as a result of this work, the FileClass has a default MIME type that may
+#   be overridden in a subclass, or by the use of a "type" property as is
+#   done in the default templates.
+# - the regeneration of the indexes (if necessary) is done once the schema is
+#   set up in the dbinit.
+#
 # Revision 1.5  2002/07/08 06:58:15  richard
 # cleaned up the indexer code:
 #  - it splits more words out (much simpler, faster splitter)
