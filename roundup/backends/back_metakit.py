@@ -43,8 +43,7 @@ class _Database(hyperdb.Database):
             for nodeid in klass.list():
                 klass.index(nodeid)
         self.indexer.save_index()
-        
-            
+
     # --- defined in ping's spec
     def __getattr__(self, classname):
         if classname == 'curuserid':
@@ -87,6 +86,7 @@ class _Database(hyperdb.Database):
             self._db = metakit.storage(self.dbnm, 1)
             self.hist = self._db.view('history')
             self.tables = self._db.view('tables')
+            self.indexer.rollback()
             self.indexer.datadb = self._db
         self.dirty = 0
     def clearCache(self):
@@ -246,14 +246,18 @@ class Class:
                               'activity' : hyperdb.Date(),
                               'creation' : hyperdb.Date(),
                               'creator'  : hyperdb.Link('user') }
-        self.auditors = {'create': [], 'set': [], 'retire': []} # event -> list of callables
-        self.reactors = {'create': [], 'set': [], 'retire': []} # ditto
+
+        # event -> list of callables
+        self.auditors = {'create': [], 'set': [], 'retire': []}
+        self.reactors = {'create': [], 'set': [], 'retire': []}
+
         view = self.__getview()
         self.maxid = 1
         if view:
             self.maxid = view[-1].id + 1
         self.uncommitted = {}
         self.rbactions = []
+
         # people reach inside!!
         self.properties = self.ruprops
         self.db.addclass(self)
@@ -287,6 +291,7 @@ class Class:
         l = self.reactors[event]
         if detector not in l:
             self.reactors[event].append(detector)
+
     # --- the hyperdb.Class methods
     def create(self, **propvalues):
         self.fireAuditors('create', None, propvalues)
@@ -344,6 +349,7 @@ class Class:
         if self.db.journaltag is None:
             raise hyperdb.DatabaseError, 'Database open read-only'
         view = self.getview(1)
+
         # node must exist & not be retired
         id = int(nodeid)
         ndx = view.find(id=id)
@@ -416,7 +422,7 @@ class Class:
                 if self.do_journal and prop.do_journal:
                     # register the unlink with the old linked node
                     if oldvalue:
-                        self.db.addjournal(link_class, value, _UNLINK,
+                        self.db.addjournal(link_class, oldvalue, _UNLINK,
                             (self.classname, str(row.id), key))
 
                     # register the link with the newly linked node
@@ -492,7 +498,7 @@ class Class:
                 changes[key] = oldvalue
                 if hasattr(prop, 'isfilename') and prop.isfilename:
                     propvalues[key] = os.path.basename(value)
-                if prop.indexme and value is not None:
+                if prop.indexme:
                     self.db.indexer.add_text((self.classname, nodeid, key),
                         value, 'text/plain')
 
@@ -535,7 +541,7 @@ class Class:
                 setattr(row, key, v)
                 changes[key] = oldvalue
                 propvalues[key] = value
-                
+
             elif isinstance(prop, hyperdb.Boolean):
                 if value is None:
                     bv = 0
@@ -592,15 +598,18 @@ class Class:
                 iv.delete(ndx)
         self.db.dirty = 1
         self.fireReactors('retire', nodeid, None)
+
     def history(self, nodeid):
         if not self.do_journal:
             raise ValueError, 'Journalling is disabled for this class'
         return self.db.getjournal(self.classname, nodeid)
+
     def setkey(self, propname):
         if self.keyname:
             if propname == self.keyname:
                 return
-            raise ValueError, "%s already indexed on %s" % (self.classname, self.keyname)
+            raise ValueError, "%s already indexed on %s"%(self.classname,
+                self.keyname)
         prop = self.properties.get(propname, None)
         if prop is None:
             prop = self.privateprops.get(propname, None)
@@ -608,21 +617,24 @@ class Class:
             raise KeyError, "no property %s" % propname
         if not isinstance(prop, hyperdb.String):
             raise TypeError, "%s is not a String" % propname
+
         # first setkey for this run
         self.keyname = propname
         iv = self.db._db.view('_%s' % self.classname)
         if self.db.fastopen and iv.structure():
             return
+
         # very first setkey ever
         self.db.dirty = 1
         iv = self.db._db.getas('_%s[k:S,i:I]' % self.classname)
         iv = iv.ordered(1)
-#        print "setkey building index"
         for row in self.getview():
             iv.append(k=getattr(row, propname), i=row.id)
         self.db.commit()
+
     def getkey(self):
         return self.keyname
+
     def lookup(self, keyvalue):
         if type(keyvalue) is not _STRINGTYPE:
             raise TypeError, "%r is not a string" % keyvalue
@@ -680,16 +692,24 @@ class Class:
         vws = []
         for propname, ids in propspec:
             if type(ids) is _STRINGTYPE:
-                ids = {ids:1}
+                ids = {int(ids):1}
+            else:
+                d = {}
+                for id in ids.keys():
+                    d[int(id)] = 1
+                ids = d
             prop = self.ruprops[propname]
             view = self.getview()
             if isinstance(prop, hyperdb.Multilink):
-                view = view.flatten(getattr(view, propname))
                 def ff(row, nm=propname, ids=ids):
-                    return ids.has_key(str(row.fid))
+                    sv = getattr(row, nm)
+                    for sr in sv:
+                        if ids.has_key(sr.fid):
+                            return 1
+                    return 0
             else:
                 def ff(row, nm=propname, ids=ids):
-                    return ids.has_key(str(getattr(row, nm)))
+                    return ids.has_key(getattr(row, nm))
             ndxview = view.filter(ff)
             vws.append(ndxview.unique())
 
@@ -700,7 +720,7 @@ class Class:
         ndxview = vws[0]
         for v in vws[1:]:
             ndxview = ndxview.union(v)
-        view = view.remapwith(ndxview)
+        view = self.getview().remapwith(ndxview)
         rslt = []
         for row in view:
             rslt.append(str(row.id))
@@ -712,30 +732,34 @@ class Class:
         for row in self.getview().select(_isdel=0):
             l.append(str(row.id))
         return l
+
     def count(self):
         return len(self.getview())
+
     def getprops(self, protected=1):
         # protected is not in ping's spec
         allprops = self.ruprops.copy()
         if protected and self.privateprops is not None:
             allprops.update(self.privateprops)
         return allprops
+
     def addprop(self, **properties):
         for key in properties.keys():
             if self.ruprops.has_key(key):
-                raise ValueError, "%s is already a property of %s" % (key, self.classname)
+                raise ValueError, "%s is already a property of %s"%(key,
+                    self.classname)
         self.ruprops.update(properties)
         self.db.fastopen = 0
         view = self.__getview()
         self.db.commit()
     # ---- end of ping's spec
-    def filter(self, search_matches, filterspec, sort, group):
+
+    def filter(self, search_matches, filterspec, sort=(None,None),
+            group=(None,None)):
         # search_matches is None or a set (dict of {nodeid: {propname:[nodeid,...]}})
         # filterspec is a dict {propname:value}
-        # sort and group are lists of propnames
         # sort and group are (dir, prop) where dir is '+', '-' or None
         #                    and prop is a prop name or None
-
         where = {'_isdel':0}
         mlcriteria = {}
         regexes = {}
@@ -789,6 +813,11 @@ class Class:
                 else:
                     bv = value
                 where[propname] = bv
+            elif isinstance(prop, hyperdb.Date):
+                t = date.Date(value).get_tuple()
+                where[propname] = int(calendar.timegm(t))
+            elif isinstance(prop, hyperdb.Interval):
+                where[propname] = str(date.Interval(value))
             elif isinstance(prop, hyperdb.Number):
                 where[propname] = int(value)
             else:
@@ -798,11 +827,10 @@ class Class:
         if where:
             v = v.select(where)
         #print "filter where at  %s" % time.time() 
-            
+
         if mlcriteria:
-                    # multilink - if any of the nodeids required by the
-                    # filterspec aren't in this node's property, then skip
-                    # it
+            # multilink - if any of the nodeids required by the
+            # filterspec aren't in this node's property, then skip it
             def ff(row, ml=mlcriteria):
                 for propname, values in ml.items():
                     sv = getattr(row, propname)
@@ -910,6 +938,7 @@ class Class:
         props = props.keys()
         props.sort()
         return props[0]
+
     def stringFind(self, **requirements):
         """Locate a particular node by matching a set of its String
         properties in a caseless search.
@@ -992,7 +1021,8 @@ class Class:
         view.append(d)
         creator = d.get('creator', None)
         creation = d.get('creation', None)
-        self.db.addjournal(self.classname, newid, 'create', {}, creator, creation)
+        self.db.addjournal(self.classname, newid, 'create', {}, creator,
+            creation)
         return newid
 
     # --- used by Database
@@ -1104,13 +1134,15 @@ _typmap = {
     hyperdb.Number    : 'I',
 }
 class FileClass(Class):
-    ' like Class but with a content property '
+    ''' like Class but with a content property
+    '''
     default_mime_type = 'text/plain'
     def __init__(self, db, classname, **properties):
         properties['content'] = FileName()
         if not properties.has_key('type'):
             properties['type'] = hyperdb.String()
         Class.__init__(self, db, classname, **properties)
+
     def get(self, nodeid, propname, default=_marker, cache=1):
         x = Class.get(self, nodeid, propname, default, cache)
         if propname == 'content':
@@ -1121,6 +1153,7 @@ class FileClass(Class):
                 except Exception, e:
                     x = repr(e)
         return x
+
     def create(self, **propvalues):
         content = propvalues['content']
         del propvalues['content']
@@ -1136,11 +1169,13 @@ class FileClass(Class):
         open(nm, 'wb').write(content)
         self.set(newid, content = 'file:'+nm)
         mimetype = propvalues.get('type', self.default_mime_type)
-        self.db.indexer.add_text((self.classname, newid, 'content'), content, mimetype)
+        self.db.indexer.add_text((self.classname, newid, 'content'), content,
+            mimetype)
         def undo(fnm=nm, action1=os.remove, indexer=self.db.indexer):
             action1(fnm)
         self.rollbackaction(undo)
         return newid
+
     def index(self, nodeid):
         Class.index(self, nodeid)
         mimetype = self.get(nodeid, 'type')
@@ -1150,12 +1185,12 @@ class FileClass(Class):
                     self.get(nodeid, 'content'), mimetype)
  
 class IssueClass(Class, roundupdb.IssueClass):
-    # Overridden methods:
-    def __init__(self, db, classname, **properties):
-        """The newly-created class automatically includes the "messages",
+    ''' The newly-created class automatically includes the "messages",
         "files", "nosy", and "superseder" properties.  If the 'properties'
         dictionary attempts to specify any of these properties or a
-        "creation" or "activity" property, a ValueError is raised."""
+        "creation" or "activity" property, a ValueError is raised.
+    '''
+    def __init__(self, db, classname, **properties):
         if not properties.has_key('title'):
             properties['title'] = hyperdb.String(indexme='yes')
         if not properties.has_key('messages'):
@@ -1170,12 +1205,13 @@ class IssueClass(Class, roundupdb.IssueClass):
             properties['superseder'] = hyperdb.Multilink(classname)
         Class.__init__(self, db, classname, **properties)
         
-CURVERSION = 1
+CURVERSION = 2
 
 class Indexer(indexer.Indexer):
     disallows = {'THE':1, 'THIS':1, 'ZZZ':1, 'THAT':1, 'WITH':1}
     def __init__(self, path, datadb):
-        self.db = metakit.storage(os.path.join(path, 'index.mk4'), 1)
+        self.path = os.path.join(path, 'index.mk4')
+        self.db = metakit.storage(self.path, 1)
         self.datadb = datadb
         self.reindex = 0
         v = self.db.view('version')
@@ -1188,12 +1224,13 @@ class Indexer(indexer.Indexer):
             v[0].vers = CURVERSION
             self.reindex = 1
         if self.reindex:
-            self.db.getas('ids[tblid:I,nodeid:I,propid:I]')
+            self.db.getas('ids[tblid:I,nodeid:I,propid:I,ignore:I]')
             self.db.getas('index[word:S,hits[pos:I]]')
             self.db.commit()
             self.reindex = 1
         self.changed = 0
         self.propcache = {}
+
     def force_reindex(self):
         v = self.db.view('ids')
         v[:] = []
@@ -1201,8 +1238,10 @@ class Indexer(indexer.Indexer):
         v[:] = []
         self.db.commit()
         self.reindex = 1
+
     def should_reindex(self):
         return self.reindex
+
     def _getprops(self, classname):
         props = self.propcache.get(classname, None)
         if props is None:
@@ -1210,8 +1249,10 @@ class Indexer(indexer.Indexer):
             props = [prop.name for prop in props]
             self.propcache[classname] = props
         return props
+
     def _getpropid(self, classname, propname):
         return self._getprops(classname).index(propname)
+
     def _getpropname(self, classname, propid):
         return self._getprops(classname)[propid]
 
@@ -1225,12 +1266,16 @@ class Indexer(indexer.Indexer):
             raise KeyError, "unknown class %r"%classname
         nodeid = int(nodeid)
         propid = self._getpropid(classname, property)
-        pos = self.db.view('ids').append(tblid=tblid,nodeid=nodeid,propid=propid)
+        ids = self.db.view('ids')
+        oldpos = ids.find(tblid=tblid,nodeid=nodeid,propid=propid,ignore=0)
+        if oldpos > -1:
+            ids[oldpos].ignore = 1
+            self.changed = 1
+        pos = ids.append(tblid=tblid,nodeid=nodeid,propid=propid)
         
-        wordlist = re.findall(r'\b\w{3,25}\b', text)
+        wordlist = re.findall(r'\b\w{2,25}\b', text.upper())
         words = {}
         for word in wordlist:
-	    word = word.upper()
 	    if not self.disallows.has_key(word):
             	words[word] = 1
         words = words.keys()
@@ -1239,16 +1284,16 @@ class Indexer(indexer.Indexer):
         for word in words:
             ndx = index.find(word=word)
             if ndx < 0:
-                ndx = index.append(word=word)
-            hits = index[ndx].hits
-            if len(hits)==0 or hits.find(pos=pos) < 0:
-                hits.append(pos=pos)
-                self.changed = 1
+                index.append(word=word)
+                ndx = index.find(word=word)
+            index[ndx].hits.append(pos=pos)
+            self.changed = 1
 
     def find(self, wordlist):
         hits = None
         index = self.db.view('index').ordered(1)
         for word in wordlist:
+            word = word.upper()
             if not 2 < len(word) < 26:
                 continue
             ndx = index.find(word=word)
@@ -1267,12 +1312,21 @@ class Indexer(indexer.Indexer):
         tbls = self.datadb.view('tables')
         for i in range(len(ids)):
             hit = ids[i]
-            classname = tbls[hit.tblid].name
-            nodeid = str(hit.nodeid)
-            property = self._getpropname(classname, hit.propid)
-            rslt[i] = (classname, nodeid, property)
+            if not hit.ignore:
+                classname = tbls[hit.tblid].name
+                nodeid = str(hit.nodeid)
+                property = self._getpropname(classname, hit.propid)
+                rslt[i] = (classname, nodeid, property)
         return rslt
+
     def save_index(self):
         if self.changed:
             self.db.commit()
         self.changed = 0
+
+    def rollback(self):
+        if self.changed:
+            self.db.rollback()
+            self.db = metakit.storage(self.path, 1)
+        self.changed = 0
+
