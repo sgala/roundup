@@ -30,6 +30,9 @@ handler.main(sys.stdin)
 
 #
 # $Log: roundup-mailgw,v $
+# Revision 1.1  2001/07/23 03:46:48  richard
+# moving the bin files to facilitate out-of-the-boxness
+#
 # Revision 1.1  2001/07/22 11:15:45  richard
 # More Grande Splite stuff
 #
