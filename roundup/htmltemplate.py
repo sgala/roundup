@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: htmltemplate.py,v 1.31 2001/10/21 07:26:35 richard Exp $
+# $Id: htmltemplate.py,v 1.32 2001/10/22 03:25:01 richard Exp $
 
 import os, re, StringIO, urllib, cgi, errno
 
@@ -566,8 +566,9 @@ def index(client, templates, db, classname, filterspec={}, filter=[],
         columns = l
 
     # display the filter section
-    filter_section(w, cl, filter, columns, group, all_filters, all_columns,
-        show_display_form, show_customization)
+    if hasattr(client, 'FILTER_POSITION') and client.FILTER_POSITION in ('top and bottom', 'top'):
+        filter_section(w, cl, filter, columns, group, all_filters, all_columns,
+            show_display_form, show_customization)
 
     # now display the index section
     w('<table width=100% border=0 cellspacing=0 cellpadding=2>\n')
@@ -636,6 +637,11 @@ def index(client, templates, db, classname, filterspec={}, filter=[],
         w(replace.go(template))
 
     w('</table>')
+
+    # display the filter section
+    if hasattr(client, 'FILTER_POSITION') and client.FILTER_POSITION in ('top and bottom', 'bottom'):
+        filter_section(w, cl, filter, columns, group, all_filters, all_columns,
+            show_display_form, show_customization)
 
 
 def filter_section(w, cl, filter, columns, group, all_filters, all_columns,
@@ -833,6 +839,12 @@ def newitem(client, templates, db, classname, form, replace=re.compile(
 
 #
 # $Log: htmltemplate.py,v $
+# Revision 1.32  2001/10/22 03:25:01  richard
+# Added configuration for:
+#  . anonymous user access and registration (deny/allow)
+#  . filter "widget" location on index page (top, bottom, both)
+# Updated some documentation.
+#
 # Revision 1.31  2001/10/21 07:26:35  richard
 # feature #473127: Filenames. I modified the file.index and htmltemplate
 #  source so that the filename is used in the link and the creation
