@@ -15,7 +15,7 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-#$Id: back_anydbm.py,v 1.59 2002/08/16 04:28:13 richard Exp $
+#$Id: back_anydbm.py,v 1.60 2002/08/19 00:23:19 richard Exp $
 '''
 This module defines a backend that saves the hyperdatabase in a database
 chosen by anydbm. It is guaranteed to always be available in python
@@ -743,7 +743,7 @@ class Class(hyperdb.Class):
                 raise KeyError, '"%s" has no property "%s"'%(self.classname,
                     key)
 
-            if isinstance(prop, Link):
+            if value is not None and isinstance(prop, Link):
                 if type(value) != type(''):
                     raise ValueError, 'link value must be String'
                 link_class = self.properties[key].classname
@@ -1803,6 +1803,9 @@ class IssueClass(Class, roundupdb.IssueClass):
 
 #
 #$Log: back_anydbm.py,v $
+#Revision 1.60  2002/08/19 00:23:19  richard
+#handle "unset" initial Link values (!)
+#
 #Revision 1.59  2002/08/16 04:28:13  richard
 #added is_retired query to Class
 #
