@@ -1,4 +1,4 @@
-# $Id: init.py,v 1.4 2001/07/24 10:46:22 anthonybaxter Exp $
+# $Id: init.py,v 1.5 2001/07/24 10:54:11 anthonybaxter Exp $
 
 import os, shutil, sys
 
@@ -18,6 +18,7 @@ def copytree(src, dst, symlinks=0):
     names = os.listdir(src)
     try:
         os.mkdir(dst)
+	print "making", dst
     except OSError, error:
         if error.errno != 17: raise
     for name in names:
@@ -57,6 +58,9 @@ from roundup.backends.back_%s import Database'''%backend
 
 #
 # $Log: init.py,v $
+# Revision 1.5  2001/07/24 10:54:11  anthonybaxter
+# oops. Html.
+#
 # Revision 1.4  2001/07/24 10:46:22  anthonybaxter
 # Added templatebuilder module. two functions - one to pack up the html base,
 # one to unpack it. Packed up the two standard templates into htmlbases.
