@@ -1,7 +1,11 @@
 #
 # This module was written by Ka-Ping Yee, <ping@lfw.org>.
 # 
-# $Id: cgitb.py,v 1.6 2001/09/29 13:27:00 richard Exp $
+# $Id: cgitb.py,v 1.7 2001/11/22 15:46:42 jhermann Exp $
+
+__doc__ = """
+Extended CGI traceback handler by Ka-Ping Yee, <ping@lfw.org>.
+"""
 
 import sys, os, types, string, keyword, linecache, tokenize, inspect, pydoc
 
@@ -118,6 +122,9 @@ def handler():
 
 #
 # $Log: cgitb.py,v $
+# Revision 1.7  2001/11/22 15:46:42  jhermann
+# Added module docstrings to all modules.
+#
 # Revision 1.6  2001/09/29 13:27:00  richard
 # CGI interfaces now spit up a top-level index of all the instances they can
 # serve.

@@ -15,7 +15,11 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: password.py,v 1.3 2001/10/20 11:58:48 richard Exp $
+# $Id: password.py,v 1.4 2001/11/22 15:46:42 jhermann Exp $
+
+__doc__ = """
+Password handling (encoding, decoding).
+"""
 
 import sha, re
 
@@ -113,6 +117,9 @@ if __name__ == '__main__':
 
 #
 # $Log: password.py,v $
+# Revision 1.4  2001/11/22 15:46:42  jhermann
+# Added module docstrings to all modules.
+#
 # Revision 1.3  2001/10/20 11:58:48  richard
 # Catch errors in login - no username or password supplied.
 # Fixed editing of password (Password property type) thanks Roch'e Compaan.

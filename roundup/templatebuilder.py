@@ -15,8 +15,12 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: templatebuilder.py,v 1.12 2001/11/14 21:35:21 richard Exp $
+# $Id: templatebuilder.py,v 1.13 2001/11/22 15:46:42 jhermann Exp $
 import errno, re
+
+__doc__ = """
+Collect template parts and create instance template files.
+"""
 
 preamble = """ 
 # Do Not Edit (Unless You Want To)
@@ -85,6 +89,9 @@ if __name__ == "__main__":
 
 #
 # $Log: templatebuilder.py,v $
+# Revision 1.13  2001/11/22 15:46:42  jhermann
+# Added module docstrings to all modules.
+#
 # Revision 1.12  2001/11/14 21:35:21  richard
 #  . users may attach files to issues (and support in ext) through the web now
 #

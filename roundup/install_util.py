@@ -15,7 +15,11 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: install_util.py,v 1.5 2001/11/12 23:17:38 jhermann Exp $
+# $Id: install_util.py,v 1.6 2001/11/22 15:46:42 jhermann Exp $
+
+__doc__ = """
+Support module to generate and check fingerprints of installed files.
+"""
 
 import os, sha, shutil
 
@@ -145,6 +149,9 @@ if __name__ == '__main__':
 
 #
 # $Log: install_util.py,v $
+# Revision 1.6  2001/11/22 15:46:42  jhermann
+# Added module docstrings to all modules.
+#
 # Revision 1.5  2001/11/12 23:17:38  jhermann
 # Code using copyDigestedFile() that passes unit tests
 #

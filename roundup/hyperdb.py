@@ -15,7 +15,11 @@
 # BASIS, AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 # SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 # 
-# $Id: hyperdb.py,v 1.34 2001/11/21 04:04:43 richard Exp $
+# $Id: hyperdb.py,v 1.35 2001/11/22 15:46:42 jhermann Exp $
+
+__doc__ = """
+Hyperdatabase implementation, especially field types.
+"""
 
 # standard python modules
 import cPickle, re, string
@@ -860,6 +864,9 @@ def Choice(name, *options):
 
 #
 # $Log: hyperdb.py,v $
+# Revision 1.35  2001/11/22 15:46:42  jhermann
+# Added module docstrings to all modules.
+#
 # Revision 1.34  2001/11/21 04:04:43  richard
 # *sigh* more missing value handling
 #
