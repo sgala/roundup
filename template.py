@@ -1,6 +1,6 @@
-# $Id: template.py,v 1.4 2001/07/19 06:27:07 anthonybaxter Exp $
+# $Id: template.py,v 1.5 2001/07/20 07:34:43 richard Exp $
 
-import os, re, StringIO, urllib
+import os, re, StringIO, urllib, cgi
 
 import hyperdb, date
 
@@ -68,6 +68,9 @@ class Field(Base):
             size = size or 30
             if value is None:
                 value = ''
+            else:
+                value = cgi.escape(value)
+                value = '&quot;'.join(value.split('"'))
             s = '<input name="%s" value="%s" size="%s">'%(property, value, size)
         elif propclass.isLinkType:
             linkcl = self.db.classes[propclass.classname]
@@ -697,6 +700,9 @@ def newitem(fp, db, classname, form, replace=re.compile(
 
 #
 # $Log: template.py,v $
+# Revision 1.5  2001/07/20 07:34:43  richard
+# Quote the value put in the text input value attribute.
+#
 # Revision 1.4  2001/07/19 06:27:07  anthonybaxter
 # fixing (manually) the (dollarsign)Log(dollarsign) entries caused by
 # my using the magic (dollarsign)Id(dollarsign) and (dollarsign)Log(dollarsign)
