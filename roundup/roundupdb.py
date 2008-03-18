@@ -422,7 +422,7 @@ class IssueClass:
                 # Default the reply to the first message
                 msgs = self.get(nodeid, 'messages')
                 # Assume messages are sorted by increasing message number here
-                if msgs[0] != nodeid:
+                if msgs and msgs[0] != nodeid:
                     inreplyto = messages.get(msgs[0], 'messageid')
                     if inreplyto:
                         writer.addheader('In-Reply-To', inreplyto)
